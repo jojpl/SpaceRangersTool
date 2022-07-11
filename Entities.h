@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <string_view>
 
 namespace Entities
 {
@@ -11,6 +12,8 @@ namespace Entities
 
 	enum class Type
 	{
+		Unknown,
+
 		Alcohol,
 		Arms,
 		ArtAnalyzer,
@@ -86,6 +89,9 @@ namespace Entities
 		Type_NUM,
 	};
 
+	template<typename T>
+	T str2type(std::string_view sw);
+
 	enum class GoodsEnum
 	{
 		Food,
@@ -100,6 +106,7 @@ namespace Entities
 		GoodsEnum_NUM
 	};
 
+
 	struct Item;
 	struct Star;
 	struct Planet;
@@ -107,10 +114,15 @@ namespace Entities
 	struct Player;
 
 
+	struct Unknown
+	{};
+
 	struct GoodsQty
 	{
 		array<int, (int)GoodsEnum::GoodsEnum_NUM> packed;
 	};
+
+	GoodsQty unpack_goods_str(std::string_view sw);
 
 	struct EqList
 	{

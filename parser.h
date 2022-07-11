@@ -6,6 +6,9 @@
 #include <stack>
 #include <tuple>
 
+//#include "boost\variant.hpp"
+#include <variant>
+
 bool read_file(std::string& out, const std::wstring& path);
 void parse(const std::string& mem);
 
@@ -27,8 +30,12 @@ struct Parser_Ctx
 
 	struct Stack
 	{
-		void * p;
-		Curstruct st;
+		std::variant<
+			Entities::Unknown*, //unknown type
+			Entities::Global*,
+			Entities::Player*,
+			Entities::StarList*
+		> p;
 	};
 
 	bool is_object_open() const;
@@ -56,12 +63,34 @@ public:
 private:
 	void parse_line();
 
+#if 0
 	void handle(Entities::Global* p);
 	void handle(Entities::Player* p);
 	void handle(Entities::EqList* p);
 	void handle(Entities::StarList* p);
 	void handle(Entities::Item*   p);
 	void handle(void*             p);
-
+#endif //0
 	Parser_Ctx ctx;
+};
+
+class Handler
+{
+public:
+	Handler(Parser_Ctx& ctx_)
+		:ctx(ctx_)
+	{}
+
+	void operator()(Entities::Unknown*);
+
+	void operator()(Entities::Global* p);
+	void operator()(Entities::Player* p);
+	void operator()(Entities::StarList* p);
+	void operator()(Entities::Star* p);
+
+
+
+private:
+
+	Parser_Ctx& ctx;
 };

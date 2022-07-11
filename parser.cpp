@@ -10,20 +10,8 @@
 #include <sstream>
 #include <map>
 
-
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
-
-enum class Curstruct
-{
-	Unknown,
-
-	Global,
-	Player,
-	EqList,
-	Item,
-	StarList,
-};
 
 bool read_file(std::string& out, const std::wstring& path)
 {
@@ -114,7 +102,11 @@ void Parser::parse_line()
 	std::string out;
 	out.assign(ctx.line_beg_, ctx.line_end_);
 
+	//Entities::unpack_goods_str("1,22,333,4444,0,55555");
+
 	auto& s = ctx.stack.top();
+	std::visit(Handler{ctx}, s.p);
+#if 0
 	switch (s.st)
 	{
 		case Curstruct::Global:
@@ -137,44 +129,18 @@ void Parser::parse_line()
 		default:
 			break;
 	}
-
+#endif
 	return;
 }
 
+#if 0
 void Parser::handle(Entities::Global* p)
 {
 	//int IDay;
 	//Player* Player;
 	//StarList StarList;
 
-	if (ctx.is_object_open())
-	{
-		auto obj_name = ctx.get_object_name();
-		if (obj_name == "Player")
-		{
-			p->Player = new Entities::Player{};
-			ctx.stack.push({ p->Player, Curstruct::Player });
-		}
-		else if (obj_name == "StarList")
-		{
-			ctx.stack.push({&p->StarList, Curstruct::StarList });
-		}
-		else
-		{
-			ctx.stack.push({nullptr, Curstruct::Unknown});
-		}
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		auto [key, value] = ctx.get_kv();
-		
-		if (key == "IDay")
-			p->IDay = conv::to_int(value);
-	}
+	
 }
 
 void Parser::handle(Entities::Player* p)
@@ -214,7 +180,7 @@ void Parser::handle(void* p)
 		return;
 	}
 }
-
+#endif //0
 
 void Parser_Ctx::init(const std::string& mem)
 {
@@ -222,7 +188,7 @@ void Parser_Ctx::init(const std::string& mem)
 	main_end_   = cend(mem);
 
 	out         = new Entities::Global{};
-	stack.push({out, Curstruct::Global});
+	stack.push({out});
 }
 
 void Parser_Ctx::set_line( std::string::const_iterator line_beg,
@@ -273,4 +239,94 @@ Parser_Ctx::get_kv() const
 		};
 	}
 	return {};
+}
+
+// unknown type correct handle
+void Handler::operator()(Entities::Unknown*)
+{
+	if (ctx.is_object_open())
+	{
+		auto obj_name = ctx.get_object_name();
+		ctx.stack.push({ (Entities::Unknown*)nullptr });
+	}
+	else if (ctx.is_object_close())
+	{
+		ctx.stack.pop();
+	}
+}
+
+void Handler::operator()(Entities::Global* p)
+{
+	if (ctx.is_object_open())
+	{
+		auto obj_name = ctx.get_object_name();
+		if (obj_name == "Player")
+		{
+			p->Player = new Entities::Player{};
+			ctx.stack.push({p->Player});
+		}
+		else if (obj_name == "StarList")
+		{
+			ctx.stack.push({ &p->StarList });
+		}
+		else
+		{
+			ctx.stack.push({ (Entities::Unknown*)nullptr });
+		}
+	}
+	else if (ctx.is_object_close())
+	{
+		ctx.stack.pop();
+	}
+	else
+	{
+		const auto[key, value] = ctx.get_kv();
+
+		if (key == "IDay")
+			p->IDay = conv::to_int(value);
+	}
+}
+
+void Handler::operator()(Entities::Player* p)
+{
+	if (ctx.is_object_open())
+	{
+		auto obj_name = ctx.get_object_name();
+		
+		{
+			ctx.stack.push({ (Entities::Unknown*)nullptr });
+		}
+	}
+	else if (ctx.is_object_close())
+	{
+		ctx.stack.pop();
+	}
+	else
+	{
+		const auto[key, value] = ctx.get_kv();
+
+		if (     key == "ICurStarId")
+			p->ICurStarId = conv::to_int(value);
+		else if (key == "IFullName")
+			p->IFullName = value;
+		else if (key == "IType")
+			p->IType = Entities::str2type<Entities::Type>(value);
+		else if (key == "Name")
+			p->Name = value;
+		else if (key == "IPlanet")
+			p->IPlanet = value;
+		else if (key == "Goods")
+			p->Goods = Entities::unpack_goods_str(value);
+
+	}
+}
+
+void Handler::operator()(Entities::StarList* p)
+{
+
+}
+
+void Handler::operator()(Entities::Star* p)
+{
+
 }
