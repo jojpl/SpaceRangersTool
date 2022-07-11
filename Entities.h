@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <map>
 #include <string_view>
 
 namespace Entities
@@ -9,6 +10,7 @@ namespace Entities
 	using string = std::string;
 	using std::vector;
 	using std::array;
+	using std::map;
 
 	enum class Type
 	{
@@ -119,7 +121,7 @@ namespace Entities
 
 	struct GoodsQty
 	{
-		array<int, (int)GoodsEnum::GoodsEnum_NUM> packed;
+		map<GoodsEnum, int> packed;
 	};
 
 	GoodsQty unpack_goods_str(std::string_view sw);

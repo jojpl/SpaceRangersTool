@@ -95,12 +95,12 @@ namespace Entities
 
 	GoodsQty unpack_goods_str(std::string_view sw)
 	{
-		GoodsQty goods{};
-		char buf[12] {};
+		GoodsQty goods;
 		const char* beg = sw.data();
 		const char* end = sw.data() + sw.size();
 		const char* p1 = beg;
 		const char* p2 = beg;
+
 		int cnt = 0;
 		while (p1 !=end)
 		{
@@ -111,7 +111,8 @@ namespace Entities
 			int res = conv::to_int(std::string_view(p1, p2 - p1));
 			p1 = p2;
 
-			goods.packed[cnt++] = res;
+			goods.packed[GoodsEnum(cnt)] = res;
+			cnt++;
 		}
 		return goods;
 	}
