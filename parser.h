@@ -34,7 +34,9 @@ struct Parser_Ctx
 			Entities::Unknown*, //unknown type
 			Entities::Global*,
 			Entities::Player*,
-			Entities::StarList*
+			//Entities::StarList*,
+			Entities::EqList*,
+			Entities::Item*
 		> p;
 	};
 
@@ -56,6 +58,7 @@ class Parser
 public:
 	Parser()
 	{
+		Entities::kv::init_storage();
 	}
 
 	void parse(const std::string& mem);
@@ -85,8 +88,11 @@ public:
 
 	void operator()(Entities::Global* p);
 	void operator()(Entities::Player* p);
-	void operator()(Entities::StarList* p);
-	void operator()(Entities::Star* p);
+	//void operator()(Entities::StarList* p);
+	//void operator()(Entities::Star* p);
+	void operator()(Entities::EqList * p);
+
+	void operator()(Entities::Item * p);
 
 
 

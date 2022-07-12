@@ -9,6 +9,7 @@
 #include <string_view>
 #include <sstream>
 #include <map>
+#include <type_traits>
 
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
@@ -101,8 +102,6 @@ void Parser::parse_line()
 	// при встрече новой структуры менять контекст (+ создание) и возвращаться
 	std::string out;
 	out.assign(ctx.line_beg_, ctx.line_end_);
-
-	//Entities::unpack_goods_str("1,22,333,4444,0,55555");
 
 	auto& s = ctx.stack.top();
 	std::visit(Handler{ctx}, s.p);
@@ -265,10 +264,10 @@ void Handler::operator()(Entities::Global* p)
 			p->Player = new Entities::Player{};
 			ctx.stack.push({p->Player});
 		}
-		else if (obj_name == "StarList")
-		{
-			ctx.stack.push({ &p->StarList });
-		}
+		//else if (obj_name == "StarList")
+		//{
+		//	ctx.stack.push({ &p->StarList });
+		//}
 		else
 		{
 			ctx.stack.push({ (Entities::Unknown*)nullptr });
@@ -292,7 +291,11 @@ void Handler::operator()(Entities::Player* p)
 	if (ctx.is_object_open())
 	{
 		auto obj_name = ctx.get_object_name();
-		
+		if (obj_name == "EqList")
+		{
+			ctx.stack.push({ &p->EqList });
+		}
+		else
 		{
 			ctx.stack.push({ (Entities::Unknown*)nullptr });
 		}
@@ -305,6 +308,14 @@ void Handler::operator()(Entities::Player* p)
 	{
 		const auto[key, value] = ctx.get_kv();
 
+		#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name;
+		#define PARSE_TO(field) add_definition(&t::field, #field);
+		#define END_PARSE() }
+		//conv::parse(&Entities::Player::ICurStarId, p, key, value);
+		auto a = &Entities::Player::ICurStarId;
+		get_value(Entities::kv::S{}, a);
+
+		#if 0
 		if (     key == "ICurStarId")
 			p->ICurStarId = conv::to_int(value);
 		else if (key == "IFullName")
@@ -316,17 +327,88 @@ void Handler::operator()(Entities::Player* p)
 		else if (key == "IPlanet")
 			p->IPlanet = value;
 		else if (key == "Goods")
-			p->Goods = Entities::unpack_goods_str(value);
-
+			p->Goods = conv::unpack_goods_str(value);
+		#endif
 	}
 }
 
-void Handler::operator()(Entities::StarList* p)
-{
+//void Handler::operator()(Entities::StarList* p)
+//{
+//
+//}
+//
+//void Handler::operator()(Entities::Star* p)
+//{
+//
+//}
 
+void Handler::operator()(Entities::EqList* p)
+{
+	if (ctx.is_object_open())
+	{
+		auto obj_name = ctx.get_object_name();
+		auto pos = obj_name.find_last_of("ItemId");
+		if (pos==5)
+		{
+			pos++;
+			int id = conv::to_int(std::string_view(&obj_name[pos], obj_name.size() - pos));
+			auto* item = new Entities::Item{};
+			item->id = id;
+			p->list.push_back(item);
+
+			ctx.stack.push({ item });
+		}
+		else
+		{
+			ctx.stack.push({ (Entities::Unknown*)nullptr });
+		}
+	}
+	else if (ctx.is_object_close())
+	{
+		ctx.stack.pop();
+	}
 }
 
-void Handler::operator()(Entities::Star* p)
+void Handler::operator()(Entities::Item* p)
 {
+	if (ctx.is_object_open())
+	{
+		ctx.stack.push({ (Entities::Unknown*)nullptr });
+	}
+	else if (ctx.is_object_close())
+	{
+		ctx.stack.pop();
+	}
+	else
+	{
+		const auto[key, value] = ctx.get_kv();
+		//using sss = decltype(Entities::Item::IName);
+		//constexpr bool s = std::is_same_v<sss, std::string>;
 
+		//conv::parse(&Entities::Item::IName, p, key, value, "IName");
+		#if 0
+		if (key == "ICurStarId")
+			p->ICurStarId = conv::to_int(value);
+		else if (key == "IFullName")
+
+		string IName;
+		Type	IType;			// = Hull
+		string	Owner;			// = Maloc
+		int	Size;				// = 625
+		int	Cost;				//= 10596
+		bool NoDrop;			// = False
+		//	Durability = 99.9999984306749
+		//	Broken = False
+		//	Bonus = 0
+		int	Special;			// = 202
+		string ISpecialName;	// = Корпус "Молния" I
+		string DomSeries;		// = Blazer
+		int	TechLevel;			// = 1
+		int	Armor;				// = 2
+		int	ShipType;			// = 9
+		int	Series;				// = 78
+		string ISeriesName;		// = Серия "Трантболл"
+		bool BuiltByPirate;		// = False
+		#endif
+	}
 }

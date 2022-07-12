@@ -124,8 +124,6 @@ namespace Entities
 		map<GoodsEnum, int> packed;
 	};
 
-	GoodsQty unpack_goods_str(std::string_view sw);
-
 	struct EqList
 	{
 		vector<Item*> list;
@@ -156,9 +154,27 @@ namespace Entities
 
 	struct Item
 	{
+		int id;
 		string IName;
+		Type	IType;			// = Hull
+		string	Owner;			// = Maloc
+		int	Size;				// = 625
+		int	Cost;				//= 10596
+		bool NoDrop;			// = False
+		//	Durability = 99.9999984306749
+		//	Broken = False
+		//	Bonus = 0
+		int	Special;			// = 202
+		string ISpecialName;	// = Корпус "Молния" I
+		string DomSeries;		// = Blazer
+		int	TechLevel;			// = 1
+		int	Armor;				// = 2
+		int	ShipType;			// = 9
+		int	Series;				// = 78
+		string ISeriesName;		// = Серия "Трантболл"
+		bool BuiltByPirate;		// = False
 	};
-
+#if 0
 	struct Planet
 	{
 
@@ -189,11 +205,27 @@ namespace Entities
 		ShipList ShipList;
 		PlanetList PlanetList;
 	};
-
+#endif
 	struct Global
 	{
 		int IDay;
 		Player* Player;
-		StarList StarList;
+		//StarList StarList;
 	};
+	
+	namespace kv
+	{
+		void init_storage();
+
+		// restore key for specified struct field
+		template<typename T, typename Ret>
+		std::string_view get_value(const Ret T::* field);
+
+
+		struct S
+		{};
+
+		template<typename T, typename Ret>
+		std::string_view get_value(S, const Ret T::* field);
+	}
 }
