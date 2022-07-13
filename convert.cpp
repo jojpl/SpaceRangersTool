@@ -13,6 +13,16 @@ namespace conv
 		return res;
 	}
 
+	int extractId(std::string_view sw)
+	{
+		// ItemId256
+		auto pos = sw.find_last_of("Id");
+		if(pos == sw.npos || (++pos == sw.size()))
+			throw std::logic_error(__FUNCTION__ " err!");
+			
+		return to_int(sw.substr(pos));
+	}
+
 	Entities::GoodsQty unpack_goods_str(std::string_view sw)
 	{
 		Entities::GoodsQty goods;

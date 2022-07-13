@@ -8,6 +8,8 @@ namespace conv
 {
 	int to_int(std::string_view sw);
 
+	int extractId(std::string_view sw);
+
 	Entities::GoodsQty unpack_goods_str(std::string_view sw);
 	
 	// default
@@ -37,6 +39,31 @@ namespace conv
 		{
 			return Entities::converter<Entities::Type>().from_string(value);
 		}
+	};	
+	
+	template<>
+	struct parse_type<Entities::GoodsQty>
+	{
+		Entities::GoodsQty operator()(std::string_view value)
+		{
+			return conv::unpack_goods_str(value);
+		}
+	};
+
+	template<>
+	struct parse_type<bool>
+	{
+		bool operator()(std::string_view value)
+		{
+			if(value == "False")
+				return false;
+			else if(value == "True")
+				return true;
+			else
+			{
+				throw std::logic_error(__FUNCTION__ " err!");
+			}
+		}
 	};
 
 	// for int, double
@@ -55,14 +82,15 @@ namespace conv
 	};
 
 	template<typename T, typename Ret>
-	void parse(Ret T::* field, T* p,
+	bool parse(Ret T::* field, T* p,
 		std::string_view key,
 		std::string_view value)
 	{
 		const auto key_expected = Entities::kv::get_value(field);
 		if (key != key_expected)
-			return;
+			return false;
 		Ret& g = p->*field;
 		g = parse_type<Ret>()(value);
+		return true;
 	}
 }

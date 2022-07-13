@@ -121,10 +121,11 @@ namespace Entities
 			BEGIN_DEF_FOR(Player)
 				ADD_DEF(ICurStarId)
 				ADD_DEF(IFullName)
-				ADD_DEF(IType);
+				ADD_DEF(IType)
 				ADD_DEF(Name)
 				ADD_DEF(IPlanet)
-				ADD_DEF(Money);
+				ADD_DEF(Money)
+				ADD_DEF(Goods)
 			END_DEF()
 
 			BEGIN_DEF_FOR(Item)

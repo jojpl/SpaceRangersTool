@@ -11,8 +11,14 @@
 #include <map>
 #include <type_traits>
 
+#include <set>
+#include <ostream>
+#include <fstream>
+#include <sstream>
+
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
+static const std::string crlf_tag = "\r\n";
 
 bool read_file(std::string& out, const std::wstring& path)
 {
@@ -309,34 +315,19 @@ void Handler::operator()(Entities::Player* p)
 	{
 		const auto[key, value] = ctx.get_kv();
 
-		#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name;
-		#define PARSE_TO(field) conv::parse(&t::field, p, key, value);
-		#define END_PARSE() }
-		//conv::parse(&Entities::Player::ICurStarId, p, key, value);
-		//auto a = &Entities::Player::ICurStarId;
-		//Entities::kv::get_value(a);
+		#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
+		#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
+		#define END_PARSE() }while(false);}
 
 		using namespace Entities;
 		BEGIN_PARSE_FOR(Player)
 			PARSE_TO(ICurStarId)
 			PARSE_TO(IFullName)
 			PARSE_TO(IType)
+			PARSE_TO(Name)
+			PARSE_TO(IPlanet)
+			PARSE_TO(Goods)
 		END_PARSE()
-
-		#if 0
-		if (     key == "ICurStarId")
-			p->ICurStarId = conv::to_int(value);
-		else if (key == "IFullName")
-			p->IFullName = value;
-		else if (key == "IType")
-			p->IType = Entities::str2type<Entities::Type>(value);
-		else if (key == "Name")
-			p->Name = value;
-		else if (key == "IPlanet")
-			p->IPlanet = value;
-		else if (key == "Goods")
-			p->Goods = conv::unpack_goods_str(value);
-		#endif
 	}
 }
 
@@ -355,11 +346,10 @@ void Handler::operator()(Entities::EqList* p)
 	if (ctx.is_object_open())
 	{
 		auto obj_name = ctx.get_object_name();
-		auto pos = obj_name.find_last_of("ItemId");
-		if (pos==5)
+		auto pos = obj_name.find("Item");
+		if (pos!=obj_name.npos)
 		{
-			pos++;
-			int id = conv::to_int(std::string_view(&obj_name[pos], obj_name.size() - pos));
+			int id = conv::extractId(obj_name);
 			auto* item = new Entities::Item{};
 			item->id = id;
 			p->list.push_back(item);
@@ -390,33 +380,126 @@ void Handler::operator()(Entities::Item* p)
 	else
 	{
 		const auto[key, value] = ctx.get_kv();
-		//using sss = decltype(Entities::Item::IName);
-		//constexpr bool s = std::is_same_v<sss, std::string>;
-
-		//conv::parse(&Entities::Item::IName, p, key, value, "IName");
-		#if 0
-		if (key == "ICurStarId")
-			p->ICurStarId = conv::to_int(value);
-		else if (key == "IFullName")
-
-		string IName;
-		Type	IType;			// = Hull
-		string	Owner;			// = Maloc
-		int	Size;				// = 625
-		int	Cost;				//= 10596
-		bool NoDrop;			// = False
-		//	Durability = 99.9999984306749
-		//	Broken = False
-		//	Bonus = 0
-		int	Special;			// = 202
-		string ISpecialName;	// = Корпус "Молния" I
-		string DomSeries;		// = Blazer
-		int	TechLevel;			// = 1
-		int	Armor;				// = 2
-		int	ShipType;			// = 9
-		int	Series;				// = 78
-		string ISeriesName;		// = Серия "Трантболл"
-		bool BuiltByPirate;		// = False
-		#endif
+		
+		using namespace Entities;
+		BEGIN_PARSE_FOR(Item)
+			PARSE_TO(IName)
+			PARSE_TO(IType)
+			PARSE_TO(Owner)
+			PARSE_TO(Size)
+			PARSE_TO(Cost)
+			PARSE_TO(NoDrop)
+			PARSE_TO(Special)
+			PARSE_TO(ISpecialName)
+			PARSE_TO(DomSeries)
+			PARSE_TO(TechLevel)
+			PARSE_TO(Armor)
+			PARSE_TO(ShipType)
+			PARSE_TO(Series)
+			PARSE_TO(ISeriesName)
+			PARSE_TO(BuiltByPirate)
+		END_PARSE()
 	}
+}
+
+void dump(std::ostream& os, std::map<std::string, std::set<std::string>>& obj)
+{
+	std::string op {"<"},		cl{ ">"}, 
+				op_cl {"</"},	cl_cl{"/>"};
+	for (auto& [IType, set] : obj)
+	{
+		os << 
+			"<" << IType << ">"
+		<< std::endl;
+
+		for (auto& val : set)
+		{
+			os << 
+				"\t" << "<" << val << "/>"
+				<< std::endl;
+		}
+
+
+		os << 
+			"</" << IType << ">"
+		<< std::endl;
+		os << std::endl;
+	}
+}
+
+void dump_to_mem(std::map<std::string, std::set<std::string>>& obj)
+{
+	std::stringstream ss;
+	dump(ss, obj);
+}
+
+void dump_to_file(std::map<std::string, std::set<std::string>>& obj)
+{
+	
+	std::ofstream os("dump");
+	dump(os, obj);
+}
+
+void some(const std::string& mem)
+{
+	std::string_view sw_mem{mem};
+	{
+		size_t p1 = 0;
+		std::map<std::string, std::set<std::string>> cnt;
+		while(true)
+		{
+			p1 = sw_mem.find("ItemId", p1);
+			//p1 = sw_mem.find("ShipId", p1);
+			if(p1 == std::string_view::npos)
+				break;
+
+			auto p2 = sw_mem.find(open_tag, p1);
+			p2 = sw_mem.find(crlf_tag, p2);
+			//std::string_view tmp2 = sw_mem.substr(p1, p2 - p1);
+			p2+=2;
+
+
+			auto p3 = sw_mem.find(close_tag, p2);
+			p3 += close_tag.size();
+			std::string_view tmp = sw_mem.substr(p2, p3 - p2);
+			{
+				std::set<std::string> set_keys;
+				std::string_view val;
+				size_t i1 = 0;
+				do{
+					i1 = tmp.find('=', i1);
+					if(i1 == std::string_view::npos)
+						break;
+					int beg = i1;
+					beg--;
+
+					while (true)
+					{
+						if(isalnum(tmp[beg])) beg--;
+						else
+						{
+							beg++;
+							break;
+						}
+					}
+					std::string_view key = tmp.substr(beg, i1 - beg);
+					if (key == "IType")
+					{
+						auto val_beg_pos = i1 + 1;
+						auto val_end_pos = tmp.find(crlf_tag, i1);
+						val = tmp.substr(val_beg_pos, val_end_pos - val_beg_pos);
+					}
+					set_keys.emplace(key.cbegin(), key.cend());
+					i1 = tmp.find(crlf_tag, i1);
+				}
+				while (i1!= std::string_view::npos);
+
+				cnt[{val.cbegin(), val.cend()}] = std::move(set_keys);
+			}
+			p1 = p3;
+		}
+		dump_to_mem(cnt);
+		return;
+	}
+	//while()
 }

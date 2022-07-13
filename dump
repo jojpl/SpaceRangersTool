@@ -1,0 +1,934 @@
+<Alcohol>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Alcohol>
+
+<Arms>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Arms>
+
+<ArtAnalyzer>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtAnalyzer>
+
+<ArtAntigrav>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtAntigrav>
+
+<ArtDecelerate>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtDecelerate>
+
+<ArtDefToArms1>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtDefToArms1>
+
+<ArtDefToArms2>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtDefToArms2>
+
+<ArtDefToEnergy>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtDefToEnergy>
+
+<ArtDroid>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtDroid>
+
+<ArtEnergyDef>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtEnergyDef>
+
+<ArtForsage>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtForsage>
+
+<ArtFuel>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtFuel>
+
+<ArtGiperJump>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtGiperJump>
+
+<ArtHook>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtHook>
+
+<ArtHull>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtHull>
+
+<ArtMiniExpl>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtMiniExpl>
+
+<ArtNano>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtNano>
+
+<ArtPDTurret>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtPDTurret>
+
+<ArtPower>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtPower>
+
+<ArtRadar>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtRadar>
+
+<ArtScaner>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtScaner>
+
+<ArtSpeed>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtSpeed>
+
+<ArtSplinter>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtSplinter>
+
+<ArtTransmitter>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Power/>
+	<Size/>
+	<Special/>
+</ArtTransmitter>
+
+<ArtWeaponToSpeed>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</ArtWeaponToSpeed>
+
+<CargoHook>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Power/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<SpeedMax/>
+	<SpeedMin/>
+	<TechLevel/>
+</CargoHook>
+
+<Cistern>
+	<Bonus/>
+	<Broken/>
+	<Capacity/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<Fuel/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+	<X/>
+	<Y/>
+</Cistern>
+
+<DefGenerator>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Power/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</DefGenerator>
+
+<Engine>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<Jump/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+	<Speed/>
+	<TechLevel/>
+</Engine>
+
+<Food>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Food>
+
+<FuelTanks>
+	<Bonus/>
+	<Broken/>
+	<Capacity/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<Fuel/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</FuelTanks>
+
+<Hull>
+	<Armor/>
+	<Bonus/>
+	<Broken/>
+	<BuiltByPirate/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<ISeriesName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Series/>
+	<ShipType/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</Hull>
+
+<Luxury>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Luxury>
+
+<Medicine>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Medicine>
+
+<Minerals>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<X/>
+	<Y/>
+</Minerals>
+
+<Narcotics>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Narcotics>
+
+<Nod>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IBonusName/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+</Nod>
+
+<Protoplasm>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+	<X/>
+	<Y/>
+</Protoplasm>
+
+<Radar>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</Radar>
+
+<RepairRobot>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Repair/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</RepairRobot>
+
+<Scaner>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Power/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</Scaner>
+
+<Technics>
+	<Cost/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+</Technics>
+
+<UselessItem>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<NoDrop/>
+	<Owner/>
+	<Size/>
+	<Special/>
+	<SysName/>
+	<X/>
+	<Y/>
+</UselessItem>
+
+<W01>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</W01>
+
+<W02>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</W02>
+
+<W03>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W03>
+
+<W04>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W04>
+
+<W05>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+	<X/>
+	<Y/>
+</W05>
+
+<W06>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W06>
+
+<W07>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W07>
+
+<W08>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W08>
+
+<W09>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W09>
+
+<W10>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W10>
+
+<W11>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W11>
+
+<W12>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W12>
+
+<W13>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W13>
+
+<W14>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W14>
+
+<W15>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W15>
+
+<W17>
+	<Ammo/>
+	<Bonus/>
+	<Broken/>
+	<Cost/>
+	<DomSeries/>
+	<Durability/>
+	<IName/>
+	<IType/>
+	<MaxAmmo/>
+	<MaxDamage/>
+	<MinDamage/>
+	<NoDrop/>
+	<Owner/>
+	<Radius/>
+	<Size/>
+	<Special/>
+	<TechLevel/>
+</W17>
+
