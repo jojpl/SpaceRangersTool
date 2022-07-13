@@ -1,7 +1,5 @@
 #include "convert.h"
 
-#include <charconv>
-
 namespace conv
 {
 	int to_int(std::string_view sw)
@@ -39,40 +37,4 @@ namespace conv
 		return goods;
 	}
 
-	// default
-	template<typename Ret, typename SFINAE = void>
-	struct parse_type
-	{
-		Ret operator()(std::string_view value)
-		{
-			return value;
-		}
-	};
-
-	// for int, double
-	template<typename Ret>
-	struct parse_type<Ret, std::enable_if_t<
-		std::is_same_v<Ret, int>
-		|| std::is_same_v<Ret, double>>
-		>
-	{
-		Ret operator()(std::string_view value)
-		{
-			Ret i;
-			std::from_chars(value.data(), value.data() + value.size(), i);
-			return i;
-		}
-	};
-
-	template<typename T, typename Ret>
-	void parse(Ret T::* field, T* p,
-		std::string_view key,
-		std::string_view value)
-	{
-		const auto key_expected = Entities::kv::get_value(field);
-		if (key != key_expected)
-			return;
-		Ret& g = p->*field;
-		g = parse_type<Ret>()(value);
-	}
 }

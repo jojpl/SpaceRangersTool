@@ -90,9 +90,26 @@ namespace Entities
 
 		Type_NUM,
 	};
+	
+	extern const std::map< std::string_view, Type> map_for_T;
+	namespace
+	{
+		template<typename T>
+		auto& get_map()
+		{
+			return map_for_T;
+		}
+	}
 
 	template<typename T>
-	T str2type(std::string_view sw);
+	struct converter
+	{
+		T from_string(std::string_view sw)
+		{
+			const auto& map = get_map<T>();
+			return map.at(sw);
+		}
+	};
 
 	enum class GoodsEnum
 	{
@@ -221,11 +238,40 @@ namespace Entities
 		template<typename T, typename Ret>
 		std::string_view get_value(const Ret T::* field);
 
+		template<typename T, typename Ret>
+		inline std::vector<std::pair<Ret T::*, std::string_view>> storage {};
 
-		struct S
-		{};
+		// store keys for struct fields
+		template<typename T, typename Ret>
+		auto& get_storage(Ret T::* field)
+		{
+			//inline static std::vector<std::pair<Ret T::*, std::string_view>> storage;
+			return storage<T, Ret>;
+		}
 
 		template<typename T, typename Ret>
-		std::string_view get_value(S, const Ret T::* field);
+		void add_definition(const Ret T::* field,
+			std::string_view key)
+		{
+			auto& storage = get_storage(field);
+			storage.push_back({ field, key });
+		}
+
+		template<typename T, typename Ret>
+		std::string_view get_value(const Ret T::* field)
+		{
+			//constexpr auto r = offsetof(T, field);
+			const auto& storage = get_storage(field);
+			for (const auto& item : storage)
+			{
+				if (item.first == field)
+					return item.second;
+			}
+
+			using namespace std::string_literals;
+			throw std::logic_error(
+				"empty value for: "s + typeid(field).name()
+			);
+		}
 	}
 }

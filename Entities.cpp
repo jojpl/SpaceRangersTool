@@ -10,7 +10,7 @@
 namespace Entities
 {
 	#define NAME2TYPE_ELEMENT(name) {#name, Type::name}
-	const std::map< std::string_view, Type> map
+	const std::map< std::string_view, Type> map_for_T
 	{
 		NAME2TYPE_ELEMENT(Alcohol),
 		NAME2TYPE_ELEMENT(Arms),
@@ -86,53 +86,14 @@ namespace Entities
 	};
 	#undef NAME2TYPE_ELEMENT
 
-	template<>
-	Type str2type(std::string_view sw)
-	{
-		return map.at(sw);
-	}
+	//template<>
+	//Type str2type(std::string_view sw)
+	//{
+	//	return map.at(sw);
+	//}
 
 	namespace kv
 	{
-		// store keys for struct fields
-		template<typename T, typename Ret>
-		auto& get_storage(Ret T::* field)
-		{
-			static std::vector<std::pair<Ret T::*, std::string_view>> storage;
-			return storage;
-		}
-
-		template<typename T, typename Ret>
-		void add_definition(const Ret T::* field,
-			std::string_view key)
-		{
-			auto& storage = get_storage(field);
-			storage.push_back({ field, key });
-		}
-
-		template<typename T, typename Ret>
-		std::string_view get_value(const Ret T::* field)
-		{
-			//constexpr auto r = offsetof(T, field);
-			const auto& storage = get_storage(field);
-			for (const auto& item : storage)
-			{
-				if (item.first == field)
-					return item.second;
-			}
-
-			using namespace std::string_literals;
-			throw std::logic_error(
-				"empty value for: "s + typeid(field).name()
-			);
-		}
-
-		template<typename T, typename Ret>
-		std::string_view get_value(S, const Ret T::* field)
-		{
-			return get_value(field);
-		}
-
 		void init_storage_impl();
 		
 		bool is_inited = false;

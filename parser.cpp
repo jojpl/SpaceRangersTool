@@ -281,8 +281,9 @@ void Handler::operator()(Entities::Global* p)
 	{
 		const auto[key, value] = ctx.get_kv();
 
-		if (key == "IDay")
-			p->IDay = conv::to_int(value);
+		//if (key == "IDay")
+		//	p->IDay = conv::to_int(value);
+		conv::parse(&Entities::Global::IDay, p, key, value);
 	}
 }
 
@@ -309,11 +310,18 @@ void Handler::operator()(Entities::Player* p)
 		const auto[key, value] = ctx.get_kv();
 
 		#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name;
-		#define PARSE_TO(field) add_definition(&t::field, #field);
+		#define PARSE_TO(field) conv::parse(&t::field, p, key, value);
 		#define END_PARSE() }
 		//conv::parse(&Entities::Player::ICurStarId, p, key, value);
-		auto a = &Entities::Player::ICurStarId;
-		get_value(Entities::kv::S{}, a);
+		//auto a = &Entities::Player::ICurStarId;
+		//Entities::kv::get_value(a);
+
+		using namespace Entities;
+		BEGIN_PARSE_FOR(Player)
+			PARSE_TO(ICurStarId)
+			PARSE_TO(IFullName)
+			PARSE_TO(IType)
+		END_PARSE()
 
 		#if 0
 		if (     key == "ICurStarId")
