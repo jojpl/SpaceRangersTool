@@ -18,6 +18,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	extern void some(const std::string& mem);
-	some(mem);
+	//some(mem);
     parse(mem);
 }

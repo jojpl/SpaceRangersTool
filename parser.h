@@ -21,11 +21,15 @@ struct Parser_Ctx
 	void set_line(	std::string::const_iterator line_beg,
 					std::string::const_iterator line_end);
 
+	void set_line(	std::string_view	);
+
 	std::string::const_iterator main_begin_,
 								main_end_;
 
 	std::string::const_iterator line_beg_,
 								line_end_;
+
+	std::string_view line_;
 	
 
 	struct Stack
@@ -43,7 +47,6 @@ struct Parser_Ctx
 	bool is_object_open() const;
 	bool is_object_close() const;
 	std::string_view get_object_name() const;
-	std::string_view get_cur_line_str() const;
 	
 	std::pair<std::string_view, std::string_view>
 	get_kv() const;

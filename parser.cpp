@@ -40,23 +40,14 @@ bool getline(std::string::const_iterator beg,
 			std::string::const_iterator& line_end,
 			std::string::const_iterator& next_beg)
 {
-	if (beg != end)
-	{
-		const auto f = std::find(beg, end, '\r');
-		if (f != end)
-		{
-			line_beg = beg;
-			line_end = f;
-			next_beg = f;
-			if(f[1] == '\n') 
-				std::advance(next_beg, 2);
-			else
-				std::advance(next_beg, 1);
-			return true;
-		}
+	const auto f = std::search(beg, end, crlf_tag.cbegin(), crlf_tag.cend());
+	if (f == end)
 		return false;
-	}
-	return false;
+
+	line_beg = beg;
+	line_end = f;
+	next_beg = f + crlf_tag.size();
+	return true;
 }
 
 void trim_tabs(std::string::const_iterator& beg,
@@ -64,6 +55,12 @@ void trim_tabs(std::string::const_iterator& beg,
 {
 	while (beg !=end && *beg =='\t') ++beg;
 	while (beg !=end && *(end - 1) == '\t') --end;
+}
+
+void trim_tabs(std::string_view& beg)
+{
+	while (beg.size() && beg.front() == '\t') beg.remove_prefix(1);
+	while (beg.size() && beg.back() == '\t') beg.remove_suffix(1);
 }
 
 void parse(const std::string& mem)
@@ -80,21 +77,42 @@ void parse(const std::string& mem)
 	return;
 }
 
+bool getline(	std::string_view str,
+				std::string_view& out_line,
+				std::string_view& out_next)
+{
+	if (str.data())
+	{
+		auto f = str.find(crlf_tag);
+		if (f != std::string_view::npos)
+		{
+			out_line = str.substr(0, f);
+			out_next = str.substr(f + crlf_tag.size());
+			return true;
+		}
+
+		out_line = str;
+		out_next = {};
+		return true;
+	}
+	return false;
+}
+
 void Parser::parse(const std::string& mem)
 {
 	ctx.init(mem);
 
-	std::string::const_iterator next_beg = ctx.main_begin_;
+	std::string_view line, next_line{ mem };
 
-	std::string::const_iterator line_beg, line_end;
-	while (getline( next_beg, ctx.main_end_,
-					line_beg, line_end,
-					next_beg ))
+	while (getline(next_line, line, next_line))
 	{
-		trim_tabs(line_beg, line_end);
+		trim_tabs(line);
 
-		ctx.set_line(line_beg, line_end);
+		//ctx.set_line(line_beg, line_end);
+		ctx.set_line(line);
+
 		parse_line();
+		int i =7;
 	}
 }
 
@@ -106,8 +124,8 @@ void Parser::parse_line()
 	// чего из контекста выбирать, диспатчить по нему,
 	// в хендлерах для конкретной структуры заполнять поля
 	// при встрече новой структуры менять контекст (+ создание) и возвращаться
-	std::string out;
-	out.assign(ctx.line_beg_, ctx.line_end_);
+	//std::string out;
+	//out.assign(ctx.line_beg_, ctx.line_end_);
 
 	auto& s = ctx.stack.top();
 	std::visit(Handler{ctx}, s.p);
@@ -203,44 +221,54 @@ void Parser_Ctx::set_line( std::string::const_iterator line_beg,
 	line_end_ = std::move(line_end);
 }
 
+void Parser_Ctx::set_line(std::string_view line_beg)
+{
+	line_ = line_beg;
+}
+
 bool Parser_Ctx::is_object_open() const
 {
-	return std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend()) != line_end_;
+	//return std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend()) != line_end_;
+	return line_.find(open_tag)!= line_.npos;
 }
 
 bool Parser_Ctx::is_object_close() const
 {
-	return std::search(line_beg_, line_end_, close_tag.cbegin(), close_tag.cend()) != line_end_;
+	//return std::search(line_beg_, line_end_, close_tag.cbegin(), close_tag.cend()) != line_end_;
+	return line_.find(close_tag) != line_.npos;
 }
 
 std::string_view 
 Parser_Ctx::get_object_name() const
 {
-	const auto f = std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend());
-	if (f != line_end_)
+	//const auto f = std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend());
+	//if (f != line_end_)
+	//{
+	//	return std::string_view(&*line_beg_, std::distance(line_beg_, f));
+	//}
+	//return {};
+
+	const auto f = line_.find(open_tag);
+	if (f != line_.npos)
 	{
-		return std::string_view(&*line_beg_, std::distance(line_beg_, f));
+		//return std::string_view(&*line_beg_, std::distance(line_beg_, f));
+		return line_.substr(0, f + 1);
 	}
 	return {};
-}
-
-std::string_view
-Parser_Ctx::get_cur_line_str() const
-{
-	return std::string_view( &*line_beg_, std::distance(line_beg_, line_end_) );
 }
 
 std::pair<std::string_view, std::string_view>
 Parser_Ctx::get_kv() const
 {
-	const auto f = std::find(line_beg_, line_end_, '=');
-	if (f != line_end_)
+	const auto f = line_.find('=');
+	if (f != line_.npos)
 	{
-		auto value_beg = f + 1;
 		return 
-		{ 
-			std::string_view(&*line_beg_, std::distance(line_beg_, f)),
-			std::string_view(&*value_beg, std::distance(value_beg, line_end_))
+		{
+			line_.substr(0, f),
+			line_.substr(f + 1)
+			//std::string_view(&*line_beg_, std::distance(line_beg_, f)),
+			//std::string_view(&*value_beg, std::distance(value_beg, line_end_))
 		};
 	}
 	return {};
