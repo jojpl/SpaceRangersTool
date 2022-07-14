@@ -174,22 +174,40 @@ namespace Entities
 		int id;
 		string IName;
 		Type	IType;			// = Hull
-		string	Owner;			// = Maloc
 		int	Size;				// = 625
-		int	Cost;				//= 10596
-		bool NoDrop;			// = False
-		//	Durability = 99.9999984306749
-		//	Broken = False
-		//	Bonus = 0
-		int	Special;			// = 202
-		string ISpecialName;	// = Корпус "Молния" I
-		string DomSeries;		// = Blazer
-		int	TechLevel;			// = 1
-		int	Armor;				// = 2
-		int	ShipType;			// = 9
-		int	Series;				// = 78
-		string ISeriesName;		// = Серия "Трантболл"
-		bool BuiltByPirate;		// = False
+
+		int Ammo;
+		int Armor;
+		int Bonus;
+		bool Broken;
+		bool BuiltByPirate;
+		int	Capacity;
+		int	Cost;
+		string	DomSeries;
+		double	Durability;
+		int	Fuel;
+		string IBonusName;
+		string ISeriesName;
+		string ISpecialName;
+		int	Jump;
+		int	MaxAmmo;
+		int	MaxDamage;
+		int	MinDamage;
+		bool	NoDrop;
+		string	Owner;
+		int	Power;
+		int	Radius;
+		int	Repair;
+		int	Series;
+		int	ShipType;
+		int	Special;
+		int	Speed;
+		int	SpeedMax;
+		int	SpeedMin;
+		int	SysName;
+		int	TechLevel;
+		double	X;
+		double	Y;
 	};
 #if 0
 	struct Planet
