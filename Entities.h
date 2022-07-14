@@ -84,31 +84,12 @@ namespace Entities
 		W13,
 		W14,
 		W15,
+		W16,
 		W17,
 		WB,
 		Warrior,
 
 		Type_NUM,
-	};
-	
-	extern const std::map< std::string_view, Type> map_for_T;
-	namespace
-	{
-		template<typename T>
-		auto& get_map()
-		{
-			return map_for_T;
-		}
-	}
-
-	template<typename T>
-	struct converter
-	{
-		T from_string(std::string_view sw)
-		{
-			const auto& map = get_map<T>();
-			return map.at(sw);
-		}
 	};
 
 	enum class GoodsEnum
@@ -124,7 +105,15 @@ namespace Entities
 
 		GoodsEnum_NUM
 	};
+	
+	
 
+	template<typename T>
+	auto& get_map()
+	{
+		static std::map< std::string_view, T> map_for;
+		return map_for;
+	}
 
 	struct Item;
 	struct Star;
@@ -246,6 +235,22 @@ namespace Entities
 		int IDay;
 		Player* Player;
 		//StarList StarList;
+	};
+
+	template<typename T>
+	struct converter
+	{
+		T from_string(std::string_view sw)
+		{
+			const auto& map = get_map<T>();
+			return map.at(sw);
+		}
+
+		bool is_string_for(std::string_view sw)
+		{
+			const auto& map = get_map<T>();
+			return map.find(sw) != map.cend();
+		}
 	};
 	
 	namespace kv

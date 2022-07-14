@@ -1,5 +1,6 @@
 #pragma once
 #include "Entities.h"
+#include "convert.h"
 
 #include <string>
 #include <string_view>
@@ -11,8 +12,11 @@
 
 bool read_file(std::string& out, const std::wstring& path);
 void parse(const std::string& mem);
+void trim_tabs(std::string_view& beg);
+bool getline(std::string_view str,
+	std::string_view& out_line,
+	std::string_view& out_next);
 
-enum class Curstruct;
 
 struct Parser_Ctx
 {
@@ -46,10 +50,6 @@ struct Parser_Ctx
 class Parser
 {
 public:
-	Parser()
-	{
-		Entities::kv::init_storage();
-	}
 
 	void parse(const std::string& mem);
 

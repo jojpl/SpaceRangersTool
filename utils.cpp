@@ -1,3 +1,5 @@
+#include "parser.h"
+
 #include <set>
 #include <map>
 #include <ostream>
@@ -59,62 +61,76 @@ void dump_to_file(std::map<std::string, std::set<std::string>>& obj)
 void some(const std::string& mem)
 {
 	std::string_view sw_mem{ mem };
+	std::map<std::string, std::set<std::string>> cnt;
+	
+	Parser_Ctx ctx;
+
+	auto is_item_obj = [](Parser_Ctx& ctx)
 	{
-		size_t p1 = 0;
-		std::map<std::string, std::set<std::string>> cnt;
-		while (true)
+		if(!ctx.stack.empty())
 		{
-			p1 = sw_mem.find("ItemId", p1);
-			//p1 = sw_mem.find("ShipId", p1);
-			if (p1 == std::string_view::npos)
-				break;
-
-			auto p2 = sw_mem.find(open_tag, p1);
-			p2 = sw_mem.find(crlf_tag, p2);
-			//std::string_view tmp2 = sw_mem.substr(p1, p2 - p1);
-			p2 += 2;
-
-
-			auto p3 = sw_mem.find(close_tag, p2);
-			p3 += close_tag.size();
-			std::string_view tmp = sw_mem.substr(p2, p3 - p2);
-			{
-				std::set<std::string> set_keys;
-				std::string_view val;
-				size_t i1 = 0;
-				do {
-					i1 = tmp.find('=', i1);
-					if (i1 == std::string_view::npos)
-						break;
-					int beg = i1;
-					beg--;
-
-					while (true)
-					{
-						if (isalnum(tmp[beg])) beg--;
-						else
-						{
-							beg++;
-							break;
-						}
-					}
-					std::string_view key = tmp.substr(beg, i1 - beg);
-					if (key == "IType")
-					{
-						auto val_beg_pos = i1 + 1;
-						auto val_end_pos = tmp.find(crlf_tag, i1);
-						val = tmp.substr(val_beg_pos, val_end_pos - val_beg_pos);
-					}
-					set_keys.emplace(key.cbegin(), key.cend());
-					i1 = tmp.find(crlf_tag, i1);
-				} while (i1 != std::string_view::npos);
-
-				cnt[{val.cbegin(), val.cend()}] = std::move(set_keys);
-			}
-			p1 = p3;
+			if(std::get_if<Entities::Item*>(&ctx.stack.top()))
+				return true;
 		}
-		dump_to_mem(cnt);
-		return;
+		return false;
+	};
+
+	std::string typeId;
+	std::set<std::string> s;
+
+	std::string_view line, next_line{ mem };
+	while (getline(next_line, line, next_line))
+	{
+		trim_tabs(line);
+
+		ctx.set_line(line);
+
+		// parse
+		if (ctx.is_object_open())
+		{
+			auto obj = ctx.get_object_name();
+			if (obj.find("ItemId") == 0) //finded in beg str
+			{
+				ctx.stack.push((Entities::Item*)0);
+			}
+			else
+				ctx.stack.push((Entities::Unknown*)0);
+		}
+		else if (ctx.is_object_close())
+		{
+			if(is_item_obj(ctx))
+			{
+				cnt[typeId] = s;
+				s.clear();
+			}
+			ctx.stack.pop();
+		}
+		else if(is_item_obj(ctx))
+		{
+			const auto [key, value] = ctx.get_kv();
+			if (key == "IType")
+			{
+				std::string_view t = value;
+				if (t.find("Art") == 0)
+				{
+					t = value.substr(0, 3);
+				}
+				else if(t.size() == 3 && t.find("W") == 0)
+				{
+					t = value.substr(0, 1);
+				}
+				else if(Entities::converter<Entities::GoodsEnum>().is_string_for(t))
+				{
+					t = "goods_arr";
+				}
+				typeId = t;
+			}
+			else
+			{
+				s.insert(std::string{ key });
+			}
+		}
 	}
-	//while()
+
+	dump_to_mem(cnt);
 }

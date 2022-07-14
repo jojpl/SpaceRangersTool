@@ -8,6 +8,7 @@
 
 int main(int argc, char *argv[])
 {
+	Entities::kv::init_storage();
 	//DebugBreak();
 	std::wstring file = L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
 	L"Планета Палтеомео-dump.txt";
@@ -18,6 +19,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	extern void some(const std::string& mem);
-	//some(mem);
-    parse(mem);
+	some(mem);
+    //parse(mem);
 }

@@ -1,8 +1,5 @@
 #include "parser.h"
 
-#include "Entities.h"
-#include "convert.h"
-
 #include <io.h>
 #include <iostream>
 #include <algorithm>
@@ -158,7 +155,7 @@ Parser_Ctx::get_object_name() const
 	const auto f = line_.find(open_tag);
 	if (f != line_.npos)
 	{
-		return line_.substr(0, f + 1);
+		return line_.substr(0, f);
 	}
 	return {};
 }
@@ -255,6 +252,7 @@ void Handler::operator()(Entities::Player* p)
 			PARSE_TO(IType)
 			PARSE_TO(Name)
 			PARSE_TO(IPlanet)
+			PARSE_TO(Money)
 			PARSE_TO(Goods)
 		END_PARSE()
 	}
