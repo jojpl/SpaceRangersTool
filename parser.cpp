@@ -20,6 +20,10 @@ static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
 static const std::string crlf_tag = "\r\n";
 
+#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
+#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
+#define END_PARSE() }while(false);}
+
 bool read_file(std::string& out, const std::wstring& path)
 {
 	FILE* f = _wfopen(path.c_str(), L"rb");
@@ -108,7 +112,6 @@ void Parser::parse(const std::string& mem)
 	{
 		trim_tabs(line);
 
-		//ctx.set_line(line_beg, line_end);
 		ctx.set_line(line);
 
 		parse_line();
@@ -128,97 +131,15 @@ void Parser::parse_line()
 	//out.assign(ctx.line_beg_, ctx.line_end_);
 
 	auto& s = ctx.stack.top();
-	std::visit(Handler{ctx}, s.p);
-#if 0
-	switch (s.st)
-	{
-		case Curstruct::Global:
-			handle((Entities::Global*)s.p);
-			break;
-		case Curstruct::Player:
-			handle((Entities::Player*)s.p);
-			break;
-		case Curstruct::EqList:
-			handle((Entities::EqList*)s.p);
-			break;		
-		case Curstruct::Item:
-			handle((Entities::Item*)s.p);
-			break;
-		case Curstruct::StarList:
-			handle((Entities::StarList*)s.p);
-			break;
-		case Curstruct::Unknown:
-			handle((void*)s.p);
-		default:
-			break;
-	}
-#endif
+	std::visit(Handler{ctx}, s);
 	return;
 }
 
-#if 0
-void Parser::handle(Entities::Global* p)
-{
-	//int IDay;
-	//Player* Player;
-	//StarList StarList;
-
-	
-}
-
-void Parser::handle(Entities::Player* p)
-{
-	handle((void*)p);
-}
-
-void Parser::handle(Entities::EqList* p)
-{
-	handle((void*)p);
-}
-
-void Parser::handle(Entities::StarList * p)
-{
-	handle((void*)p);
-}
-
-void Parser::handle(Entities::Item* p)
-{
-	handle((void*)p);
-}
-
-void Parser::handle(void* p)
-{
-	if (ctx.is_object_open())
-	{
-		auto obj_name = ctx.get_object_name();
-		ctx.stack.push({ nullptr, Curstruct::Unknown });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		auto[key, value] = ctx.get_kv();
-		return;
-	}
-}
-#endif //0
 
 void Parser_Ctx::init(const std::string& mem)
 {
-	main_begin_ = cbegin(mem);
-	main_end_   = cend(mem);
-
 	out         = new Entities::Global{};
 	stack.push({out});
-}
-
-void Parser_Ctx::set_line( std::string::const_iterator line_beg,
-						   std::string::const_iterator line_end )
-{
-	line_beg_ = std::move(line_beg);
-	line_end_ = std::move(line_end);
 }
 
 void Parser_Ctx::set_line(std::string_view line_beg)
@@ -228,30 +149,20 @@ void Parser_Ctx::set_line(std::string_view line_beg)
 
 bool Parser_Ctx::is_object_open() const
 {
-	//return std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend()) != line_end_;
 	return line_.find(open_tag)!= line_.npos;
 }
 
 bool Parser_Ctx::is_object_close() const
 {
-	//return std::search(line_beg_, line_end_, close_tag.cbegin(), close_tag.cend()) != line_end_;
 	return line_.find(close_tag) != line_.npos;
 }
 
 std::string_view 
 Parser_Ctx::get_object_name() const
 {
-	//const auto f = std::search(line_beg_, line_end_, open_tag.cbegin(), open_tag.cend());
-	//if (f != line_end_)
-	//{
-	//	return std::string_view(&*line_beg_, std::distance(line_beg_, f));
-	//}
-	//return {};
-
 	const auto f = line_.find(open_tag);
 	if (f != line_.npos)
 	{
-		//return std::string_view(&*line_beg_, std::distance(line_beg_, f));
 		return line_.substr(0, f + 1);
 	}
 	return {};
@@ -267,8 +178,6 @@ Parser_Ctx::get_kv() const
 		{
 			line_.substr(0, f),
 			line_.substr(f + 1)
-			//std::string_view(&*line_beg_, std::distance(line_beg_, f)),
-			//std::string_view(&*value_beg, std::distance(value_beg, line_end_))
 		};
 	}
 	return {};
@@ -315,9 +224,10 @@ void Handler::operator()(Entities::Global* p)
 	{
 		const auto[key, value] = ctx.get_kv();
 
-		//if (key == "IDay")
-		//	p->IDay = conv::to_int(value);
-		conv::parse(&Entities::Global::IDay, p, key, value);
+		using namespace Entities;
+		BEGIN_PARSE_FOR(Global)
+			PARSE_TO(IDay)
+		END_PARSE()
 	}
 }
 
@@ -342,10 +252,6 @@ void Handler::operator()(Entities::Player* p)
 	else
 	{
 		const auto[key, value] = ctx.get_kv();
-
-		#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
-		#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
-		#define END_PARSE() }while(false);}
 
 		using namespace Entities;
 		BEGIN_PARSE_FOR(Player)

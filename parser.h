@@ -18,31 +18,18 @@ struct Parser_Ctx
 {
 	void init(const std::string& mem);
 
-	void set_line(	std::string::const_iterator line_beg,
-					std::string::const_iterator line_end);
-
 	void set_line(	std::string_view	);
-
-	std::string::const_iterator main_begin_,
-								main_end_;
-
-	std::string::const_iterator line_beg_,
-								line_end_;
 
 	std::string_view line_;
 	
-
-	struct Stack
-	{
-		std::variant<
+	using variants = std::variant<
 			Entities::Unknown*, //unknown type
 			Entities::Global*,
 			Entities::Player*,
 			//Entities::StarList*,
 			Entities::EqList*,
 			Entities::Item*
-		> p;
-	};
+		>;
 
 	bool is_object_open() const;
 	bool is_object_close() const;
@@ -51,7 +38,7 @@ struct Parser_Ctx
 	std::pair<std::string_view, std::string_view>
 	get_kv() const;
 
-	std::stack<Stack> stack;
+	std::stack<variants> stack;
 
 	Entities::Global * out;
 };
@@ -68,15 +55,6 @@ public:
 
 private:
 	void parse_line();
-
-#if 0
-	void handle(Entities::Global* p);
-	void handle(Entities::Player* p);
-	void handle(Entities::EqList* p);
-	void handle(Entities::StarList* p);
-	void handle(Entities::Item*   p);
-	void handle(void*             p);
-#endif //0
 	Parser_Ctx ctx;
 };
 
