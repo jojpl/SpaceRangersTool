@@ -8,6 +8,8 @@
 
 int main(int argc, char *argv[])
 {
+	SetConsoleOutputCP(1251);
+
 	Entities::kv::init_storage();
 	//DebugBreak();
 	std::wstring file = L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
@@ -19,6 +21,13 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	extern void some(const std::string& mem);
-	some(mem);
-    //parse(mem);
+	//some(mem);
+	try
+	{
+		parse(mem);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what();
+	}
 }

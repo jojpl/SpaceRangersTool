@@ -54,7 +54,7 @@ void dump_to_mem(std::map<std::string, std::set<std::string>>& obj)
 void dump_to_file(std::map<std::string, std::set<std::string>>& obj)
 {
 
-	std::ofstream os("dump");
+	std::ofstream os("dump_2");
 	dump(os, obj);
 }
 
@@ -83,7 +83,7 @@ void some(const std::string& mem)
 	{
 		trim_tabs(line);
 
-		ctx.set_line(line);
+		ctx.line_ = line;
 
 		// parse
 		if (ctx.is_object_open())
@@ -132,5 +132,5 @@ void some(const std::string& mem)
 		}
 	}
 
-	dump_to_mem(cnt);
+	dump_to_file(cnt);
 }

@@ -198,25 +198,25 @@ namespace Entities
 		double	X;
 		double	Y;
 	};
-#if 0
-	struct Planet
-	{
-
-	};
 
 	struct StarList
 	{
 		vector<Star*> list;
 	};
 
-	struct ShipList
+	struct Planet
 	{
-		vector<Ship*> list;
+
 	};
 
 	struct PlanetList
 	{
 		vector<Planet*> list;
+	};
+
+	struct ShipList
+	{
+		vector<Ship*> list;
 	};
 
 	struct Star
@@ -229,12 +229,12 @@ namespace Entities
 		ShipList ShipList;
 		PlanetList PlanetList;
 	};
-#endif
+
 	struct Global
 	{
 		int IDay;
 		Player* Player;
-		//StarList StarList;
+		StarList StarList;
 	};
 
 	template<typename T>

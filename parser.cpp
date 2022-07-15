@@ -30,22 +30,6 @@ bool read_file(std::string& out, const std::wstring& path)
 	return !out.empty();
 }
 
-bool getline(std::string::const_iterator beg,
-			std::string::const_iterator end,
-			std::string::const_iterator& line_beg,
-			std::string::const_iterator& line_end,
-			std::string::const_iterator& next_beg)
-{
-	const auto f = std::search(beg, end, crlf_tag.cbegin(), crlf_tag.cend());
-	if (f == end)
-		return false;
-
-	line_beg = beg;
-	line_end = f;
-	next_beg = f + crlf_tag.size();
-	return true;
-}
-
 void trim_tabs(std::string::const_iterator& beg,
 	std::string::const_iterator& end)
 {
@@ -59,18 +43,19 @@ void trim_tabs(std::string_view& beg)
 	while (beg.size() && beg.back() == '\t') beg.remove_suffix(1);
 }
 
-void parse(const std::string& mem)
+std::pair<std::string_view, std::string_view>
+split_to_kv(std::string_view line)
 {
-	size_t lines = std::count(mem.begin(), mem.end(), '\n');
-	size_t cnt_open = std::count(mem.begin(), mem.end(), '{');
-	size_t cnt_close = std::count(mem.begin(), mem.end(), '}');
-
-	if(cnt_open!= cnt_close)
-		throw std::logic_error("mismatch {}");
-
-	Parser p;
-	p.parse(mem);
-	return;
+	const auto f = line.find('=');
+	if (f != line.npos)
+	{
+		return
+		{
+			line.substr(0, f),
+			line.substr(f + 1)
+		};
+	}
+	return {};
 }
 
 bool getline(	std::string_view str,
@@ -94,49 +79,69 @@ bool getline(	std::string_view str,
 	return false;
 }
 
+void validate(const std::string& mem)
+{
+	size_t lines = 0;
+	size_t cnt_open = 0;
+	size_t cnt_close = 0;
+
+	auto get_statictic = [&lines, &cnt_open, &cnt_close](char ch)
+	{
+		if(ch == crlf_tag[0]) lines++;
+		else if(ch == '{') cnt_open++;
+		else if(ch == '}') cnt_close++;
+	};
+	// не парясь особо
+
+	std::for_each(mem.begin(), mem.end(), get_statictic);
+
+	if(cnt_open!= cnt_close)
+		throw std::logic_error("mismatch {}");
+}
+
+void parse(const std::string& mem)
+{
+	validate(mem);
+	throw std::logic_error("mismatch {}");
+	
+	Parser p;
+	p.parse(mem);
+	return;
+}
+
 void Parser::parse(const std::string& mem)
 {
-	ctx.init(mem);
+	init_ctx(mem);
 
-	std::string_view line, next_line{ mem };
-
-	while (getline(next_line, line, next_line))
+	while (ctx.getline())
 	{
-		trim_tabs(line);
-
-		ctx.set_line(line);
-
 		parse_line();
-		int i =7;
+		int i = 7;
 	}
+	std::cout << out->Player->Name << std::endl;
+}
+
+void Parser::init_ctx(std::string_view mem)
+{
+	out = new Entities::Global{};
+	ctx.stack.push({ out });
+
+	ctx.tail_ = mem;
 }
 
 void Parser::parse_line()
 {
-	// resolve current struct
-	// save(push) it to ctx
-	// Идея в том, чтоб не реккурсивно идти - один проход одно заполнение
-	// чего из контекста выбирать, диспатчить по нему,
-	// в хендлерах для конкретной структуры заполнять поля
-	// при встрече новой структуры менять контекст (+ создание) и возвращаться
-	//std::string out;
-	//out.assign(ctx.line_beg_, ctx.line_end_);
-
 	auto& s = ctx.stack.top();
 	std::visit(Handler{ctx}, s);
-	return;
 }
 
-
-void Parser_Ctx::init(const std::string& mem)
+bool Parser_Ctx::getline()
 {
-	out         = new Entities::Global{};
-	stack.push({out});
-}
-
-void Parser_Ctx::set_line(std::string_view line_beg)
-{
-	line_ = line_beg;
+	if (!::getline(tail_, line_, tail_))
+		return false;
+	
+	trim_tabs(line_);
+	return true;
 }
 
 bool Parser_Ctx::is_object_open() const
@@ -163,16 +168,7 @@ Parser_Ctx::get_object_name() const
 std::pair<std::string_view, std::string_view>
 Parser_Ctx::get_kv() const
 {
-	const auto f = line_.find('=');
-	if (f != line_.npos)
-	{
-		return 
-		{
-			line_.substr(0, f),
-			line_.substr(f + 1)
-		};
-	}
-	return {};
+	return split_to_kv(line_);
 }
 
 // unknown type correct handle
@@ -267,6 +263,18 @@ void Handler::operator()(Entities::Player* p)
 //{
 //
 //}
+
+std::string_view get_IType_use_lookup_ahead(Parser_Ctx& ctx)
+{
+	std::string_view out_line, out_next = ctx.tail_;
+	while (getline(out_next, out_line, out_next))
+	{
+		trim_tabs(out_line);
+		auto [k, v] = split_to_kv(out_line);
+
+	}
+	return {};
+}
 
 void Handler::operator()(Entities::EqList* p)
 {

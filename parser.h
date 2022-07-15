@@ -17,15 +17,11 @@ bool getline(std::string_view str,
 	std::string_view& out_line,
 	std::string_view& out_next);
 
+std::pair<std::string_view, std::string_view>
+split_to_kv(std::string_view line);
 
 struct Parser_Ctx
 {
-	void init(const std::string& mem);
-
-	void set_line(	std::string_view	);
-
-	std::string_view line_;
-	
 	using variants = std::variant<
 			Entities::Unknown*, //unknown type
 			Entities::Global*,
@@ -35,27 +31,37 @@ struct Parser_Ctx
 			Entities::Item*
 		>;
 
+	bool getline();
+
 	bool is_object_open() const;
+
 	bool is_object_close() const;
+
 	std::string_view get_object_name() const;
 	
 	std::pair<std::string_view, std::string_view>
 	get_kv() const;
 
+	std::string_view line_;
+
+	std::string_view tail_;
+
 	std::stack<variants> stack;
 
-	Entities::Global * out;
 };
 
 class Parser
 {
 public:
-
 	void parse(const std::string& mem);
 
 private:
+	void init_ctx(std::string_view mem);
+
 	void parse_line();
+
 	Parser_Ctx ctx;
+	Entities::Global * out;
 };
 
 class Handler
