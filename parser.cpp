@@ -10,6 +10,7 @@
 
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
+static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
@@ -149,6 +150,11 @@ bool Parser_Ctx::is_object_open() const
 bool Parser_Ctx::is_object_close() const
 {
 	return line_.find(close_tag) != line_.npos;
+}
+
+bool Parser_Ctx::is_object_kv() const
+{
+	return line_.find(kv_delim_tag) != line_.npos;
 }
 
 std::string_view 

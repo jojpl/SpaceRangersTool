@@ -47,6 +47,8 @@ struct Parser_Ctx
 
 	bool is_object_close() const;
 
+	bool is_object_kv() const;
+
 	std::string_view get_object_name() const;
 	
 	std::pair<std::string_view, std::string_view>
@@ -99,11 +101,26 @@ public:
 
 	void operator()(Entities::Item * p);
 
-	//template <typename T>
-	//void operator()(T* t)
-	//{
-	//	
-	//}
+	template <typename T>
+	void operator()(T* t)
+	{
+		if (ctx.is_object_open())
+		{
+			auto obj_name = ctx.get_object_name();
+			if (!on_new_obj(obj_name))
+				ctx.stack.push({ (Entities::Unknown*)nullptr });
+		}
+		else if (ctx.is_object_close())
+		{
+			ctx.stack.pop();
+		}
+		else if (ctx.is_object_kv())
+		{
+			const auto[key, value] = ctx.get_kv();
+			on_kv(key, value);
+		}
+	}
+
 private:
 	void default_impl(void* p);
 
