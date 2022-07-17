@@ -24,11 +24,21 @@ struct Parser_Ctx
 {
 	using variants = std::variant<
 			Entities::Unknown*, //unknown type
+
 			Entities::Global*,
 			Entities::Player*,
-			//Entities::StarList*,
+			Entities::StarList*,
+			Entities::Star*,
 			Entities::EqList*,
-			Entities::Item*
+			//Entities::ArtsList*,
+			Entities::Item*,
+			Entities::ShipList*,
+			Entities::Ship*,
+			Entities::PlanetList*,
+			Entities::Planet*,
+			Entities::Junk*,
+			Entities::EqShop*,
+			Entities::Treasure*
 		>;
 
 	bool getline();
@@ -75,15 +85,27 @@ public:
 
 	void operator()(Entities::Global* p);
 	void operator()(Entities::Player* p);
-	//void operator()(Entities::StarList* p);
-	//void operator()(Entities::Star* p);
+	void operator()(Entities::StarList* p);
+	void operator()(Entities::Star* p);
 	void operator()(Entities::EqList * p);
+	//void operator()(Entities::ArtsList * p);
+	void operator()(Entities::ShipList * p);
+	void operator()(Entities::Ship * p);
+	void operator()(Entities::PlanetList * p);
+	void operator()(Entities::Planet * p);
+	void operator()(Entities::Junk * p);
+	void operator()(Entities::EqShop * p);
+	void operator()(Entities::Treasure * p);
 
 	void operator()(Entities::Item * p);
 
-
-
+	//template <typename T>
+	//void operator()(T* t)
+	//{
+	//	
+	//}
 private:
+	void default_impl(void* p);
 
 	Parser_Ctx& ctx;
 };

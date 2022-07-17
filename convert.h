@@ -10,7 +10,7 @@ namespace conv
 
 	int extractId(std::string_view sw);
 
-	Entities::GoodsQty unpack_goods_str(std::string_view sw);
+	void unpack_goods_str(Entities::GoodsPack&, std::string_view sw);
 	
 	// default
 	template<typename Ret, typename SFINAE = void>
@@ -46,7 +46,25 @@ namespace conv
 	{
 		Entities::GoodsQty operator()(std::string_view value)
 		{
-			return conv::unpack_goods_str(value);
+			Entities::GoodsQty goods{};
+			
+			unpack_goods_str(goods.packed, value);
+			return goods;
+		}
+	};
+
+	template<typename Ret>
+	struct parse_type<Ret, std::enable_if_t<
+		   std::is_same_v<Ret, Entities::GoodsPrice>
+		|| std::is_same_v<Ret, Entities::GoodsPrice>>
+		>
+	{
+		Ret operator()(std::string_view value)
+		{
+			Ret goods{};
+
+			unpack_goods_str(goods.packed, value);
+			return goods;
 		}
 	};
 

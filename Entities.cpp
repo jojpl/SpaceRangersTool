@@ -181,29 +181,28 @@ namespace Entities
 				ADD_DEF(Y)
 			END_DEF()
 
+			BEGIN_DEF_FOR(Planet)
+				ADD_DEF(PlanetName)
+				ADD_DEF(Owner)
+				ADD_DEF(Race)
+				ADD_DEF(Economy)
+				ADD_DEF(Goverment)
+				ADD_DEF(ISize)
+				ADD_DEF(OrbitRadius)
+				ADD_DEF(OrbitAngle)
+				ADD_DEF(RelationToPlayer)
+				ADD_DEF(IMainTechLevel)
+				ADD_DEF(CurrentInvention)
+				ADD_DEF(CurrentInventionPoints)
+				ADD_DEF(ShopGoods)
+				ADD_DEF(ShopGoodsSale)
+				ADD_DEF(ShopGoodsBuy)
+			END_DEF()
+
 			#undef BEGIN_DEF_FOR
 			#undef ADD_DEF
 			#undef ADD_DEF_SPECIFIC
 			#undef END_DEF
 		}
-	}
-
-	namespace
-	{
-		class Initer
-		{
-			public:
-				Initer() try
-				{
-					
-				}
-				catch (...)
-				{
-					// failure
-
-				}
-		};
-
-		Initer initer;
 	}
 }

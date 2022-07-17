@@ -106,16 +106,9 @@ namespace Entities
 		GoodsEnum_NUM
 	};
 	
-	
-
-	template<typename T>
-	auto& get_map()
-	{
-		static std::map< std::string_view, T> map_for;
-		return map_for;
-	}
 
 	struct Item;
+	struct HiddenItem;
 	struct Star;
 	struct Planet;
 	struct Ship;
@@ -125,7 +118,14 @@ namespace Entities
 	struct Unknown
 	{};
 
+	using GoodsPack = map<GoodsEnum, int>;
+
 	struct GoodsQty
+	{
+		map<GoodsEnum, int> packed;
+	};
+
+	struct GoodsPrice
 	{
 		map<GoodsEnum, int> packed;
 	};
@@ -142,7 +142,7 @@ namespace Entities
 
 	struct Ship
 	{
-
+		int Id;
 	};
 
 	struct Player
@@ -160,7 +160,7 @@ namespace Entities
 
 	struct Item
 	{
-		int id;
+		int Id;
 		string IName;
 		Type	IType;			// = Hull
 		int	Size;				// = 625
@@ -204,9 +204,50 @@ namespace Entities
 		vector<Star*> list;
 	};
 
+	struct Junk
+	{
+		vector<Item*> list;
+	};
+
+	struct EqShop
+	{
+		vector<Item*> list;
+	};
+
+	struct HiddenItem
+	{
+		int LandType;
+		int	Depth;
+		Item* item;
+	};
+
+	struct Treasure
+	{
+		vector<HiddenItem*> list;
+	};
+
 	struct Planet
 	{
+		int Id;
+		string PlanetName;
+		string Owner;
+		string Race;
+		string	Economy;
+		string Goverment;
+		int	ISize;
+		double OrbitRadius;
+		double	OrbitAngle;
+		int	RelationToPlayer;
+		int	IMainTechLevel;
+		//	TechLevels = 2, 2, 2, 1, 2, 3, 1, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+		int	CurrentInvention;
+		int	CurrentInventionPoints;
 
+		EqShop EqShop;
+		GoodsQty ShopGoods;
+		GoodsPrice ShopGoodsSale;
+		GoodsPrice ShopGoodsBuy;
+		Treasure Treasure;
 	};
 
 	struct PlanetList
@@ -228,6 +269,7 @@ namespace Entities
 		string Owners;
 		ShipList ShipList;
 		PlanetList PlanetList;
+		Junk Junk;
 	};
 
 	struct Global
@@ -236,6 +278,13 @@ namespace Entities
 		Player* Player;
 		StarList StarList;
 	};
+
+	template<typename T>
+	auto& get_map()
+	{
+		static std::map< std::string_view, T> map_for;
+		return map_for;
+	}
 
 	template<typename T>
 	struct converter

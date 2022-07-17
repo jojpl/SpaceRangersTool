@@ -23,9 +23,8 @@ namespace conv
 		return to_int(sw.substr(pos));
 	}
 
-	Entities::GoodsQty unpack_goods_str(std::string_view sw)
+	void unpack_goods_str(Entities::GoodsPack& packed, std::string_view sw)
 	{
-		Entities::GoodsQty goods;
 		const char* beg = sw.data();
 		const char* end = sw.data() + sw.size();
 		const char* p1 = beg;
@@ -41,10 +40,9 @@ namespace conv
 			int res = conv::to_int(std::string_view(p1, p2 - p1));
 			p1 = p2;
 
-			goods.packed[Entities::GoodsEnum(cnt)] = res;
+			packed[Entities::GoodsEnum(cnt)] = res;
 			cnt++;
 		}
-		return goods;
 	}
 
 }
