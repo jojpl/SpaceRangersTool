@@ -157,7 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="convert.cpp" />
-    <ClCompile Include="Entities.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utils.cpp" />
@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="convert.h" />
     <ClInclude Include="Entities.h" />
+    <ClInclude Include="model.hpp" />
     <ClInclude Include="parser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

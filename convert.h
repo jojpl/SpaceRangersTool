@@ -1,6 +1,7 @@
 #pragma once
+#include "model.hpp"
+
 #include <string_view>
-#include "Entities.h"
 #include <charconv>
 #include <typeinfo>
 
