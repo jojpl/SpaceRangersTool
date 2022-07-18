@@ -142,8 +142,8 @@ namespace Entities
 				ADD_DEF(IType)
 				ADD_DEF(Name)
 				ADD_DEF(IPlanet)
-				ADD_DEF(Money)
 				ADD_DEF(Goods)
+				ADD_DEF(Money)
 			END_DEF()
 
 			BEGIN_DEF_FOR(Item)
@@ -183,6 +183,11 @@ namespace Entities
 				ADD_DEF(TechLevel)
 				ADD_DEF(X)
 				ADD_DEF(Y)
+			END_DEF()
+
+			BEGIN_DEF_FOR(HiddenItem)
+				ADD_DEF(LandType)
+				ADD_DEF(Depth)
 			END_DEF()
 
 			BEGIN_DEF_FOR(Planet)

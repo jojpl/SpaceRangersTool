@@ -140,6 +140,26 @@ namespace Entities
 		vector<Item*> list;
 	};
 
+	struct StarList
+	{
+		vector<Star*> list;
+	};
+
+	struct Junk
+	{
+		vector<Item*> list;
+	};
+
+	struct EqShop
+	{
+		vector<Item*> list;
+	};
+
+	struct Treasure
+	{
+		vector<HiddenItem*> list;
+	};
+
 	struct Ship
 	{
 		int Id;	
@@ -159,12 +179,17 @@ namespace Entities
 		int Debt;
 	};
 
+	struct Warrior : Ship
+	{
+
+	};
+
 	struct Item
 	{
 		int Id;
 		string IName;
-		Type	IType;			// = Hull
-		int	Size;				// = 625
+		Type	IType;
+		int	Size;
 
 		int Ammo;
 		int Armor;
@@ -200,31 +225,11 @@ namespace Entities
 		double	Y;
 	};
 
-	struct StarList
-	{
-		vector<Star*> list;
-	};
-
-	struct Junk
-	{
-		vector<Item*> list;
-	};
-
-	struct EqShop
-	{
-		vector<Item*> list;
-	};
-
 	struct HiddenItem
 	{
 		int LandType;
 		int	Depth;
 		Item* item;
-	};
-
-	struct Treasure
-	{
-		vector<HiddenItem*> list;
 	};
 
 	struct Planet

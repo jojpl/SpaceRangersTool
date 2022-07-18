@@ -181,18 +181,6 @@ Parser_Ctx::get_kv() const
 	return split_to_kv(line_);
 }
 
-// unknown type correct handle
-void Handler::operator()(Entities::Unknown*)
-{
-	if (ctx.is_object_open())
-	{
-		ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
-	}
-}
 
 void Handler::on_new_obj(Entities::Global* p, std::string_view obj_name)
 {
@@ -322,135 +310,160 @@ void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
 	}
 }
 
-void Handler::operator()(Entities::Ship * p)
+void Handler::on_new_obj(Entities::Ship * p, std::string_view obj_name)
 {
-	default_impl(p);
-}
-
-void Handler::operator()(Entities::PlanetList * p)
-{
-	if (ctx.is_object_open())
+	if (obj_name == "EqList")
 	{
-		auto obj_name = ctx.get_object_name();
-
-		if (Starts_with(obj_name, "PlanetId"))
-		{
-			int id = conv::extractId(obj_name);
-
-			auto* item = new Entities::Planet{};
-			item->Id = id;
-			p->list.push_back(item);
-
-			ctx.stack.push({ item });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
+		ctx.stack.push({ &p->EqList });
 	}
 }
 
-void Handler::operator()(Entities::Planet * p)
+void Handler::on_kv(Entities::Ship * p, std::string_view key, std::string_view value)
 {
-	if (ctx.is_object_open())
-	{
-		auto obj_name = ctx.get_object_name();
-		if (obj_name == "EqShop")
-		{
-			ctx.stack.push({ &p->EqShop });
-		}
-		else if (obj_name == "Treasure")
-		{
-			ctx.stack.push({ &p->Treasure });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		const auto[key, value] = ctx.get_kv();
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Ship)
+		PARSE_TO(ICurStarId)
+		PARSE_TO(IFullName)
+		PARSE_TO(IType)
+		PARSE_TO(Name)
+		PARSE_TO(IPlanet)
+		PARSE_TO(Goods)
+		PARSE_TO(Money)
+	END_PARSE()
+}
 
-		using namespace Entities;
-		BEGIN_PARSE_FOR(Planet)
-			PARSE_TO(PlanetName)
-			PARSE_TO(Owner)
-			PARSE_TO(Race)
-			PARSE_TO(Economy)
-			PARSE_TO(Goverment)
-			PARSE_TO(ISize)
-			PARSE_TO(OrbitRadius)
-			PARSE_TO(OrbitAngle)
-			PARSE_TO(RelationToPlayer)
-			PARSE_TO(IMainTechLevel)
-			PARSE_TO(CurrentInvention)
-			PARSE_TO(CurrentInventionPoints)
-			PARSE_TO(ShopGoods)
-			PARSE_TO(ShopGoodsSale)
-			PARSE_TO(ShopGoodsBuy)
-		END_PARSE()
+void Handler::on_new_obj(Entities::PlanetList * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "PlanetId"))
+	{
+		int id = conv::extractId(obj_name);
+
+		auto* item = new Entities::Planet{};
+		item->Id = id;
+		p->list.push_back(item);
+
+		ctx.stack.push({ item });
 	}
 }
 
-void Handler::operator()(Entities::Junk * p)
+void Handler::on_new_obj(Entities::Planet * p, std::string_view obj_name)
 {
-	default_impl(p);
-}
-
-void Handler::operator()(Entities::EqShop * p)
-{
-	default_impl(p);
-}
-
-void Handler::operator()(Entities::Treasure * p)
-{
-	default_impl(p);
-}
-
-void Handler::operator()(Entities::Item* p)
-{
-	if (ctx.is_object_open())
+	if (obj_name == "EqShop")
 	{
-		//terminal
-		ctx.stack.push({ (Entities::Unknown*)nullptr });
+		ctx.stack.push({ &p->EqShop });
 	}
-	else if (ctx.is_object_close())
+	else if (obj_name == "Treasure")
 	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		const auto[key, value] = ctx.get_kv();
-		
-		using namespace Entities;
-		BEGIN_PARSE_FOR(Item)
-			PARSE_TO(IName)
-			PARSE_TO(IType)
-			PARSE_TO(Owner)
-			PARSE_TO(Size)
-			PARSE_TO(Cost)
-			PARSE_TO(NoDrop)
-			PARSE_TO(Special)
-			PARSE_TO(ISpecialName)
-			PARSE_TO(DomSeries)
-			PARSE_TO(TechLevel)
-			PARSE_TO(Armor)
-			PARSE_TO(ShipType)
-			PARSE_TO(Series)
-			PARSE_TO(ISeriesName)
-			PARSE_TO(BuiltByPirate)
-			PARSE_TO(X)
-			PARSE_TO(Y)
-		END_PARSE()
+		ctx.stack.push({ &p->Treasure });
 	}
 }
 
-void Handler::default_impl(void* p)
+void Handler::on_kv(Entities::Planet * p, std::string_view key, std::string_view value)
 {
-	this->operator()( (Entities::Unknown*)p );
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Planet)
+		PARSE_TO(PlanetName)
+		PARSE_TO(Owner)
+		PARSE_TO(Race)
+		PARSE_TO(Economy)
+		PARSE_TO(Goverment)
+		PARSE_TO(ISize)
+		PARSE_TO(OrbitRadius)
+		PARSE_TO(OrbitAngle)
+		PARSE_TO(RelationToPlayer)
+		PARSE_TO(IMainTechLevel)
+		PARSE_TO(CurrentInvention)
+		PARSE_TO(CurrentInventionPoints)
+		PARSE_TO(ShopGoods)
+		PARSE_TO(ShopGoodsSale)
+		PARSE_TO(ShopGoodsBuy)
+	END_PARSE()
+}
+
+void Handler::on_new_obj(Entities::Junk * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "ItemId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::Item{};
+		item->Id = id;
+		p->list.push_back(item);
+
+		ctx.stack.push({ item });
+	}
+}
+
+void Handler::on_new_obj(Entities::EqShop * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "ItemId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::Item{};
+		item->Id = id;
+		p->list.push_back(item);
+
+		ctx.stack.push({ item });
+	}
+}
+
+void Handler::on_new_obj(Entities::Treasure * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "HiddenItem"))
+	{
+		//int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::HiddenItem{};
+		p->list.push_back(item);
+
+		ctx.stack.push({ item });
+	}
+}
+
+void Handler::on_new_obj(Entities::HiddenItem * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "ItemId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::Item{};
+		item->Id = id;
+		p->item = item;
+
+		ctx.stack.push({ item });
+	}
+}
+
+void Handler::on_kv(Entities::HiddenItem * p, std::string_view key, std::string_view value)
+{
+	using namespace Entities;
+	BEGIN_PARSE_FOR(HiddenItem)
+		PARSE_TO(LandType)
+		PARSE_TO(Depth)
+	END_PARSE()
+}
+
+void Handler::on_kv(Entities::Item * p, std::string_view key, std::string_view value)
+{
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Item)
+		PARSE_TO(IName)
+		PARSE_TO(IType)
+		PARSE_TO(Owner)
+		PARSE_TO(Size)
+		PARSE_TO(Cost)
+		PARSE_TO(NoDrop)
+		PARSE_TO(Special)
+		PARSE_TO(ISpecialName)
+		PARSE_TO(DomSeries)
+		PARSE_TO(TechLevel)
+		PARSE_TO(Armor)
+		PARSE_TO(ShipType)
+		PARSE_TO(Series)
+		PARSE_TO(ISeriesName)
+		PARSE_TO(BuiltByPirate)
+		PARSE_TO(X)
+		PARSE_TO(Y)
+	END_PARSE()
 }
