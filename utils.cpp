@@ -119,7 +119,7 @@ void some(const std::string& mem)
 				{
 					t = value.substr(0, 1);
 				}
-				else if(Entities::converter<Entities::GoodsEnum>().is_string_for(t))
+				else if(model::converter<Entities::GoodsEnum>().is_string_for(t))
 				{
 					t = "goods_arr";
 				}

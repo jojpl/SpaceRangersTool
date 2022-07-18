@@ -7,7 +7,7 @@
 
 #include <cctype>
 
-namespace Entities
+namespace model
 {
 	void init_converter_impl()
 	{
@@ -15,6 +15,7 @@ namespace Entities
 		#define NAME2TYPE_ELEMENT(name) {#name, t::name},
 		#define END_FOR() }; }
 
+		using namespace Entities;
 		BEGIN_FOR(Type)
 			NAME2TYPE_ELEMENT(Alcohol)
 			NAME2TYPE_ELEMENT(Arms)
@@ -127,6 +128,8 @@ namespace Entities
 			#define ADD_DEF(field) add_definition(&t::field, #field);
 			#define ADD_DEF_SPECIFIC(field, key) add_definition(&t::field, #key);
 			#define END_DEF() }
+
+			using namespace Entities;
 
 			BEGIN_DEF_FOR(Global)
 				ADD_DEF(IDay)

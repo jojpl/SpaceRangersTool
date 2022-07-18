@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "convert.h"
 
 #include <io.h>
 #include <iostream>

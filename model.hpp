@@ -2,7 +2,7 @@
 
 #include "Entities.h"
 
-namespace Entities
+namespace model
 {
 	template<typename T>
 	auto& get_map()

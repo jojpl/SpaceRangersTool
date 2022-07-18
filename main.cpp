@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
 	SetConsoleOutputCP(1251);
 
-	Entities::kv::init_storage();
+	model::kv::init_storage();
 	//DebugBreak();
 	std::wstring file = L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
 	L"Планета Палтеомео-dump.txt";

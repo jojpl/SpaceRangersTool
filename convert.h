@@ -38,25 +38,13 @@ namespace conv
 	{
 		Entities::Type operator()(std::string_view value)
 		{
-			return Entities::converter<Entities::Type>().from_string(value);
+			return model::converter<Entities::Type>().from_string(value);
 		}
 	};	
 	
-	template<>
-	struct parse_type<Entities::GoodsQty>
-	{
-		Entities::GoodsQty operator()(std::string_view value)
-		{
-			Entities::GoodsQty goods{};
-			
-			unpack_goods_str(goods.packed, value);
-			return goods;
-		}
-	};
-
 	template<typename Ret>
 	struct parse_type<Ret, std::enable_if_t<
-		   std::is_same_v<Ret, Entities::GoodsPrice>
+		   std::is_same_v<Ret, Entities::GoodsQty>
 		|| std::is_same_v<Ret, Entities::GoodsPrice>>
 		>
 	{
@@ -111,7 +99,7 @@ namespace conv
 		std::string_view key,
 		std::string_view value)
 	{
-		const auto key_expected = Entities::kv::get_value(field);
+		const auto key_expected = model::kv::get_value(field);
 		if (key != key_expected)
 			return false;
 		Ret& g = p->*field;
