@@ -143,6 +143,7 @@ namespace Entities
 	struct Ship
 	{
 		int Id;
+
 	};
 
 	struct Player

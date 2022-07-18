@@ -85,13 +85,27 @@ public:
 
 	void operator()(Entities::Unknown*);
 
-	void operator()(Entities::Global* p);
-	void operator()(Entities::Player* p);
-	void operator()(Entities::StarList* p);
-	void operator()(Entities::Star* p);
-	void operator()(Entities::EqList * p);
-	//void operator()(Entities::ArtsList * p);
-	void operator()(Entities::ShipList * p);
+	// void operator()(Entities::Global* p);
+	void on_new_obj(Entities::Global* p, std::string_view obj_name);
+	void on_kv     (Entities::Global* p, std::string_view key, std::string_view value);
+
+	//void operator()(Entities::Player* p);
+	void on_new_obj(Entities::Player* p, std::string_view obj_name);
+	void on_kv(Entities::Player*      p, std::string_view key, std::string_view value);
+
+	//void operator()(Entities::StarList* p);
+	void on_new_obj(Entities::StarList* p, std::string_view obj_name);
+
+	//void operator()(Entities::Star* p);
+	void on_new_obj(Entities::Star* p, std::string_view obj_name);
+	void on_kv(Entities::Star*      p, std::string_view key, std::string_view value);
+
+	//void operator()(Entities::EqList * p);
+	void on_new_obj(Entities::EqList* p, std::string_view obj_name);
+
+	//void operator()(Entities::ShipList * p);
+	void on_new_obj(Entities::ShipList* p, std::string_view obj_name);
+
 	void operator()(Entities::Ship * p);
 	void operator()(Entities::PlanetList * p);
 	void operator()(Entities::Planet * p);
@@ -101,13 +115,31 @@ public:
 
 	void operator()(Entities::Item * p);
 
+	//defaults
+	template <typename T>
+	void on_kv(T* p, std::string_view key, std::string_view value)
+	{
+	}
+
+	//defaults
+	template <typename T>
+	void on_new_obj(T* p, std::string_view obj_name)
+	{
+		ctx.stack.push({ (Entities::Unknown*)nullptr });
+	}
+
 	template <typename T>
 	void operator()(T* t)
 	{
 		if (ctx.is_object_open())
 		{
 			auto obj_name = ctx.get_object_name();
-			if (!on_new_obj(obj_name))
+
+			auto sz = ctx.stack.size();
+			on_new_obj(t, obj_name);
+			auto new_sz = ctx.stack.size();
+
+			if (sz == new_sz)
 				ctx.stack.push({ (Entities::Unknown*)nullptr });
 		}
 		else if (ctx.is_object_close())
@@ -117,7 +149,7 @@ public:
 		else if (ctx.is_object_kv())
 		{
 			const auto[key, value] = ctx.get_kv();
-			on_kv(key, value);
+			on_kv(t, key, value);
 		}
 	}
 

@@ -199,6 +199,13 @@ namespace Entities
 				ADD_DEF(ShopGoodsBuy)
 			END_DEF()
 
+			BEGIN_DEF_FOR(Star)
+				ADD_DEF(StarName)
+				ADD_DEF(X)
+				ADD_DEF(Y)
+				ADD_DEF(Owners)
+			END_DEF()
+
 			#undef BEGIN_DEF_FOR
 			#undef ADD_DEF
 			#undef ADD_DEF_SPECIFIC

@@ -13,6 +13,13 @@ static const std::string close_tag = "}";
 static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
+// MCVS
+#ifdef _MSC_VER 
+#define Starts_with(sw, example) (sw._Starts_with(example))
+#else
+#define Starts_with(sw, example) (sw.rfind(example, 0) == 0)
+#endif
+
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
 #define END_PARSE() }while(false);}
@@ -187,134 +194,87 @@ void Handler::operator()(Entities::Unknown*)
 	}
 }
 
-void Handler::operator()(Entities::Global* p)
+void Handler::on_new_obj(Entities::Global* p, std::string_view obj_name)
 {
-	if (ctx.is_object_open())
+	if (obj_name == "Player")
 	{
-		auto obj_name = ctx.get_object_name();
-		if (obj_name == "Player")
-		{
-			p->Player = new Entities::Player{};
-			ctx.stack.push({p->Player});
-		}
-		else if (obj_name == "StarList")
-		{
-			ctx.stack.push({ &p->StarList });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
+		p->Player = new Entities::Player{};
+		ctx.stack.push({ p->Player });
 	}
-	else if (ctx.is_object_close())
+	else if (obj_name == "StarList")
 	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		const auto[key, value] = ctx.get_kv();
-
-		using namespace Entities;
-		BEGIN_PARSE_FOR(Global)
-			PARSE_TO(IDay)
-		END_PARSE()
+		ctx.stack.push({ &p->StarList });
 	}
 }
 
-void Handler::operator()(Entities::Player* p)
+void Handler::on_kv(Entities::Global* p, std::string_view key, std::string_view value)
 {
-	if (ctx.is_object_open())
-	{
-		auto obj_name = ctx.get_object_name();
-		if (obj_name == "EqList")
-		{
-			ctx.stack.push({ &p->EqList });
-		}
-		//if (obj_name == "ArtsList")
-		//{
-		//	ctx.stack.push({ &p->ArtsList });
-		//}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
-	}
-	else
-	{
-		const auto[key, value] = ctx.get_kv();
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Global)
+		PARSE_TO(IDay)
+	END_PARSE()
+}
 
-		using namespace Entities;
-		BEGIN_PARSE_FOR(Player)
-			PARSE_TO(ICurStarId)
-			PARSE_TO(IFullName)
-			PARSE_TO(IType)
-			PARSE_TO(Name)
-			PARSE_TO(IPlanet)
-			PARSE_TO(Money)
-			PARSE_TO(Goods)
-		END_PARSE()
+void Handler::on_new_obj(Entities::Player * p, std::string_view obj_name)
+{
+	if (obj_name == "EqList")
+	{
+		ctx.stack.push({ &p->EqList });
 	}
 }
 
-void Handler::operator()(Entities::StarList* p)
+void Handler::on_kv(Entities::Player * p, std::string_view key, std::string_view value)
 {
-	if (ctx.is_object_open())
-	{
-		auto obj_name = ctx.get_object_name();
-		auto pos = obj_name.find("StarId");
-		if (pos != obj_name.npos)
-		{
-			int id = conv::extractId(obj_name);
-			auto* star = new Entities::Star{};
-			star->Id = id;
-			p->list.push_back(star);
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Player)
+		PARSE_TO(ICurStarId)
+		PARSE_TO(IFullName)
+		PARSE_TO(IType)
+		PARSE_TO(Name)
+		PARSE_TO(IPlanet)
+		PARSE_TO(Money)
+		PARSE_TO(Goods)
+	END_PARSE()
+}
 
-			ctx.stack.push({ star });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
+void Handler::on_new_obj(Entities::StarList * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "StarId"))
 	{
-		ctx.stack.pop();
+		int id = conv::extractId(obj_name);
+		auto* star = new Entities::Star{};
+		star->Id = id;
+		p->list.push_back(star);
+
+		ctx.stack.push({ star });
 	}
 }
 
-void Handler::operator()(Entities::Star* p)
+void Handler::on_new_obj(Entities::Star * p, std::string_view obj_name)
 {
-	if (ctx.is_object_open())
+	if (obj_name == "ShipList")
 	{
-		auto obj_name = ctx.get_object_name();
-		if (obj_name == "ShipList")
-		{
-			ctx.stack.push({ &p->ShipList });
-		}
-		else if (obj_name == "PlanetList")
-		{
-			ctx.stack.push({ &p->PlanetList });
-		}		
-		else if (obj_name == "Junk")
-		{
-			ctx.stack.push({ &p->Junk });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
+		ctx.stack.push({ &p->ShipList });
 	}
-	else if (ctx.is_object_close())
+	else if (obj_name == "PlanetList")
 	{
-		ctx.stack.pop();
+		ctx.stack.push({ &p->PlanetList });
 	}
-	else
+	else if (obj_name == "Junk")
 	{
-		//int Id;
-		//string StarName;
-		//double X;
-		//double Y;
-		//string Owners;
-		//ShipList ShipList;
-		//PlanetList PlanetList;
-		//Junk Junk;
+		ctx.stack.push({ &p->Junk });
 	}
+}
+
+void Handler::on_kv(Entities::Star * p, std::string_view key, std::string_view value)
+{
+	using namespace Entities;
+	BEGIN_PARSE_FOR(Star)
+		PARSE_TO(StarName)
+		PARSE_TO(X)
+		PARSE_TO(Y)
+		PARSE_TO(Owners)
+	END_PARSE()
 }
 
 std::string_view get_IType_use_lookup_ahead(Parser_Ctx& ctx)
@@ -332,53 +292,31 @@ std::string_view get_IType_use_lookup_ahead(Parser_Ctx& ctx)
 	return {};
 }
 
-void Handler::operator()(Entities::EqList* p)
+void Handler::on_new_obj(Entities::EqList * p, std::string_view obj_name)
 {
-	if (ctx.is_object_open())
+	if (Starts_with(obj_name, "ItemId"))
 	{
-		auto obj_name = ctx.get_object_name();
-		auto pos = obj_name.find("ItemId");
-		if (pos==0)
-		{
-			int id = conv::extractId(obj_name);
-			auto IType = get_IType_use_lookup_ahead(ctx);
-			auto* item = new Entities::Item{};
-			item->Id = id;
-			p->list.push_back(item);
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::Item{};
+		item->Id = id;
+		p->list.push_back(item);
 
-			ctx.stack.push({ item });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
+		ctx.stack.push({ item });
 	}
 }
 
-void Handler::operator()(Entities::ShipList * p)
+void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
 {
-	if (ctx.is_object_open())
+	if (Starts_with(obj_name, "ShipId"))
 	{
-		auto obj_name = ctx.get_object_name();
-		auto pos = obj_name.find("ShipId");
-		if (pos == 0)
-		{
-			int id = conv::extractId(obj_name);
-			auto IType = get_IType_use_lookup_ahead(ctx);
-			auto* item = new Entities::Ship{};
-			item->Id = id;
-			p->list.push_back(item);
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto* item = new Entities::Ship{};
+		item->Id = id;
+		p->list.push_back(item);
 
-			ctx.stack.push({ item });
-		}
-		else
-			ctx.stack.push({ (Entities::Unknown*)nullptr });
-	}
-	else if (ctx.is_object_close())
-	{
-		ctx.stack.pop();
+		ctx.stack.push({ item });
 	}
 }
 
@@ -392,8 +330,8 @@ void Handler::operator()(Entities::PlanetList * p)
 	if (ctx.is_object_open())
 	{
 		auto obj_name = ctx.get_object_name();
-		size_t pos = obj_name.find("PlanetId");
-		if (pos == 0)
+
+		if (Starts_with(obj_name, "PlanetId"))
 		{
 			int id = conv::extractId(obj_name);
 
