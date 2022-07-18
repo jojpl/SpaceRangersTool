@@ -7,10 +7,8 @@
 
 namespace Entities
 {
-	using string = std::string;
+	using std::string;
 	using std::vector;
-	using std::array;
-	using std::map;
 
 	enum class Type
 	{
@@ -102,8 +100,6 @@ namespace Entities
 		Technics,
 		Arms,
 		Narcotics,
-
-		GoodsEnum_NUM
 	};
 	
 
@@ -118,16 +114,16 @@ namespace Entities
 	struct Unknown
 	{};
 
-	using GoodsPack = map<GoodsEnum, int>;
+	using GoodsPack = std::map<GoodsEnum, int>;
 
 	struct GoodsQty
 	{
-		map<GoodsEnum, int> packed;
+		GoodsPack packed;
 	};
 
 	struct GoodsPrice
 	{
-		map<GoodsEnum, int> packed;
+		GoodsPack packed;
 	};
 
 	struct EqList
@@ -160,14 +156,31 @@ namespace Entities
 		vector<HiddenItem*> list;
 	};
 
+	struct PlanetList
+	{
+		vector<Planet*> list;
+	};
+
+	struct ShipList
+	{
+		vector<Ship*> list;
+	};
+
+	struct Global
+	{
+		int IDay;
+		Player* Player;
+		StarList StarList;
+	};
+
 	struct Ship
 	{
 		int Id;	
-		int ICurStarId;// = 23;
-		string IFullName; //= Рейнджер Толоймак
-		Type	IType;// = Ranger
-		string	Name;// = Толоймак
-		string	IPlanet;// = Палтеомео
+		int ICurStarId;
+		string IFullName;
+		Type IType;
+		string Name;
+		string IPlanet;
 		GoodsQty Goods;
 		int Money;
 		EqList EqList;
@@ -188,7 +201,7 @@ namespace Entities
 	{
 		int Id;
 		string IName;
-		Type	IType;
+		Type IType;
 		int	Size;
 
 		int Ammo;
@@ -198,8 +211,8 @@ namespace Entities
 		bool BuiltByPirate;
 		int	Capacity;
 		int	Cost;
-		string	DomSeries;
-		double	Durability;
+		string DomSeries;
+		double Durability;
 		int	Fuel;
 		string IBonusName;
 		string ISeriesName;
@@ -208,8 +221,8 @@ namespace Entities
 		int	MaxAmmo;
 		int	MaxDamage;
 		int	MinDamage;
-		bool	NoDrop;
-		string	Owner;
+		bool NoDrop;
+		string Owner;
 		int	Power;
 		int	Radius;
 		int	Repair;
@@ -221,8 +234,8 @@ namespace Entities
 		int	SpeedMin;
 		int	SysName;
 		int	TechLevel;
-		double	X;
-		double	Y;
+		double X;
+		double Y;
 	};
 
 	struct HiddenItem
@@ -256,33 +269,16 @@ namespace Entities
 		Treasure Treasure;
 	};
 
-	struct PlanetList
-	{
-		vector<Planet*> list;
-	};
-
-	struct ShipList
-	{
-		vector<Ship*> list;
-	};
-
 	struct Star
 	{
 		int Id;
 		string StarName;
-		double X;// = 19.0000007326204
-		double Y;// = 16.0000004361028
+		double X;
+		double Y;
 		string Owners;
 		ShipList ShipList;
 		PlanetList PlanetList;
 		Junk Junk;
-	};
-
-	struct Global
-	{
-		int IDay;
-		Player* Player;
-		StarList StarList;
 	};
 
 	template<typename T>
@@ -323,7 +319,6 @@ namespace Entities
 		template<typename T, typename Ret>
 		auto& get_storage(Ret T::* field)
 		{
-			//inline static std::vector<std::pair<Ret T::*, std::string_view>> storage;
 			return storage<T, Ret>;
 		}
 
@@ -338,7 +333,6 @@ namespace Entities
 		template<typename T, typename Ret>
 		std::string_view get_value(const Ret T::* field)
 		{
-			//constexpr auto r = offsetof(T, field);
 			const auto& storage = get_storage(field);
 			for (const auto& item : storage)
 			{
