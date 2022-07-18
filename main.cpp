@@ -14,12 +14,14 @@ public:
 #include <SDKDDKVer.h>
 #include <windows.h>
 #include <debugapi.h>
+#include <chrono>
 
 #include "parser.h"
 
 int main(int argc, char *argv[])
 {
-	SetConsoleOutputCP(1251);
+	std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
+	::SetConsoleOutputCP(1251);
 
 	model::kv::init_storage();
 	//DebugBreak();
@@ -41,4 +43,11 @@ int main(int argc, char *argv[])
 	{
 		std::cerr << e.what();
 	}
+
+	auto now = std::chrono::steady_clock::now();
+	std::cout << 
+		std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::steady_clock::now() - tp)
+			.count() 
+		<<" ms";
 }

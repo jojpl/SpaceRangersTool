@@ -109,11 +109,11 @@ namespace model
 
 	namespace kv
 	{
-		void init_storage_impl();
+		static void init_storage_impl();
 		
-		bool is_inited = false;
 		void init_storage()
 		{
+			static bool is_inited = false;
 			if (!is_inited)
 			{
 				init_storage_impl();
