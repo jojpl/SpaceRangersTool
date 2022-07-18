@@ -1,4 +1,15 @@
-﻿#include <iostream>
+﻿#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+class MemStateRAII
+{
+	_CrtMemState _ms;
+public:
+	MemStateRAII() { _CrtMemCheckpoint(&_ms); }
+	~MemStateRAII() { _CrtMemDumpAllObjectsSince(&_ms); }
+} gfgf;
+
+#include <iostream>
 
 #include <SDKDDKVer.h>
 #include <windows.h>
