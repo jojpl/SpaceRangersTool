@@ -199,6 +199,10 @@ namespace Entities
 
 	struct Item
 	{
+		Item(int Id_)
+			: Id(Id_)
+		{}
+
 		int Id;
 		string IName;
 		Type IType;
@@ -247,6 +251,11 @@ namespace Entities
 
 	struct Planet
 	{
+		Planet(int Id_)
+			:Id(Id_)
+		{
+		}
+
 		int Id;
 		string PlanetName;
 		string Owner;

@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="convert.cpp" />
+    <ClCompile Include="factory.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
@@ -165,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="convert.h" />
     <ClInclude Include="Entities.h" />
+    <ClInclude Include="factory.hpp" />
     <ClInclude Include="model.hpp" />
     <ClInclude Include="parser.h" />
   </ItemGroup>
