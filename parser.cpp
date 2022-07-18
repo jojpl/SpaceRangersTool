@@ -234,6 +234,8 @@ void Handler::on_kv(Entities::Player * p, std::string_view key, std::string_view
 		PARSE_TO(IPlanet)
 		PARSE_TO(Money)
 		PARSE_TO(Goods)
+
+		PARSE_TO(Debt)
 	END_PARSE()
 }
 

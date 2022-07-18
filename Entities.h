@@ -142,12 +142,7 @@ namespace Entities
 
 	struct Ship
 	{
-		int Id;
-
-	};
-
-	struct Player
-	{
+		int Id;	
 		int ICurStarId;// = 23;
 		string IFullName; //= Рейнджер Толоймак
 		Type	IType;// = Ranger
@@ -157,6 +152,11 @@ namespace Entities
 		int Money;
 		EqList EqList;
 		ArtsList ArtsList;
+	};
+
+	struct Player : Ship
+	{
+		int Debt;
 	};
 
 	struct Item
