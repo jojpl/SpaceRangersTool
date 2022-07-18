@@ -94,7 +94,11 @@ namespace conv
 		Ret operator()(std::string_view value)
 		{
 			Ret i;
-			std::from_chars(value.data(), value.data() + value.size(), i);
+			std::from_chars_result err =
+				std::from_chars(value.data(), value.data() + value.size(), i);
+
+			if (err.ec != std::errc{})
+				throw std::logic_error(__FUNCTION__ " err!");
 			return i;
 		}
 	};
