@@ -4,6 +4,7 @@
 
 #include <io.h>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <string_view>
 #include <sstream>
@@ -16,7 +17,7 @@ static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
 // MCVS
-#ifdef _MSC_VER 
+#ifdef _MSC_VER9
 #define Starts_with(sw, example) (sw._Starts_with(example))
 #else
 #define Starts_with(sw, example) (sw.rfind(example, 0) == 0)
@@ -36,6 +37,24 @@ bool read_file(std::string& out, const std::wstring& path)
 	buf.resize(len);
 	fread(buf.data(), len, 1, f);
 	fclose(f);
+	out.assign(buf.begin(), buf.end());
+	return !out.empty();
+}
+
+bool read_file(std::string& out, const std::string& path)
+{
+	std::ifstream f(path, std::ifstream::binary);
+	if(!f) return false;
+
+	f.seekg(0, std::ifstream::end);
+	auto len = (size_t) f.tellg();
+	f.seekg(0);
+
+	std::vector<char> buf;
+	buf.resize(len);
+
+	f.read(buf.data(), len);
+
 	out.assign(buf.begin(), buf.end());
 	return !out.empty();
 }
@@ -451,19 +470,37 @@ void Handler::on_kv(Entities::Item * p, std::string_view key, std::string_view v
 	BEGIN_PARSE_FOR(Item)
 		PARSE_TO(IName)
 		PARSE_TO(IType)
-		PARSE_TO(Owner)
 		PARSE_TO(Size)
-		PARSE_TO(Cost)
-		PARSE_TO(NoDrop)
-		PARSE_TO(Special)
-		PARSE_TO(ISpecialName)
-		PARSE_TO(DomSeries)
-		PARSE_TO(TechLevel)
+		PARSE_TO(Ammo)
 		PARSE_TO(Armor)
-		PARSE_TO(ShipType)
-		PARSE_TO(Series)
-		PARSE_TO(ISeriesName)
+		PARSE_TO(Bonus)
+		PARSE_TO(Broken)
 		PARSE_TO(BuiltByPirate)
+		PARSE_TO(Capacity)
+		PARSE_TO(Cost)
+		PARSE_TO(DomSeries)
+		PARSE_TO(Durability)
+		PARSE_TO(Fuel)
+		PARSE_TO(IBonusName)
+		PARSE_TO(ISeriesName)
+		PARSE_TO(ISpecialName)
+		PARSE_TO(Jump)
+		PARSE_TO(MaxAmmo)
+		PARSE_TO(MaxDamage)
+		PARSE_TO(MinDamage)
+		PARSE_TO(NoDrop)
+		PARSE_TO(Owner)
+		PARSE_TO(Power)
+		PARSE_TO(Radius)
+		PARSE_TO(Repair)
+		PARSE_TO(Series)
+		PARSE_TO(ShipType)
+		PARSE_TO(Special)
+		PARSE_TO(Speed)
+		PARSE_TO(SpeedMax)
+		PARSE_TO(SpeedMin)
+		PARSE_TO(SysName)
+		PARSE_TO(TechLevel)
 		PARSE_TO(X)
 		PARSE_TO(Y)
 	END_PARSE()

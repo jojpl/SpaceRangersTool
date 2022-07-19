@@ -168,28 +168,28 @@ namespace Entities
 
 	struct Global
 	{
-		int IDay;
-		Player* Player;
+		int IDay = 0;
+		Player* Player = nullptr;
 		StarList StarList;
 	};
 
 	struct Ship
 	{
-		int Id;	
-		int ICurStarId;
+		int Id = 0;	
+		int ICurStarId = 0;
 		string IFullName;
-		Type IType;
+		Type IType = Type::Unknown;
 		string Name;
 		string IPlanet;
 		GoodsQty Goods;
-		int Money;
+		int Money = 0;
 		EqList EqList;
 		ArtsList ArtsList;
 	};
 
 	struct Player : Ship
 	{
-		int Debt;
+		int Debt = 0;
 	};
 
 	struct Warrior : Ship
@@ -203,50 +203,50 @@ namespace Entities
 			: Id(Id_)
 		{}
 
-		int Id;
+		int Id = 0;
 		string IName;
-		Type IType;
-		int	Size;
+		Type IType = Type::Unknown;
+		int	Size = 0;
 
-		int Ammo;
-		int Armor;
-		int Bonus;
-		bool Broken;
-		bool BuiltByPirate;
-		int	Capacity;
-		int	Cost;
+		int Ammo = 0;
+		int Armor = 0;
+		int Bonus = 0;
+		bool Broken = false;
+		bool BuiltByPirate = false;
+		int	Capacity = 0;
+		int	Cost = 0;
 		string DomSeries;
-		double Durability;
-		int	Fuel;
+		double Durability = 0.0;
+		int	Fuel = 0;
 		string IBonusName;
 		string ISeriesName;
 		string ISpecialName;
-		int	Jump;
-		int	MaxAmmo;
-		int	MaxDamage;
-		int	MinDamage;
-		bool NoDrop;
+		int	Jump = 0;
+		int	MaxAmmo = 0;
+		int	MaxDamage = 0;
+		int	MinDamage = 0;
+		bool NoDrop = false;
 		string Owner;
-		int	Power;
-		int	Radius;
-		int	Repair;
-		int	Series;
-		int	ShipType;
-		int	Special;
-		int	Speed;
-		int	SpeedMax;
-		int	SpeedMin;
-		int	SysName;
-		int	TechLevel;
-		double X;
-		double Y;
+		int	Power = 0;
+		int	Radius = 0;
+		int	Repair = 0;
+		int	Series = 0;
+		int	ShipType = 0;
+		int	Special = 0;
+		int	Speed = 0;
+		int	SpeedMax = 0;
+		int	SpeedMin = 0;
+		string SysName;
+		int	TechLevel = 0;
+		double X = 0.0;
+		double Y = 0.0;
 	};
 
 	struct HiddenItem
 	{
-		int LandType;
-		int	Depth;
-		Item* item;
+		int LandType = 0;
+		int	Depth = 0;
+		Item* item = nullptr;
 	};
 
 	struct Planet
@@ -256,20 +256,20 @@ namespace Entities
 		{
 		}
 
-		int Id;
+		int Id = 0;
 		string PlanetName;
 		string Owner;
 		string Race;
 		string Economy;
 		string Goverment;
-		int	ISize;
-		double OrbitRadius;
-		double	OrbitAngle;
-		int	RelationToPlayer;
-		int	IMainTechLevel;
+		int	ISize = 0;
+		double OrbitRadius = 0.0;
+		double	OrbitAngle = 0.0;
+		int	RelationToPlayer = 0;
+		int	IMainTechLevel = 0;
 		//	TechLevels = 2, 2, 2, 1, 2, 3, 1, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-		int	CurrentInvention;
-		int	CurrentInventionPoints;
+		int	CurrentInvention = 0;
+		int	CurrentInventionPoints = 0;
 
 		EqShop EqShop;
 		GoodsQty ShopGoods;
@@ -280,10 +280,10 @@ namespace Entities
 
 	struct Star
 	{
-		int Id;
+		int Id = 0;
 		string StarName;
-		double X;
-		double Y;
+		double X = 0.0;
+		double Y = 0.0;
 		string Owners;
 		ShipList ShipList;
 		PlanetList PlanetList;

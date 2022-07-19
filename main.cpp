@@ -13,7 +13,6 @@ public:
 
 #include <SDKDDKVer.h>
 #include <windows.h>
-#include <debugapi.h>
 #include <chrono>
 
 #include "parser.h"
@@ -25,10 +24,14 @@ int main(int argc, char *argv[])
 
 	model::kv::init_storage();
 	//DebugBreak();
-	std::wstring file = L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
-	L"Планета Палтеомео-dump.txt";
+	//std::wstring file = L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
+	//L"Планета Палтеомео-dump.txt";
+
+	std::string file = "C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
+		"Планета Палтеомео-dump.txt";
 
 	std::string mem;
+	//if (!read_file(mem, file))
 	if (!read_file(mem, file))
 	{
 		return -1;
