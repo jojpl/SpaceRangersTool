@@ -24,24 +24,6 @@ namespace conv
 		}
 	};
 
-	template<>
-	struct parse_type<std::string>
-	{
-		std::string operator()(std::string_view value)
-		{
-			return {value.data(), value.data() + value.size()};
-		}
-	};
-
-	template<>
-	struct parse_type<Entities::Type>
-	{
-		Entities::Type operator()(std::string_view value)
-		{
-			return model::converter<Entities::Type>().from_string(value);
-		}
-	};	
-	
 	template<typename Ret>
 	struct parse_type<Ret, std::enable_if_t<
 		   std::is_same_v<Ret, Entities::GoodsQty>
@@ -54,22 +36,6 @@ namespace conv
 
 			unpack_goods_str(goods.packed, value);
 			return goods;
-		}
-	};
-
-	template<>
-	struct parse_type<bool>
-	{
-		bool operator()(std::string_view value)
-		{
-			if(value == "False")
-				return false;
-			else if(value == "True")
-				return true;
-			else
-			{
-				throw std::logic_error(__FUNCTION__ " err!");
-			}
 		}
 	};
 
@@ -92,31 +58,66 @@ namespace conv
 		}
 	};
 
+	template<>
+	struct parse_type<std::string>
+	{
+		std::string operator()(std::string_view value)
+		{
+			return {value.data(), value.data() + value.size()};
+		}
+	};
+
+	template<>
+	struct parse_type<Entities::Type>
+	{
+		Entities::Type operator()(std::string_view value)
+		{
+			return model::converter<Entities::Type>().from_string(value);
+		}
+	};	
+	
+	template<>
+	struct parse_type<bool>
+	{
+		bool operator()(std::string_view value)
+		{
+			if(value == "False")
+				return false;
+			else if(value == "True")
+				return true;
+			else
+			{
+				throw std::logic_error(__FUNCTION__ " err!");
+			}
+		}
+	};
+
 	template<typename T, typename Ret, typename Base,
 		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
 		>
 	bool parse(Ret T::* field, Base* p,
-		std::string_view key,
-		std::string_view value)
+				std::string_view key,
+				std::string_view value)
 	{
 		const auto key_expected = model::kv::get_value(field);
 		if (key != key_expected)
 			return false;
-		Ret& g = p->*field;
-		g = parse_type<Ret>()(value);
+
+		p->*field = parse_type<Ret>()(value);
 		return true;
 	}
 
 	template<typename T, typename Ret, typename Base,
 		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
-	>
-		bool parse(std::optional<Ret> T::* field, Base* p,
-			std::string_view key,
-			std::string_view value)
+		>
+	bool parse(std::optional<Ret> T::* field, Base* p,
+				std::string_view key,
+				std::string_view value)
 	{
 		const auto key_expected = model::kv::get_value(field);
 		if (key != key_expected)
 			return false;
+
 		p->*field = parse_type<Ret>()(value);
 		return true;
 	}
