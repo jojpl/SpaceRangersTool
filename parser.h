@@ -85,6 +85,33 @@ public:
 		:ctx(ctx_)
 	{}
 
+	// main common algo
+	template <typename T>
+	void operator()(T* t)
+	{
+		if (ctx.is_object_open())
+		{
+			auto obj_name = ctx.get_object_name();
+
+			auto sz = ctx.stack.size();
+			on_new_obj(t, obj_name);
+			auto new_sz = ctx.stack.size();
+
+			if (sz == new_sz)
+				ctx.stack.push({ (Entities::Unknown*)nullptr });
+		}
+		else if (ctx.is_object_close())
+		{
+			ctx.stack.pop();
+		}
+		else if (ctx.is_object_kv())
+		{
+			const auto[key, value] = ctx.get_kv();
+			on_kv(t, key, value);
+		}
+	}
+
+private:
 	// Global
 	void on_new_obj(Entities::Global* p, std::string_view obj_name);
 	void on_kv     (Entities::Global* p, std::string_view key, std::string_view value);
@@ -144,33 +171,6 @@ public:
 	void on_new_obj(T* p, std::string_view obj_name)
 	{
 	}
-
-	template <typename T>
-	void operator()(T* t)
-	{
-		if (ctx.is_object_open())
-		{
-			auto obj_name = ctx.get_object_name();
-
-			auto sz = ctx.stack.size();
-			on_new_obj(t, obj_name);
-			auto new_sz = ctx.stack.size();
-
-			if (sz == new_sz)
-				ctx.stack.push({ (Entities::Unknown*)nullptr });
-		}
-		else if (ctx.is_object_close())
-		{
-			ctx.stack.pop();
-		}
-		else if (ctx.is_object_kv())
-		{
-			const auto[key, value] = ctx.get_kv();
-			on_kv(t, key, value);
-		}
-	}
-
-private:
 
 	Parser_Ctx& ctx;
 };

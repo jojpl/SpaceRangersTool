@@ -3,12 +3,13 @@
 #include <vector>
 #include <array>
 #include <map>
-#include <string_view>
+#include <optional>
 
 namespace Entities
 {
 	using std::string;
 	using std::vector;
+	using std::optional;
 
 	enum class Type
 	{
@@ -208,38 +209,38 @@ namespace Entities
 		Type IType = Type::Unknown;
 		int	Size = 0;
 
-		int Ammo = 0;
-		int Armor = 0;
-		int Bonus = 0;
+		optional<int> Ammo;
+		optional<int> Armor;
+		optional<int> Bonus;
 		bool Broken = false;
-		bool BuiltByPirate = false;
-		int	Capacity = 0;
+		optional<bool> BuiltByPirate;
+		optional<int> Capacity;
 		int	Cost = 0;
 		string DomSeries;
 		double Durability = 0.0;
-		int	Fuel = 0;
+		optional<int> Fuel;
 		string IBonusName;
 		string ISeriesName;
 		string ISpecialName;
-		int	Jump = 0;
-		int	MaxAmmo = 0;
-		int	MaxDamage = 0;
-		int	MinDamage = 0;
+		optional<int> Jump;
+		optional<int> MaxAmmo;
+		optional<int> MaxDamage;
+		optional<int> MinDamage;
 		bool NoDrop = false;
 		string Owner;
-		int	Power = 0;
-		int	Radius = 0;
-		int	Repair = 0;
+		optional<int> Power;
+		optional<int> Radius;
+		optional<int> Repair;
 		int	Series = 0;
-		int	ShipType = 0;
+		optional<int> ShipType;
 		int	Special = 0;
-		int	Speed = 0;
-		int	SpeedMax = 0;
-		int	SpeedMin = 0;
+		optional<int>	Speed;
+		optional<int>	SpeedMax;
+		optional<int>	SpeedMin;
 		string SysName;
 		int	TechLevel = 0;
-		double X = 0.0;
-		double Y = 0.0;
+		optional<double> X;
+		optional<double> Y;
 	};
 
 	struct HiddenItem

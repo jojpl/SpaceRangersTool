@@ -106,4 +106,18 @@ namespace conv
 		g = parse_type<Ret>()(value);
 		return true;
 	}
+
+	template<typename T, typename Ret, typename Base,
+		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
+	>
+		bool parse(std::optional<Ret> T::* field, Base* p,
+			std::string_view key,
+			std::string_view value)
+	{
+		const auto key_expected = model::kv::get_value(field);
+		if (key != key_expected)
+			return false;
+		p->*field = parse_type<Ret>()(value);
+		return true;
+	}
 }

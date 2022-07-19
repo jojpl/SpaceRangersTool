@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <string_view>
+#include <mutex>
 
 #include <cctype>
 
@@ -109,17 +110,13 @@ namespace model
 
 	namespace kv
 	{
-		static void init_storage_impl();
+		std::once_flag flag1, flag2;
 		
+		static void init_storage_impl();
 		void init_storage()
 		{
-			static bool is_inited = false;
-			if (!is_inited)
-			{
-				init_storage_impl();
-				init_converter_impl();
-				is_inited = true;
-			}
+			std::call_once(flag1, init_storage_impl);
+			std::call_once(flag2, init_converter_impl);
 		}
 
 		void init_storage_impl()
