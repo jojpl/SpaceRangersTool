@@ -177,7 +177,6 @@ namespace Entities
 	struct Ship
 	{
 		int Id = 0;	
-		int ICurStarId = 0;
 		string IFullName;
 		Type IType = Type::Unknown;
 		string Name;
@@ -190,6 +189,7 @@ namespace Entities
 
 	struct Player : Ship
 	{
+		int ICurStarId = 0;
 		int Debt = 0;
 	};
 

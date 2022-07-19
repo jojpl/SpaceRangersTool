@@ -134,6 +134,7 @@ void parse(const std::string& mem)
 	
 	Parser p;
 	p.parse(mem);
+	//storage::clear_storage();
 	return;
 }
 
@@ -343,7 +344,6 @@ void Handler::on_kv(Entities::Ship * p, std::string_view key, std::string_view v
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Ship)
-		PARSE_TO(ICurStarId)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
 		PARSE_TO(Name)

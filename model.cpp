@@ -133,11 +133,11 @@ namespace model
 			END_DEF()
 
 			BEGIN_DEF_FOR(Player)
+				ADD_DEF(ICurStarId)
 				ADD_DEF(Debt)
 			END_DEF()
 
 			BEGIN_DEF_FOR(Ship)
-				ADD_DEF(ICurStarId)
 				ADD_DEF(IFullName)
 				ADD_DEF(IType)
 				ADD_DEF(Name)

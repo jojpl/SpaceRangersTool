@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 
+
 static const std::string open_tag = " ^{";
 static const std::string close_tag = "}";
 static const std::string crlf_tag = "\r\n";
@@ -134,3 +135,4 @@ void some(const std::string& mem)
 
 	dump_to_file(cnt);
 }
+

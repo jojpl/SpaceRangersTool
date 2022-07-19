@@ -4,13 +4,45 @@
 #include "boost\container\stable_vector.hpp"
 namespace storage
 {
-	//template <typename T>
 	//inline static boost::container::stable_vector<T> storage {};
+
+	struct Registrator
+	{
+		virtual void clear() = 0;
+	};
+
+	inline std::vector<Registrator*> arr;
+	
+	inline void clear_storage()
+	{
+		for (size_t i = 0; i < arr.size(); i++)
+		{
+			arr[i]->clear();
+		}
+	}
+
+	template <typename T>
+	struct storageRegistrator : Registrator
+	{
+		storageRegistrator(boost::container::stable_vector<T>& storage)
+			: storage_(storage)
+		{
+			arr.push_back(this);
+		}
+
+		void clear() override
+		{
+			storage_.clear();
+		}
+
+		boost::container::stable_vector<T>& storage_;
+	};
 
 	template <typename T>
 	auto& get()
 	{
 		static boost::container::stable_vector<T> storage{};
+		static storageRegistrator registrator(storage);
 		return storage;
 	}
 
