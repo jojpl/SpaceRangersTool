@@ -1,14 +1,16 @@
 #include "convert.h"
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <array>
+
 namespace conv
 {
 	int extractId(std::string_view sw)
 	{
 		// ItemId256
-		// [^\d]+(\d+)
-		std::string s;
 		auto pos = std::find_if_not(sw.crbegin(), sw.crend(), 
-			[](char ch){ return isdigit(ch); });
+			[](char ch){ return ::isdigit(ch); });
 
 		if (pos != sw.crend() && pos != sw.crbegin())
 		{
@@ -18,30 +20,38 @@ namespace conv
 			from_string(i, sw.substr(offset));
 			return i;
 		}
-		else
-			throw std::logic_error(__FUNCTION__ " err!");
+
+		throw std::logic_error(__FUNCTION__ " err!");
 	}
 
 	void from_string(Entities::GoodsPack& packed, std::string_view sw)
 	{
-		const char* beg = sw.data();
-		const char* end = sw.data() + sw.size();
-		const char* p1 = beg;
-		const char* p2 = beg;
-
-		int cnt = 0;
-		while (p1 != end)
+		std::vector<boost::iterator_range<std::string_view::iterator>> splitVec;
+		boost::split(splitVec, sw, [](char ch){ return ch==','; });//boost::is_any_of(","));
+		
+		using namespace Entities;
+		constexpr static const std::array<GoodsEnum, (size_t) GoodsEnum::GoodsEnum_NUM>
+			goodsEnum_arr
 		{
-			while ((p1 != end) && !isdigit(*p1)) p1++;
-			p2 = p1;
-			while ((p2 != end) && isdigit(*p2)) p2++;
+			GoodsEnum::Food,
+			GoodsEnum::Medicine,
+			GoodsEnum::Alcohol,
+			GoodsEnum::Minerals,
+			GoodsEnum::Luxury,
+			GoodsEnum::Technics,
+			GoodsEnum::Arms,
+			GoodsEnum::Narcotics,
+		};
 
+		auto goodsEnum_iter = goodsEnum_arr.cbegin();
+		auto iter_range = splitVec.cbegin();
+		for (; goodsEnum_iter!= goodsEnum_arr.cend() && iter_range!= splitVec.cend();
+			goodsEnum_iter++, iter_range++)
+		{
+			auto rng = *iter_range;
 			int res = 0;
-			from_string(res, std::string_view(p1, p2 - p1));
-			p1 = p2;
-
-			packed[Entities::GoodsEnum(cnt)] = res;
-			cnt++;
+			from_string(res, { &*rng.begin(), rng.size() });
+			packed[*goodsEnum_iter] = res;
 		}
 	}
 

@@ -101,6 +101,8 @@ namespace Entities
 		Technics,
 		Arms,
 		Narcotics,
+
+		GoodsEnum_NUM
 	};
 	
 
