@@ -16,87 +16,85 @@ namespace conv
 	void unpack_goods_str(Entities::GoodsPack&, std::string_view sw);
 	
 	// default
-	template<typename Ret, typename SFINAE = void>
-	struct parse_type {};
-
 	template<typename Ret>
-	struct parse_type<Ret, std::enable_if_t<
-		   std::is_same_v<Ret, Entities::GoodsQty>
-		|| std::is_same_v<Ret, Entities::GoodsPrice>>
-		>
+	static void from_string(Ret& ret, std::string_view value)
 	{
-		static Ret from_string(std::string_view value)
-		{
-			Ret goods{};
-
-			unpack_goods_str(goods.packed, value);
-			return goods;
-		}
+		static_assert(false, "oups! do specialize " __FUNCTION__);
+		auto n = typeid(ret).name();
+		int i = 8;
 	};
+
+	template<>
+	static void from_string(Entities::GoodsQty& ret, std::string_view value)
+	{
+		unpack_goods_str(ret.packed, value);
+	}
+
+	template<>
+	static void from_string(Entities::GoodsPrice& ret, std::string_view value)
+	{
+		unpack_goods_str(ret.packed, value);
+	}
 
 	// for int, double
-	template<typename Ret>
-	struct parse_type<Ret, std::enable_if_t<
-		   std::is_same_v<Ret, int>
-		|| std::is_same_v<Ret, double>>
-		>
+	template<>
+	static void from_string(int& ret, std::string_view value)
 	{
-		static Ret from_string(std::string_view value)
-		{
-			Ret i;
-			std::from_chars_result err =
-				std::from_chars(value.data(), value.data() + value.size(), i);
+		std::from_chars_result err =
+			std::from_chars(value.data(), value.data() + value.size(), ret);
 
-			if (err.ec != std::errc{})
-				throw std::logic_error(__FUNCTION__ " err!");
-			return i;
-		}
-	};
+		if (err.ec != std::errc{})
+			throw std::logic_error(__FUNCTION__ " err!");
+	}
 
 	template<>
-	struct parse_type<std::string>
+	static void from_string(double& ret, std::string_view value)
 	{
-		static std::string from_string(std::string_view value)
-		{
-			return {value.data(), value.data() + value.size()};
-		}
-	};
+		std::from_chars_result err =
+			std::from_chars(value.data(), value.data() + value.size(), ret);
+
+		if (err.ec != std::errc{})
+			throw std::logic_error(__FUNCTION__ " err!");
+	}
 
 	template<>
-	struct parse_type<Entities::Type>
+	static void from_string(std::string& ret, std::string_view value)
 	{
-		static Entities::Type from_string(std::string_view value)
-		{
-			return model::converter<Entities::Type>().from_string(value);
-		}
-	};
+		ret = {value.data(), value.data() + value.size()};
+	}
 
-	template<typename Ret>
-	struct parse_type<std::optional<Ret>>
+	template<>
+	static void from_string(Entities::Type& ret, std::string_view value)
 	{
-		static std::optional<Ret> from_string(std::string_view value)
-		{
-			if(value.empty()) return {};
+		// fix it. has same functionality!
+		ret = model::converter<Entities::Type>().from_string(value);
+	}
 
-			return { parse_type<Ret>::from_string(value) };
+	template<typename T>
+	static void from_string(std::optional<T>& ret, std::string_view value)
+	{
+		if(value.empty()) 
+			ret = {};
+		else 
+		{
+			T t;
+			from_string(t, value);
+			ret = { t };
 		}
-	};
+	}
 	
 	template<>
-	struct parse_type<bool>
+	static void from_string(bool& ret, std::string_view value)
 	{
-		static bool from_string(std::string_view value)
+		if(value == "False")
+			ret = false;
+		else if(value == "True")
+			ret = true;
+		else
 		{
-			if(value == "False")
-				return false;
-			else if(value == "True")
-				return true;
-			else
-			{
-				throw std::logic_error(__FUNCTION__ " err!");
-			}
+			throw std::logic_error(__FUNCTION__ " err!");
 		}
-	};
+	}
 
 	template<typename T, typename Ret, typename Base,
 		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
@@ -109,7 +107,7 @@ namespace conv
 		if (key != key_expected)
 			return false;
 
-		p->*field = parse_type<Ret>::from_string(value);
+		from_string(p->*field, value);
 		return true;
 	}
 }
