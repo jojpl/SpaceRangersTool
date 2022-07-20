@@ -8,9 +8,10 @@ namespace storage
 
 	struct Registrator
 	{
-		inline static std::vector<Registrator*> arr {};
 		virtual void clear() = 0;
+		virtual ~Registrator(){};
 		
+		inline static std::vector<Registrator*> arr {};
 		static void clear_storage()
 		{
 			for (size_t i = 0; i < arr.size(); i++)

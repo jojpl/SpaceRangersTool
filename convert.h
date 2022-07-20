@@ -76,6 +76,8 @@ namespace conv
 	{
 		static std::optional<Ret> from_string(std::string_view value)
 		{
+			if(value.empty()) return {};
+
 			return { parse_type<Ret>::from_string(value) };
 		}
 	};
