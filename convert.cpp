@@ -5,15 +5,24 @@ namespace conv
 	int extractId(std::string_view sw)
 	{
 		// ItemId256
-		auto pos = sw.find_last_of("Id");
-		if(pos == sw.npos || (++pos == sw.size()))
+		// [^\d]+(\d+)
+		std::string s;
+		auto pos = std::find_if_not(sw.crbegin(), sw.crend(), 
+			[](char ch){ return isdigit(ch); });
+
+		if (pos != sw.crend() && pos != sw.crbegin())
+		{
+			size_t offset = std::distance(sw.cbegin(), pos.base());
+
+			int i = 0;
+			from_string(i, sw.substr(offset));
+			return i;
+		}
+		else
 			throw std::logic_error(__FUNCTION__ " err!");
-		int id = 0;
-		from_string(id, sw);
-		return id;
 	}
 
-	void unpack_goods_str(Entities::GoodsPack& packed, std::string_view sw)
+	void from_string(Entities::GoodsPack& packed, std::string_view sw)
 	{
 		const char* beg = sw.data();
 		const char* end = sw.data() + sw.size();

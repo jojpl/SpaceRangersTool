@@ -11,16 +11,16 @@ namespace conv
 
 	int extractId(std::string_view sw);
 
-	void unpack_goods_str(Entities::GoodsPack&, std::string_view sw);
+	void from_string(Entities::GoodsPack&, std::string_view sw);
 
 	inline void from_string(Entities::GoodsQty& ret, std::string_view value)
 	{
-		unpack_goods_str(ret.packed, value);
+		from_string(ret.packed, value);
 	}
 
 	inline void from_string(Entities::GoodsPrice& ret, std::string_view value)
 	{
-		unpack_goods_str(ret.packed, value);
+		from_string(ret.packed, value);
 	}
 
 	// for int, double
