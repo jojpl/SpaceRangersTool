@@ -2,25 +2,15 @@
 
 namespace conv
 {
-	int to_int(std::string_view sw)
-	{
-		int res;
-		std::from_chars_result err =
-			std::from_chars(sw.data(), sw.data() + sw.size(), res);
-
-		if (err.ec != std::errc{})
-			throw std::logic_error("std::from_chars err");
-		return res;
-	}
-
 	int extractId(std::string_view sw)
 	{
 		// ItemId256
 		auto pos = sw.find_last_of("Id");
 		if(pos == sw.npos || (++pos == sw.size()))
 			throw std::logic_error(__FUNCTION__ " err!");
-			
-		return to_int(sw.substr(pos));
+		int id = 0;
+		from_string(id, sw);
+		return id;
 	}
 
 	void unpack_goods_str(Entities::GoodsPack& packed, std::string_view sw)
@@ -37,7 +27,8 @@ namespace conv
 			p2 = p1;
 			while ((p2 != end) && isdigit(*p2)) p2++;
 
-			int res = conv::to_int(std::string_view(p1, p2 - p1));
+			int res = 0;
+			from_string(res, std::string_view(p1, p2 - p1));
 			p1 = p2;
 
 			packed[Entities::GoodsEnum(cnt)] = res;

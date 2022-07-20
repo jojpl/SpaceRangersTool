@@ -35,6 +35,7 @@ namespace model
 		template<typename T, typename Ret>
 		std::string_view get_value(const Ret T::* field);
 
+		// contain definitions for parse Entities::T fields -> string
 		template<typename T, typename Ret>
 		inline std::vector<std::pair<Ret T::*, std::string_view>> storage{};
 

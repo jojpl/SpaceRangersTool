@@ -9,24 +9,22 @@ namespace conv
 {
 	using namespace std::string_literals;
 
-	int to_int(std::string_view sw);
-
 	int extractId(std::string_view sw);
 
 	void unpack_goods_str(Entities::GoodsPack&, std::string_view sw);
 
-	static void from_string(Entities::GoodsQty& ret, std::string_view value)
+	inline void from_string(Entities::GoodsQty& ret, std::string_view value)
 	{
 		unpack_goods_str(ret.packed, value);
 	}
 
-	static void from_string(Entities::GoodsPrice& ret, std::string_view value)
+	inline void from_string(Entities::GoodsPrice& ret, std::string_view value)
 	{
 		unpack_goods_str(ret.packed, value);
 	}
 
 	// for int, double
-	static void from_string(int& ret, std::string_view value)
+	inline void from_string(int& ret, std::string_view value)
 	{
 		std::from_chars_result err =
 			std::from_chars(value.data(), value.data() + value.size(), ret);
@@ -35,7 +33,7 @@ namespace conv
 			throw std::logic_error(__FUNCTION__ " err!");
 	}
 
-	static void from_string(double& ret, std::string_view value)
+	inline void from_string(double& ret, std::string_view value)
 	{
 		std::from_chars_result err =
 			std::from_chars(value.data(), value.data() + value.size(), ret);
@@ -44,18 +42,18 @@ namespace conv
 			throw std::logic_error(__FUNCTION__ " err!");
 	}
 
-	static void from_string(std::string& ret, std::string_view value)
+	inline void from_string(std::string& ret, std::string_view value)
 	{
 		ret = {value.data(), value.data() + value.size()};
 	}
 
-	static void from_string(Entities::Type& ret, std::string_view value)
+	inline void from_string(Entities::Type& ret, std::string_view value)
 	{
 		// fix it. has same functionality!
 		ret = model::converter<Entities::Type>().from_string(value);
 	}
 	
-	static void from_string(bool& ret, std::string_view value)
+	inline void from_string(bool& ret, std::string_view value)
 	{
 		if(value == "False")
 			ret = false;
@@ -70,7 +68,7 @@ namespace conv
 	// insert from_string specializations here =>
 
 	template<typename T>
-	static void from_string(std::optional<T>& ret, std::string_view value)
+	inline void from_string(std::optional<T>& ret, std::string_view value)
 	{
 		if (value.empty())
 			ret = {};
@@ -84,7 +82,7 @@ namespace conv
 
 	//// default
 	//template<typename Ret>
-	//static void from_string(Ret& ret, std::string_view value)
+	//void from_string(Ret& ret, std::string_view value)
 	//{
 	//	static_assert(false, "oups! do specialize " __FUNCTION__);
 	//	auto n = typeid(ret).name();
@@ -94,7 +92,7 @@ namespace conv
 	template<typename T, typename Ret, typename Base,
 		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
 		>
-	bool parse(Ret T::* field, Base* p,
+	inline bool parse(Ret T::* field, Base* p,
 				std::string_view key,
 				std::string_view value)
 	{
