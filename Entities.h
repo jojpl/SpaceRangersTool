@@ -221,9 +221,9 @@ namespace Entities
 		string DomSeries;
 		double Durability = 0.0;
 		optional<int> Fuel;
-		string IBonusName;
-		string ISeriesName;
-		string ISpecialName;
+		optional<string> IBonusName;
+		optional<string> ISeriesName;
+		optional<string> ISpecialName;
 		optional<int> Jump;
 		optional<int> MaxAmmo;
 		optional<int> MaxDamage;
@@ -239,7 +239,7 @@ namespace Entities
 		optional<int>	Speed;
 		optional<int>	SpeedMax;
 		optional<int>	SpeedMin;
-		string SysName;
+		optional<string> SysName;
 		int	TechLevel = 0;
 		optional<double> X;
 		optional<double> Y;

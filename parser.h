@@ -69,13 +69,15 @@ class Parser
 public:
 	void parse(const std::string& mem);
 
+	Entities::Global *get_parsed();
+
 private:
 	void init_ctx(std::string_view mem);
 
 	void parse_line();
 
 	Parser_Ctx ctx;
-	Entities::Global * out;
+	Entities::Global * out = nullptr;
 };
 
 class Handler

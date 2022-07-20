@@ -110,21 +110,50 @@ bool getline(	std::string_view str,
 
 void validate(const std::string& mem)
 {
-	size_t lines = 0;
-	size_t cnt_open = 0;
-	size_t cnt_close = 0;
-
-	auto get_statictic = [&lines, &cnt_open, &cnt_close](char ch)
+	struct statistic
 	{
-		if(ch == crlf_tag[0]) lines++;
-		else if(ch == '{') cnt_open++;
-		else if(ch == '}') cnt_close++;
+		size_t cnt_open = 0;
+		size_t cnt_close = 0;
+
+		int cnt_open_tmp = 0;
+		int cnt_close_tmp = 0;
+
+		int cnt_open_tag_size = open_tag.size();
+		int cnt_close_tag_size = close_tag.size();
+	} st;
+
+	auto get_statictic = [&st](char ch)
+	{
+		if(ch == open_tag[st.cnt_open_tmp])
+		{
+			st.cnt_open_tmp++;
+			if (st.cnt_open_tmp == st.cnt_open_tag_size)
+			{
+				st.cnt_open++;
+				st.cnt_open_tmp = 0;
+			}
+			st.cnt_close_tmp = 0;
+		}
+		else if(ch == close_tag[st.cnt_close_tmp])
+		{
+			st.cnt_close_tmp++;
+			if (st.cnt_close_tmp == st.cnt_close_tag_size)
+			{
+				st.cnt_close++;
+				st.cnt_close_tmp = 0;
+			}
+			st.cnt_open_tmp = 0;
+		}
+		else
+		{
+			st.cnt_open_tmp = 0;
+			st.cnt_close_tmp = 0;
+		}
 	};
-	// не парясь особо
 
 	std::for_each(mem.begin(), mem.end(), get_statictic);
 
-	if(cnt_open!= cnt_close)
+	if(st.cnt_open!= st.cnt_close)
 		throw std::logic_error("mismatch {}");
 }
 
@@ -134,7 +163,8 @@ void parse(const std::string& mem)
 	
 	Parser p;
 	p.parse(mem);
-	storage::Registrator::clear_storage();
+	Entities::Global* out = p.get_parsed();
+	//storage::Registrator::clear_storage();
 	return;
 }
 
@@ -146,6 +176,11 @@ void Parser::parse(const std::string& mem)
 		parse_line();
 
 	std::cout << out->Player->Name << std::endl;
+}
+
+Entities::Global * Parser::get_parsed()
+{
+	return out;
 }
 
 void Parser::init_ctx(std::string_view mem)
