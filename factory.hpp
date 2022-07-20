@@ -8,18 +8,19 @@ namespace storage
 
 	struct Registrator
 	{
+		inline static std::vector<Registrator*> arr {};
 		virtual void clear() = 0;
+		
+		static void clear_storage()
+		{
+			for (size_t i = 0; i < arr.size(); i++)
+			{
+				arr[i]->clear();
+			}
+		}
 	};
 
-	inline std::vector<Registrator*> arr;
 	
-	inline void clear_storage()
-	{
-		for (size_t i = 0; i < arr.size(); i++)
-		{
-			arr[i]->clear();
-		}
-	}
 
 	template <typename T>
 	struct storageRegistrator : Registrator

@@ -134,7 +134,7 @@ void parse(const std::string& mem)
 	
 	Parser p;
 	p.parse(mem);
-	//storage::clear_storage();
+	storage::Registrator::clear_storage();
 	return;
 }
 
