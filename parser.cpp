@@ -155,7 +155,7 @@ Entities::Global* parse(const std::string& mem)
 	auto now = std::chrono::steady_clock::now();
 	std::cout <<
 		std::chrono::duration_cast<std::chrono::milliseconds>(now - tp).count()
-		<< " ms";
+		<< " ms" << std::endl;
 
 	return p.get_parsed();;
 }

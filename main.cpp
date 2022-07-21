@@ -1,4 +1,5 @@
 ﻿#include "parser.h"
+#include "analyzer.hpp"
 
 #include <iostream>
 
@@ -18,4 +19,5 @@ int main(int argc, char *argv[])
 	{
 		std::cerr << e.what();
 	}
+	analyzer().analyze_some(out);
 }
