@@ -2,13 +2,13 @@
 #include "convert.h"
 #include "factory.hpp"
 
-#include <io.h>
-#include <iostream>
-#include <fstream>
 #include <algorithm>
-#include <string_view>
-#include <sstream>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 #include <map>
+#include <sstream>
+#include <string_view>
 #include <type_traits>
 
 static const std::string open_tag  = " ^{";
@@ -17,7 +17,7 @@ static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
 // MCVS
-#ifdef _MSC_VER9
+#ifdef _MSC_VER
 #define Starts_with(sw, example) (sw._Starts_with(example))
 #else
 #define Starts_with(sw, example) (sw.rfind(example, 0) == 0)
@@ -26,20 +26,6 @@ static const std::string crlf_tag = "\r\n";
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
 #define END_PARSE() }while(false);}
-
-bool read_file(std::string& out, const std::wstring& path)
-{
-	FILE* f = _wfopen(path.c_str(), L"rb");
-	if (!f) return false;
-	long len = _filelength(_fileno(f));
-
-	std::vector<char> buf;
-	buf.resize(len);
-	fread(buf.data(), len, 1, f);
-	fclose(f);
-	out.assign(buf.begin(), buf.end());
-	return !out.empty();
-}
 
 bool read_file(std::string& out, const std::string& path)
 {
@@ -157,15 +143,21 @@ void validate(const std::string& mem)
 		throw std::logic_error("mismatch {}");
 }
 
-void parse(const std::string& mem)
+Entities::Global* parse(const std::string& mem)
 {
+	std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
+
 	validate(mem);
 	
 	Parser p;
 	p.parse(mem);
-	Entities::Global* out = p.get_parsed();
 	//storage::Registrator::clear_storage();
-	return;
+	auto now = std::chrono::steady_clock::now();
+	std::cout <<
+		std::chrono::duration_cast<std::chrono::milliseconds>(now - tp).count()
+		<< " ms";
+
+	return p.get_parsed();;
 }
 
 void Parser::parse(const std::string& mem)
@@ -174,8 +166,6 @@ void Parser::parse(const std::string& mem)
 
 	while (ctx.getline())
 		parse_line();
-
-	std::cout << out->Player->Name << std::endl;
 }
 
 Entities::Global * Parser::get_parsed()

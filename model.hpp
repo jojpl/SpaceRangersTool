@@ -29,21 +29,18 @@ namespace model
 
 	namespace kv
 	{
-		void init_storage();
-
 		// restore key for specified struct field
 		template<typename T, typename Ret>
 		std::string_view get_value(const Ret T::* field);
 
-		// contain definitions for parse Entities::T fields -> string
-		template<typename T, typename Ret>
-		inline std::vector<std::pair<Ret T::*, std::string_view>> storage{};
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
 		auto& get_storage(Ret T::* field)
 		{
-			return storage<T, Ret>;
+			// contain definitions for parse Entities::T fields -> string
+			static std::vector<std::pair<Ret T::*, std::string_view>> storage{};
+			return storage;
 		}
 
 		template<typename T, typename Ret>

@@ -9,9 +9,8 @@
 //#include "boost\variant.hpp"
 #include <variant>
 
-bool read_file(std::string& out, const std::wstring& path);
 bool read_file(std::string& out, const std::string& path);
-void parse(const std::string& mem);
+Entities::Global* parse(const std::string& mem);
 void trim_tabs(std::string_view& beg);
 bool getline(std::string_view str,
 	std::string_view& out_line,

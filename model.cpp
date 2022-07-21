@@ -110,15 +110,6 @@ namespace model
 
 	namespace kv
 	{
-		std::once_flag flag1, flag2;
-		
-		static void init_storage_impl();
-		void init_storage()
-		{
-			std::call_once(flag1, init_storage_impl);
-			std::call_once(flag2, init_converter_impl);
-		}
-
 		void init_storage_impl()
 		{
 			#define BEGIN_DEF_FOR(struct_name) { using t = struct_name;
@@ -221,4 +212,15 @@ namespace model
 			#undef END_DEF
 		}
 	}
+
+	struct staticIniter
+	{
+		staticIniter()
+		{
+			kv::init_storage_impl();
+			init_converter_impl();
+		}
+	};
+
+	staticIniter initer;
 }
