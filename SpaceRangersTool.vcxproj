@@ -166,7 +166,6 @@
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="performance_tracker.cpp" />
-    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="analyzer.hpp" />
