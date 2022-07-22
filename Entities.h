@@ -88,7 +88,7 @@ namespace Entities
 		WB,
 		Warrior,
 
-		Type_NUM,
+		NUM,
 	};
 
 	enum class GoodsEnum
@@ -102,7 +102,7 @@ namespace Entities
 		Arms,
 		Narcotics,
 
-		GoodsEnum_NUM
+		NUM
 	};
 	
 
@@ -117,7 +117,9 @@ namespace Entities
 	struct Unknown
 	{};
 
-	using GoodsPack = std::map<GoodsEnum, int>;
+	#define ENUM_COUNT(Enum) ((size_t) Enum::NUM)
+
+	using GoodsPack = std::array<int, ENUM_COUNT(GoodsEnum)>;
 
 	struct GoodsQty
 	{

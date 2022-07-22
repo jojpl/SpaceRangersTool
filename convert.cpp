@@ -28,30 +28,18 @@ namespace conv
 	{
 		std::vector<boost::iterator_range<std::string_view::iterator>> splitVec;
 		boost::split(splitVec, sw, [](char ch){ return ch==','; });//boost::is_any_of(","));
-		
-		using namespace Entities;
-		constexpr static const std::array<GoodsEnum, (size_t) GoodsEnum::GoodsEnum_NUM>
-			goodsEnum_arr
-		{
-			GoodsEnum::Food,
-			GoodsEnum::Medicine,
-			GoodsEnum::Alcohol,
-			GoodsEnum::Minerals,
-			GoodsEnum::Luxury,
-			GoodsEnum::Technics,
-			GoodsEnum::Arms,
-			GoodsEnum::Narcotics,
-		};
 
-		auto goodsEnum_iter = goodsEnum_arr.cbegin();
+		using namespace Entities;
+		int iter_enum = (int) GoodsEnum {};
 		auto iter_range = splitVec.cbegin();
-		for (; goodsEnum_iter!= goodsEnum_arr.cend() && iter_range!= splitVec.cend();
-			goodsEnum_iter++, iter_range++)
+		
+		for (;  iter_enum != ENUM_COUNT(GoodsEnum) && iter_range!= splitVec.cend();
+				iter_enum++, iter_range++)
 		{
 			auto rng = *iter_range;
 			int res = 0;
 			from_string(res, { &*rng.begin(), rng.size() });
-			packed[*goodsEnum_iter] = res;
+			packed[iter_enum] = res;
 		}
 	}
 
