@@ -1,17 +1,18 @@
 #include "analyzer.hpp"
+#include "performance_tracker.hpp"
 
 #include <algorithm>
 #include <array>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <cmath>
 #include <sstream>
 #include <set>
 #include <string_view>
 #include <type_traits>
-
-#include <windows.h>
 
 struct Coord
 {
@@ -43,7 +44,8 @@ struct Profit
 struct Vis
 {
 	Vis()
-	{ ::SetConsoleOutputCP(1251); }
+	{ //::SetConsoleOutputCP(1251); 
+	}
 
 	static constexpr int max_width = 75;//80; //X
 	static constexpr int max_height = 30;//50; //Y
@@ -174,8 +176,6 @@ class planet_iterator
 	using PlanetList_Iter = decltype(Entities::PlanetList::list)::iterator;
 	using StarList_Iter   = decltype(Entities::StarList::list)::iterator;
 	
-	Entities::Global* data;
-
 	decltype(Entities::StarList::list)& starlist;
 public:
 	planet_iterator(decltype(Entities::StarList::list)& starlist_)
@@ -190,68 +190,116 @@ public:
 
 	bool end()
 	{
-		if (starlist_iter != starlist.end())
-		{
-			auto local_end =(*starlist_iter)->PlanetList.list.end();
-			return local_end == planetlist_iter;
-		}
-		return true;
+		if (starlist_iter == starlist.end()) 
+			return true;
+		if(planetlist_iter == (*starlist_iter)->PlanetList.list.end())
+			return true;
+
+		return false;
 	}
 
 	void next()
 	{
-		if (starlist_iter != starlist.end())
+		planetlist_iter++;
+		if (planetlist_iter == (*starlist_iter)->PlanetList.list.end())
 		{
-			if (planetlist_iter != (*starlist_iter)->PlanetList.list.end())
-			{
-				planetlist_iter++;
-				if (planetlist_iter == (*starlist_iter)->PlanetList.list.end())
-				{
-					starlist_iter++;
-					if (starlist_iter != starlist.end())
-						planetlist_iter = (*starlist_iter)->PlanetList.list.begin();
-				}
-			}
+			starlist_iter++;
+			if (starlist_iter != starlist.end())
+				planetlist_iter = (*starlist_iter)->PlanetList.list.begin();
 		}
 	}
 };
+
+template<size_t Cnt>
+std::string cut_to(std::string s)
+{
+	//static const char ellipse[] = "...";
+	if(s.size() <=Cnt) return s;
+	//return s.substr(0, Cnt - 3) + ellipse;
+	return s.substr(0, Cnt);
+}
+
+std::ostream& operator<<(std::ostream& os, Profit& pr)
+{
+	auto&[bd_good, bd_profit]     = pr.best_deal;
+	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
+	std::string good_name         = cut_to<7>({good_name_sw.data(), good_name_sw.size()});
+	std::string p_from_name       = cut_to<12>(pr.path.from->PlanetName);
+	std::string p_to_name         = cut_to<12>(pr.path.to->PlanetName);
+	int qty                       = pr.path.from->ShopGoods.packed[(int)bd_good];
+	int sale                      = pr.path.from->ShopGoodsSale.packed[(int)bd_good];
+	int buy                       = pr.path.from->ShopGoodsBuy.packed[(int)bd_good];
+
+	const static std::string templ = "%-12s ==> %-12s %-7s qty: %-5d (%4d - %-4d) profit: %d";
+	size_t buf_sz = snprintf(nullptr, 0, templ.data(),
+		p_from_name.data(), p_to_name.data(),
+		good_name.data(), qty, sale, buy, bd_profit
+	);
+	auto buf = std::make_unique<char[]>(buf_sz + 1);
+	snprintf(buf.get(), buf_sz + 1, templ.data(),
+		p_from_name.data(), p_to_name.data(),
+		good_name.data(), qty, sale, buy, bd_profit
+	);
+	os << buf;
+	return os;
+}
+
+void dump_top(std::vector<Profit>& vp, int top_size)
+{
+	std::ostream& os = std::cout;
+	int cnt = 0;
+	for (auto& pr: vp)
+	{
+		os << pr << std::endl;
+		if(++cnt == top_size)
+			break;
+	}
+}
 
 struct Filter
 {
 	bool operator()(){return false;}
 };
 
-void calc_profits(Entities::Global *data)
+void calc_profits(Entities::Global *data, std::vector<Profit>& vp)
 {
-	std::vector<Profit> vp;
 	std::set<std::string> skip_star_list_name
 	{ "Тортугац", "Нифигац" };
 
 	std::set<std::string> skip_star_list_owners
-	{ "Klings" };
+	{ "Klings" };	
+	
+	std::set<std::string> skip_planet_list_owner
+	{ "None", "Kling" };
 
 	for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 	{
-		if (skip_star_list_name.count((*it1.starlist_iter)->StarName))
+		Entities::Star*   s1 = *it1.starlist_iter;
+		Entities::Planet* p1 = *it1.planetlist_iter;
+
+		if (skip_star_list_name.count(s1->StarName))
 			continue;
 
-		if (skip_star_list_owners.count((*it1.starlist_iter)->Owners))
+		if (skip_star_list_owners.count(s1->Owners))
+			continue;
+
+		if (skip_planet_list_owner.count(p1->Owner))
 			continue;
 
 		for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
 		{
-			Entities::Planet* p1 = *it1.planetlist_iter;
-			Entities::Planet* p2 = *it2.planetlist_iter;
-			Entities::Star*   s1 = *it1.starlist_iter;
 			Entities::Star*   s2 = *it2.starlist_iter;
+			Entities::Planet* p2 = *it2.planetlist_iter;
 
-			int distance = (int) std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
-
-			if (distance > 30)
+			if (p1 == p2)
 				continue;
 
-			if (*it1.planetlist_iter == *it2.planetlist_iter)
-				continue;
+			//if (s1 != s2) // inner Star
+			//	continue;
+			
+			//if (s1->StarName != "Денебола") // inner Star
+			//	continue;
+
 			 
 			if (skip_star_list_name.count(s2->StarName))
 				continue;
@@ -259,6 +307,15 @@ void calc_profits(Entities::Global *data)
 			if (skip_star_list_owners.count(s2->Owners))
 				continue;
 
+			if (skip_planet_list_owner.count(p2->Owner))
+				continue;
+
+			int distance = (int) std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
+
+			if (distance > 30)
+				continue;
+
+			//bool stop = p1->PlanetName == "Оннд" && p2->PlanetName == "Элкада";
 
 			Profit p;
 			p.path.from = p1;
@@ -268,11 +325,11 @@ void calc_profits(Entities::Global *data)
 			//p.best_deal = { Entities::GoodsEnum{}, INT_MIN};
 			for (size_t item = 0; item < ENUM_COUNT(Entities::GoodsEnum); item++)
 			{
-				int qty = p1->ShopGoods.packed[item];
-				int buy = p1->ShopGoodsBuy.packed[item];
+				int aviable_qty = p1->ShopGoods.packed[item];
+				int sale = p1->ShopGoodsSale.packed[item]; // from
 
-				int sale = p2->ShopGoodsSale.packed[item];
-				int delta_profit = qty*(sale - buy);
+				int buy = p2->ShopGoodsBuy.packed[item]; // to
+				int delta_profit = aviable_qty *(buy - sale);
 
 				p.delta_buy_sale[item] = delta_profit;
 				
@@ -284,6 +341,9 @@ void calc_profits(Entities::Global *data)
 				}
 			}
 
+			auto&[bd_good, bd_profit] = p.best_deal;
+			if(bd_profit < 1000) continue;
+
 			vp.push_back(std::move(p));
 		}
 	}
@@ -291,29 +351,18 @@ void calc_profits(Entities::Global *data)
 	std::sort(vp.rbegin(), vp.rend(), 
 		[](Profit& pr1, Profit& pr2)
 		{
-			//int max1 = 0;
-			//for (auto val : pr1.delta_buy_sale)
-			//{
-			//	if(max1 < val) max1 = val;
-			//}
-
-			//int max2 = 0;
-			//for (auto val : pr2.delta_buy_sale)
-			//{
-			//	if (max2 < val) max2 = val;
-			//}
-
-			//return max1 < max2;
 			auto&[bd_good1, bd_profit1] = pr1.best_deal;
 			auto&[bd_good2, bd_profit2] = pr2.best_deal;
 
 			return bd_profit1 < bd_profit2;
 		}
 	);
+	dump_top(vp, 5);
+
 	return;
 }
 
-void analyzer::analyze_some(Entities::Global * data)
+void analyzer::draw_stars_ASCII_pic()
 {
 	//std::vector<Content> vc {
 	//	{ {0.0, 0.0}, "****"},
@@ -323,10 +372,15 @@ void analyzer::analyze_some(Entities::Global * data)
 	std::vector<Content> vc;
 	fillStarList(vc, data);
 
-	calc_profits(data);
-
 	Vis v;
 	v.fill(vc);
+}
+
+void analyzer::analyze_profit()
+{
+	performance_tracker tr;
+	std::vector<Profit> vp;
+	calc_profits(data, vp);
 	return;
 	//std::cout << data->Player->IFullName << std::endl;
 }

@@ -161,9 +161,11 @@
     <ClCompile Include="analyzer.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="factory.cpp" />
+    <ClCompile Include="filefinder.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="performance_tracker.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,8 +173,10 @@
     <ClInclude Include="convert.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="factory.hpp" />
+    <ClInclude Include="filefinder.hpp" />
     <ClInclude Include="model.hpp" />
     <ClInclude Include="parser.h" />
+    <ClInclude Include="performance_tracker.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

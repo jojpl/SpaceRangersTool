@@ -1,9 +1,9 @@
 #include "parser.h"
 #include "convert.h"
 #include "factory.hpp"
+#include "performance_tracker.hpp"
 
 #include <algorithm>
-#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -145,18 +145,12 @@ void validate(const std::string& mem)
 
 Entities::Global* parse(const std::string& mem)
 {
-	std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
-
+	performance_tracker tr;
 	validate(mem);
 	
 	Parser p;
 	p.parse(mem);
 	//storage::Registrator::clear_storage();
-	auto now = std::chrono::steady_clock::now();
-	std::cout <<
-		std::chrono::duration_cast<std::chrono::milliseconds>(now - tp).count()
-		<< " ms" << std::endl;
-
 	return p.get_parsed();;
 }
 

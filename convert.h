@@ -50,7 +50,7 @@ namespace conv
 	inline void from_string(Entities::Type& ret, std::string_view value)
 	{
 		// fix it. has same functionality!
-		ret = model::converter<Entities::Type>().from_string(value);
+		ret = model::converter<Entities::Type>::from_string(value);
 	}
 	
 	inline void from_string(bool& ret, std::string_view value)

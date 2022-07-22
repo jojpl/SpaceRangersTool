@@ -14,16 +14,21 @@ namespace model
 	template<typename T>
 	struct converter
 	{
-		T from_string(std::string_view sw)
+		static T from_string(std::string_view sw)
 		{
 			const auto& map = get_map<T>();
 			return map.at(sw);
 		}
 
-		bool is_string_for(std::string_view sw)
+		static std::string_view to_string(T t)
 		{
 			const auto& map = get_map<T>();
-			return map.find(sw) != map.cend();
+			for(auto& [key, value]: map)
+			{
+				if(value == t)
+					return key;
+			}
+			return {};
 		}
 	};
 

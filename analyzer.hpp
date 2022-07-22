@@ -1,9 +1,15 @@
 #pragma once
-#include "Entities.h"
+#include "model.hpp"
 
 class analyzer
 {
+	Entities::Global * data = nullptr;
 public:
-	void analyze_some(Entities::Global* data);
+	analyzer(Entities::Global * data_)
+		:data(data_)
+	{}
+
+	void draw_stars_ASCII_pic();
+	void analyze_profit();
 };
 

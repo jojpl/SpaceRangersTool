@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <map>
 #include <string_view>
-#include <mutex>
-
-#include <cctype>
 
 namespace model
 {
@@ -222,5 +219,5 @@ namespace model
 		}
 	};
 
-	staticIniter initer;
+	static staticIniter initer;
 }

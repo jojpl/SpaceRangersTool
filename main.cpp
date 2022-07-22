@@ -1,13 +1,12 @@
 ﻿#include "parser.h"
 #include "analyzer.hpp"
+#include "filefinder.hpp"
 
 #include <iostream>
+#include <windows.h>
 
-int main(int argc, char *argv[])
+void on_new_file_found(std::string file)
 {
-	std::string file = "C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\"
-		"Планета Палтеомео-dump.txt";
-		
 	Entities::Global* out = nullptr;
 	try
 	{
@@ -18,6 +17,16 @@ int main(int argc, char *argv[])
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what();
+		return;
 	}
-	analyzer().analyze_some(out);
+	analyzer(out).analyze_profit();
+}
+
+int main(int argc, char *argv[])
+{
+	::SetConsoleOutputCP(1251);
+
+	filefinder fh;
+	fh.set_handler(on_new_file_found);
+	fh.find();
 }
