@@ -9,6 +9,8 @@ public:
 		:data(data_)
 	{}
 
+	void calc_profits();
+
 	void draw_stars_ASCII_pic();
 	void analyze_profit();
 };

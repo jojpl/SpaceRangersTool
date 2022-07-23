@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -13,6 +14,8 @@
 #include <set>
 #include <string_view>
 #include <type_traits>
+#include <tuple>
+#include <utility>
 
 struct Coord
 {
@@ -28,9 +31,16 @@ struct Content
 
 struct Path
 {
-	Entities::Planet* from;
-	Entities::Planet* to;
+	// from
+	Entities::Planet* p1;
+	// to
+	Entities::Planet* p2;
 	int distance = 0;
+	// for additional info
+	// from
+	Entities::Star* s1;
+	// to
+	Entities::Star* s2;
 };
 
 struct Profit
@@ -224,23 +234,33 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	auto&[bd_good, bd_profit]     = pr.best_deal;
 	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
 	std::string good_name         = cut_to<7>({good_name_sw.data(), good_name_sw.size()});
-	std::string p_from_name       = cut_to<12>(pr.path.from->PlanetName);
-	std::string p_to_name         = cut_to<12>(pr.path.to->PlanetName);
-	int qty                       = pr.path.from->ShopGoods.packed[(int)bd_good];
-	int sale                      = pr.path.from->ShopGoodsSale.packed[(int)bd_good];
-	int buy                       = pr.path.from->ShopGoodsBuy.packed[(int)bd_good];
+	std::string p_from_name       = cut_to<12>(pr.path.p1->PlanetName);
+	std::string p_to_name         = cut_to<12>(pr.path.p2->PlanetName);
 
-	const static std::string templ = "%-12s ==> %-12s %-7s qty: %-5d (%4d - %-4d) profit: %d";
+	int qty                       = pr.path.p1->ShopGoods.packed[(int)bd_good];
+	int sale                      = pr.path.p1->ShopGoodsSale.packed[(int)bd_good];
+	int buy                       = pr.path.p1->ShopGoodsBuy.packed[(int)bd_good];
+	
+	// stars add info
+	std::string s_from_name       = cut_to<12>(pr.path.s1->StarName);
+	std::string s_to_name         = cut_to<12>(pr.path.s2->StarName);
+
+	const static std::string templ = 
+	"%-12s ==> %-12s\n"
+	"%-12s ==> %-12s %-7s qty: %-5d (%4d - %-4d) profit: %d";
+
 	size_t buf_sz = snprintf(nullptr, 0, templ.data(),
+		s_from_name.data(), s_to_name.data(),
 		p_from_name.data(), p_to_name.data(),
 		good_name.data(), qty, sale, buy, bd_profit
 	);
 	auto buf = std::make_unique<char[]>(buf_sz + 1);
 	snprintf(buf.get(), buf_sz + 1, templ.data(),
+		s_from_name.data(), s_to_name.data(),
 		p_from_name.data(), p_to_name.data(),
 		good_name.data(), qty, sale, buy, bd_profit
 	);
-	os << buf;
+	os << buf << std::endl;
 	return os;
 }
 
@@ -256,35 +276,154 @@ void dump_top(std::vector<Profit>& vp, int top_size)
 	}
 }
 
-struct Filter
+void fill_profit(Profit& p,
+	Entities::Star* s1,
+	Entities::Star* s2,
+	Entities::Planet* p1,
+	Entities::Planet* p2)
 {
-	bool operator()(){return false;}
+	p.path.p1 = p1;
+	p.path.p2 = p2;
+	p.path.s1 = s1;
+	p.path.s2 = s2;
+	p.path.distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
+
+	//p.best_deal = { Entities::GoodsEnum{}, INT_MIN};
+	for (size_t item = 0; item < ENUM_COUNT(Entities::GoodsEnum); item++)
+	{
+		int aviable_qty = p1->ShopGoods.packed[item];
+		int sale = p1->ShopGoodsSale.packed[item]; // from
+
+		int buy = p2->ShopGoodsBuy.packed[item]; // to
+		int delta_profit = aviable_qty * (buy - sale);
+
+		p.delta_buy_sale[item] = delta_profit;
+
+		auto&[bd_good, bd_profit] = p.best_deal;
+		if (bd_profit < delta_profit)
+		{
+			bd_profit = delta_profit;
+			bd_good = (Entities::GoodsEnum)item;
+		}
+	}
+}
+
+struct IFilter
+{
+	// true - accept, false - decline
+	virtual bool operator()(Profit&) = 0;
+	~IFilter() = default;
 };
 
-void calc_profits(Entities::Global *data, std::vector<Profit>& vp)
+struct FilterByPath : IFilter
 {
-	std::set<std::string> skip_star_list_name
+	FilterByPath()
+	{	}
+
+	inline static std::set<std::string> 
+	skip_star_list_name
 	{ "Тортугац", "Нифигац" };
 
+	inline static
 	std::set<std::string> skip_star_list_owners
 	{ "Klings" };	
 	
+	inline static
 	std::set<std::string> skip_planet_list_owner
 	{ "None", "Kling" };
+
+	virtual bool operator()(Profit& pr) override {
+		auto s1 = pr.path.s1;
+		auto s2 = pr.path.s2;
+		auto p1 = pr.path.p1;
+		auto p2 = pr.path.p2;
+
+		if (skip_star_list_name.count(s1->StarName))
+			return false;
+		if (skip_star_list_name.count(s2->StarName))
+			return false;
+
+		if (skip_star_list_owners.count(s1->Owners))
+			return false;
+		if (skip_star_list_owners.count(s2->Owners))
+			return false;
+
+		if (skip_planet_list_owner.count(p1->Owner))
+			return false;
+		if (skip_planet_list_owner.count(p2->Owner))
+			return false;
+
+		return true;
+	}
+};
+
+struct FilterByProfit : IFilter
+{
+	FilterByProfit()
+	{	}
+
+	virtual bool operator()(Profit& pr) override {
+		
+		auto&[bd_good, bd_profit] = pr.best_deal;
+		if (bd_profit < 1000) 
+			return false;
+
+		return true;
+	}
+};
+
+// some template magic
+template <typename ... Args>
+struct AND_opt : IFilter
+{
+	AND_opt(Args&& ... args)
+		: filters( std::forward<Args>(args)... )
+	{	}
+
+	AND_opt(Args& ... args)
+		: filters(args...)
+	{	}
+	
+	std::tuple<Args ...> filters;
+
+	//template <typename T, typename ... Args2>
+	//bool call(Args& ... args)
+	//{
+	//	if ((args(pr) && ...))
+	//		return true;
+
+	//	return false;
+	//}
+
+	// aka template labmda c++20
+	struct Help_Me
+	{
+		Profit& pr;
+
+		template<typename ... Args>
+		bool operator()(Args ... args)
+		{
+			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
+			if ((args(pr) && ...))
+				return true;
+
+			return false;
+		}
+	};
+
+	virtual bool operator()(Profit& pr) override {
+		return std::apply(Help_Me{pr}, filters); // unfold tuple to args ...
+	}
+};
+
+void analyzer::calc_profits()
+{
+	std::vector<Profit> vp;
 
 	for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 	{
 		Entities::Star*   s1 = *it1.starlist_iter;
 		Entities::Planet* p1 = *it1.planetlist_iter;
-
-		if (skip_star_list_name.count(s1->StarName))
-			continue;
-
-		if (skip_star_list_owners.count(s1->Owners))
-			continue;
-
-		if (skip_planet_list_owner.count(p1->Owner))
-			continue;
 
 		for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
 		{
@@ -300,53 +439,43 @@ void calc_profits(Entities::Global *data, std::vector<Profit>& vp)
 			//if (s1->StarName != "Денебола") // inner Star
 			//	continue;
 
-			 
-			if (skip_star_list_name.count(s2->StarName))
-				continue;
 
-			if (skip_star_list_owners.count(s2->Owners))
-				continue;
+		//	int distance = (int) std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
 
-			if (skip_planet_list_owner.count(p2->Owner))
-				continue;
-
-			int distance = (int) std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
-
-			if (distance > 30)
-				continue;
+		//	if (distance > 30)
+		//		continue;
 
 			//bool stop = p1->PlanetName == "Оннд" && p2->PlanetName == "Элкада";
 
 			Profit p;
-			p.path.from = p1;
-			p.path.to   = p2;
-			p.path.distance = distance;
+			fill_profit(p, s1, s2, p1, p2);
 
-			//p.best_deal = { Entities::GoodsEnum{}, INT_MIN};
-			for (size_t item = 0; item < ENUM_COUNT(Entities::GoodsEnum); item++)
-			{
-				int aviable_qty = p1->ShopGoods.packed[item];
-				int sale = p1->ShopGoodsSale.packed[item]; // from
-
-				int buy = p2->ShopGoodsBuy.packed[item]; // to
-				int delta_profit = aviable_qty *(buy - sale);
-
-				p.delta_buy_sale[item] = delta_profit;
-				
-				auto& [bd_good, bd_profit] = p.best_deal;
-				if (bd_profit < delta_profit)
-				{
-					bd_profit = delta_profit;
-					bd_good = (Entities::GoodsEnum)item;
-				}
-			}
-
-			auto&[bd_good, bd_profit] = p.best_deal;
-			if(bd_profit < 1000) continue;
+			
+		//	if(bd_good == Entities::GoodsEnum::Minerals) continue;
+		//	if(bd_good == Entities::GoodsEnum::Narcotics) continue;
+		//	if(bd_good == Entities::GoodsEnum::Food) continue;
 
 			vp.push_back(std::move(p));
 		}
 	}
+
+	auto f1 = FilterByProfit{};
+	auto f2 = FilterByPath{};
+	auto common_f = AND_opt( f1, f2);
+
+	std::tuple<std::string, int> tup;
+	auto fffff = std::get<0>(tup);
+	auto fffff2 = std::get<1>(tup);
+
+	//std::index_sequence_for;
+
+	auto pos = std::remove_if(
+			vp.begin(), vp.end(), 
+			//common_f
+			AND_opt(AND_opt(FilterByProfit{}, FilterByPath{}), FilterByPath{})
+	);
+
+	vp.erase(pos, vp.end());
 
 	std::sort(vp.rbegin(), vp.rend(), 
 		[](Profit& pr1, Profit& pr2)
@@ -357,7 +486,8 @@ void calc_profits(Entities::Global *data, std::vector<Profit>& vp)
 			return bd_profit1 < bd_profit2;
 		}
 	);
-	dump_top(vp, 5);
+
+	dump_top(vp, 10);
 
 	return;
 }
@@ -379,8 +509,7 @@ void analyzer::draw_stars_ASCII_pic()
 void analyzer::analyze_profit()
 {
 	performance_tracker tr;
-	std::vector<Profit> vp;
-	calc_profits(data, vp);
+	calc_profits();
 	return;
 	//std::cout << data->Player->IFullName << std::endl;
 }
