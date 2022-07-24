@@ -363,7 +363,6 @@ struct FilterByProfit : IFilter
 	{	}
 
 	virtual bool operator()(Profit& pr) override {
-		
 		auto&[bd_good, bd_profit] = pr.best_deal;
 		if (bd_profit < 1000) 
 			return false;
@@ -386,15 +385,6 @@ struct AND_opt : IFilter
 	
 	std::tuple<Args ...> filters;
 
-	//template <typename T, typename ... Args2>
-	//bool call(Args& ... args)
-	//{
-	//	if ((args(pr) && ...))
-	//		return true;
-
-	//	return false;
-	//}
-
 	// aka template labmda c++20
 	struct Help_Me
 	{
@@ -404,7 +394,8 @@ struct AND_opt : IFilter
 		bool operator()(Args ... args)
 		{
 			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
-			if ((args(pr) && ...))
+			bool res = (args(pr) && ...);
+			if (res)
 				return true;
 
 			return false;
@@ -415,6 +406,18 @@ struct AND_opt : IFilter
 		return std::apply(Help_Me{pr}, filters); // unfold tuple to args ...
 	}
 };
+
+template <typename Callable>
+void apply_filter(std::vector<Profit>& vp, Callable&& c)
+{
+	// some inverted filter logic for remove_if context
+	auto pos = std::remove_if(
+		vp.begin(), vp.end(),
+		std::not_fn(std::forward<Callable>(c))
+	);
+
+	vp.erase(pos, vp.end());
+}
 
 void analyzer::calc_profits()
 {
@@ -433,27 +436,8 @@ void analyzer::calc_profits()
 			if (p1 == p2)
 				continue;
 
-			//if (s1 != s2) // inner Star
-			//	continue;
-			
-			//if (s1->StarName != "Денебола") // inner Star
-			//	continue;
-
-
-		//	int distance = (int) std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
-
-		//	if (distance > 30)
-		//		continue;
-
-			//bool stop = p1->PlanetName == "Оннд" && p2->PlanetName == "Элкада";
-
 			Profit p;
 			fill_profit(p, s1, s2, p1, p2);
-
-			
-		//	if(bd_good == Entities::GoodsEnum::Minerals) continue;
-		//	if(bd_good == Entities::GoodsEnum::Narcotics) continue;
-		//	if(bd_good == Entities::GoodsEnum::Food) continue;
 
 			vp.push_back(std::move(p));
 		}
@@ -463,19 +447,7 @@ void analyzer::calc_profits()
 	auto f2 = FilterByPath{};
 	auto common_f = AND_opt( f1, f2);
 
-	std::tuple<std::string, int> tup;
-	auto fffff = std::get<0>(tup);
-	auto fffff2 = std::get<1>(tup);
-
-	//std::index_sequence_for;
-
-	auto pos = std::remove_if(
-			vp.begin(), vp.end(), 
-			//common_f
-			AND_opt(AND_opt(FilterByProfit{}, FilterByPath{}), FilterByPath{})
-	);
-
-	vp.erase(pos, vp.end());
+	apply_filter(vp, common_f);
 
 	std::sort(vp.rbegin(), vp.rend(), 
 		[](Profit& pr1, Profit& pr2)
@@ -487,6 +459,7 @@ void analyzer::calc_profits()
 		}
 	);
 
+	std::cout << "total is: " << vp.size() << std::endl;
 	dump_top(vp, 10);
 
 	return;
