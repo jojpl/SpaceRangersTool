@@ -166,6 +166,7 @@
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="performance_tracker.cpp" />
+    <ClCompile Include="programargs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="analyzer.hpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="model.hpp" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="performance_tracker.hpp" />
+    <ClInclude Include="programargs.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,7 @@
 ﻿#include "parser.h"
 #include "analyzer.hpp"
 #include "filefinder.hpp"
+#include "programargs.hpp"
 
 #include <iostream>
 #include <windows.h>
@@ -25,6 +26,9 @@ void on_new_file_found(std::string file)
 int main(int argc, char *argv[])
 {
 	::SetConsoleOutputCP(1251);
+
+	if(!options::parse_args(argc, argv))
+		return 0;
 
 	filefinder fh;
 	fh.set_handler(on_new_file_found);
