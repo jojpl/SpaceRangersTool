@@ -74,30 +74,32 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	auto bd_good                  = pr.good;
 	auto bd_profit                = pr.delta_profit;
 	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
-	std::string good_name         = cut_to<7>({good_name_sw.data(), good_name_sw.size()});
-	std::string p_from_name       = cut_to<12>(pr.path.p1->PlanetName);
-	std::string p_to_name         = cut_to<12>(pr.path.p2->PlanetName);
+	std::string good_name         = cut_to<5>({good_name_sw.data(), good_name_sw.size()});
+	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
+	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);
 
 	int qty                       = pr.path.p1->ShopGoods.packed[(int)bd_good];
 	int sale                      = pr.path.p1->ShopGoodsSale.packed[(int)bd_good];
 	int buy                       = pr.path.p1->ShopGoodsBuy.packed[(int)bd_good];
 	
 	// stars add info
-	std::string s_from_name       = cut_to<12>(pr.path.s1->StarName);
-	std::string s_to_name         = cut_to<12>(pr.path.s2->StarName);
+	std::string s_from_name       = cut_to<15>(pr.path.s1->StarName);
+	std::string s_to_name         = cut_to<15>(pr.path.s2->StarName);
+	int distance                 = pr.path.distance;
 
 	const static std::string templ = 
-	"%-12s ==> %-12s\n"
-	"%-12s ==> %-12s %-7s qty: %-5d (%4d - %-4d) profit: %d";
+	"%-15s ==> %-15s distance: %3d\n"
+	"%-15s -- %-15s %-5s q: %-5d (%4d - %-4d) profit: %d";
 
-	size_t buf_sz = snprintf(nullptr, 0, templ.data(),
-		s_from_name.data(), s_to_name.data(),
+	size_t buf_sz = 
+	snprintf(nullptr, 0, templ.data(),
+		s_from_name.data(), s_to_name.data(), distance,
 		p_from_name.data(), p_to_name.data(),
 		good_name.data(), qty, sale, buy, bd_profit
 	);
 	auto buf = std::make_unique<char[]>(buf_sz + 1);
 	snprintf(buf.get(), buf_sz + 1, templ.data(),
-		s_from_name.data(), s_to_name.data(),
+		s_from_name.data(), s_to_name.data(), distance,
 		p_from_name.data(), p_to_name.data(),
 		good_name.data(), qty, sale, buy, bd_profit
 	);
@@ -105,9 +107,10 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	return os;
 }
 
-void dump_top(std::vector<Profit>& vp, int top_size)
+void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 {
-	std::ostream& os = std::cout;
+	int top_size = opt.tops_count.value_or(10);
+
 	int cnt = 0;
 	for (auto& pr: vp)
 	{
@@ -236,14 +239,14 @@ struct FilterByPath
 
 struct FilterByProfit
 {
-	FilterByProfit(std::optional<int> min_pofit_ )
-		: min_pofit_(min_pofit_.value_or(1000))
+	FilterByProfit( options::Options opt )
+		: min_profit_(opt.min_profit.value_or(1000))
 	{	}
 
-	int min_pofit_;
+	int min_profit_;
 
 	bool operator()(Profit& pr){
-		if (pr.delta_profit < min_pofit_)
+		if (pr.delta_profit < min_profit_)
 			return false;
 
 		return true;
@@ -324,7 +327,7 @@ void analyzer::calc_profits()
 		}
 	}
 
-	auto f1 = FilterByProfit{ options::get_opt().min_profit };
+	auto f1 = FilterByProfit{ options::get_opt() };
 	auto f2 = FilterByPathCommon{};
 	auto f3 = FilterByPath{ options::get_opt() };
 	auto common_f = AND_opt( f1, f2, f3);
@@ -339,7 +342,8 @@ void analyzer::calc_profits()
 	);
 
 	std::cout << "total is: " << vp.size() << std::endl;
-	dump_top(vp, options::get_opt().tops_count.value_or(10));
+	//std::ostream& os = std::cout;
+	dump_top(std::cout, vp, options::get_opt());
 
 	return;
 }
