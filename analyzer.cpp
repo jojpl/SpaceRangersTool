@@ -155,15 +155,11 @@ void fill_profits(Profits& profits,
 	}
 }
 
-struct IFilter
-{
-	// true - accept, false - decline
-	virtual bool operator()(Profit&) = 0;
-	~IFilter() = default;
-};
-
 struct FilterByPathCommon : IFilter
 {
+	FilterByPathCommon()          = default;
+	virtual ~FilterByPathCommon() = default;
+
 	inline static const std::set<std::string>
 		skip_star_list_name
 	{ "Тортугац", "Нифигац" };
@@ -209,6 +205,8 @@ struct FilterByPath : IFilter
 		max_dist_ = opt.max_dist.value();; // TODO load from player
 	}
 
+	virtual ~FilterByPath() = default;
+
 	int max_dist_;
 	options::Options opt_;
 
@@ -243,6 +241,8 @@ struct FilterByProfit : IFilter
 		: min_profit_(opt.min_profit.value())
 	{	}
 
+	virtual ~FilterByProfit() = default;
+
 	int min_profit_;
 
 	bool operator()(Profit& pr){
@@ -257,15 +257,17 @@ struct FilterByProfit : IFilter
 template <typename ... Args>
 struct AND_opt : IFilter
 {
-	//AND_opt(Args&& ... args)
-	//	: filters( std::forward<Args>(args)... )
+	//AND_opt(std::shared_ptr<Args>&& ... args)
+	//	: filters( std::forward<std::shared_ptr<Args>>(args)... )
 	//{	}
 
-	AND_opt(Args* ... args)
+	AND_opt(std::shared_ptr<Args> ... args)
 		: filters(args...)
 	{	}
+
+	virtual ~AND_opt() = default;
 	
-	std::tuple<Args* ...> filters;
+	std::tuple<std::shared_ptr<Args> ...> filters;
 
 	// aka template labmda c++20
 	struct Help_Me
@@ -273,7 +275,7 @@ struct AND_opt : IFilter
 		Profit& pr;
 
 		template<typename ... Args>
-		bool operator()(Args* ... args)
+		bool operator()(std::shared_ptr<Args> ... args)
 		{
 			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
 			bool res = ((*args)(pr) && ...);
@@ -287,22 +289,23 @@ struct AND_opt : IFilter
 	bool operator()(Profit& pr){
 		return std::apply(Help_Me{pr}, filters); // unfold tuple to args ...
 	}
+
 };
 
 
 struct NOT_opt : IFilter
 {
-	NOT_opt(IFilter* f)
+	NOT_opt(std::shared_ptr<IFilter> f)
 		: f_(f)
 	{	}
 
-	IFilter* f_ = nullptr;
+	std::shared_ptr<IFilter> f_;
 	bool operator()(Profit& pr) {
 		return !(*f_)(pr); 
 	}
 };
 
-void apply_filter(std::vector<Profit>& vp, IFilter* callable)
+void apply_filter(std::vector<Profit>& vp, std::shared_ptr<IFilter> callable)
 {
 	// some inverted filter logic for remove_if context
 	auto pos = std::remove_if(
@@ -313,7 +316,7 @@ void apply_filter(std::vector<Profit>& vp, IFilter* callable)
 	vp.erase(pos, vp.end());
 }
 
-void analyzer::calc_profits(IFilter* filt)
+void analyzer::calc_profits(std::shared_ptr<IFilter> filt)
 {
 	std::vector<Profit> vp; 
 	vp.reserve(1'000'000);
@@ -355,24 +358,34 @@ void analyzer::calc_profits(IFilter* filt)
 	return;
 }
 
-void analyzer::calc_profits()
-{
-	auto f1 = FilterByProfit{ options::get_opt() };
-	auto f2 = FilterByPathCommon{};
-	auto f3 = FilterByPath{ options::get_opt() };
-	auto common_f = AND_opt(&f1, &f2, &f3);
-	calc_profits(&common_f);
-}
-
-const Entities::Star* 
+const Entities::Star*
 find_curstar(Entities::Player* p)
 {
 	int id = p->ICurStarId;
 	return Factory<Entities::Star>::find(
-		[id](const Entities::Star& s){
-				return s.Id == id; 
-			}
+		[id](const Entities::Star& s) {
+			return s.Id == id;
+		}
 	);
+}
+
+std::shared_ptr<IFilter> analyzer::createFilter()
+{
+	auto opt = options::get_opt();
+	IFilter * filter = 0;
+	auto f1 = std::make_shared<FilterByProfit>( opt );
+	auto f2 = std::make_shared<FilterByPathCommon>();
+	auto f3 = std::make_shared<FilterByPath>( opt );
+	//auto c = new AND_opt(f1, f2, f3);
+	//auto common_f = std::make_shared<AND_opt>(f1, f2, f3); //some err
+	auto common_f = std::shared_ptr<IFilter>(new AND_opt(f1, f2, f3)); //some err
+	return common_f;//std::shared_ptr(c);
+}
+
+void analyzer::calc_profits()
+{
+	std::shared_ptr<IFilter> common_f = createFilter();
+	calc_profits(common_f);
 }
 
 void analyzer::analyze_profit()

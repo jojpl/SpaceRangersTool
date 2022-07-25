@@ -26,19 +26,28 @@ struct Profit
 	int delta_profit         = 0;
 };
 
-struct IFilter;
+struct IFilter
+{
+	// true - accept, false - decline
+	virtual bool operator()(Profit&) = 0;
+	~IFilter() = default;
+};
 
 class analyzer
 {
-	Entities::Global * data = nullptr;
 public:
 	analyzer(Entities::Global * data_)
 		:data(data_)
 	{}
 
 	void calc_profits();
-	void calc_profits(IFilter* filt);
-
 	void analyze_profit();
+
+private:
+	void calc_profits(std::shared_ptr<IFilter> filt);
+	std::shared_ptr<IFilter> createFilter();
+
+	Entities::Global * data = nullptr;
+	
 };
 
