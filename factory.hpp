@@ -41,7 +41,7 @@ namespace storage
 	};
 
 	template <typename T>
-	auto& get()
+	inline auto& get()
 	{
 		static boost::container::stable_vector<T> storage{};
 		static storageRegistrator registrator(storage);

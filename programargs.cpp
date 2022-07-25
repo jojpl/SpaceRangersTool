@@ -22,6 +22,7 @@ namespace options
 				("star-to", po::value<std::string>(), "star-to descr")
 				("planet-from", po::value<std::string>(), "planet-from descr")
 				("planet-to", po::value<std::string>(), "planet-to descr")
+				("tops-count", po::value<int>(), "top's count descr")
 				;
 
 			po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -33,7 +34,7 @@ namespace options
 			}
 
 			#define SAVE_OPTION(name, alias) \
-			if (vm.count(name)) opt.alias = vm[name].as<typename decltype(alias)::value_type>();
+			if (vm.count(name)) get_opt().alias = vm[name].as<typename decltype(alias)::value_type>();
 
 			SAVE_OPTION("max-dist", Options::max_dist)
 			SAVE_OPTION("min-profit", Options::min_profit)
@@ -41,6 +42,7 @@ namespace options
 			SAVE_OPTION("star-to", Options::star_to)
 			SAVE_OPTION("planet-from", Options::planet_from)
 			SAVE_OPTION("planet-to", Options::planet_to)
+			SAVE_OPTION("tops-count", Options::tops_count)
 			#undef SAVE_OPTION
 		}
 		catch (std::exception& e) {

@@ -15,7 +15,12 @@ namespace options
 		std::optional<std::string> star_to;
 		std::optional<std::string> planet_from;
 		std::optional<std::string> planet_to;
+		std::optional<int>         tops_count;
 	};
 
-	inline static Options opt {};
+	inline Options& get_opt()
+	{
+		static Options opt {};
+		return opt;
+	}
 }

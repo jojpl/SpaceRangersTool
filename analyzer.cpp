@@ -1,5 +1,6 @@
 #include "analyzer.hpp"
 #include "performance_tracker.hpp"
+#include "programargs.hpp"
 
 #include <algorithm>
 #include <array>
@@ -15,6 +16,7 @@
 #include <string_view>
 #include <type_traits>
 #include <tuple>
+#include <optional>
 #include <utility>
 
 using Profits = std::array<Profit, ENUM_COUNT(Entities::GoodsEnum)>;
@@ -156,24 +158,21 @@ struct IFilter
 	~IFilter() = default;
 };
 
-struct FilterByPath
+struct FilterByPathCommon
 {
-	FilterByPath()
-	{	}
-
-	inline static std::set<std::string> 
-	skip_star_list_name
+	inline static const std::set<std::string>
+		skip_star_list_name
 	{ "Тортугац", "Нифигац" };
 
-	inline static
-	std::set<std::string> skip_star_list_owners
-	{ "Klings" };	
-	
-	inline static
-	std::set<std::string> skip_planet_list_owner
+	inline static const
+		std::set<std::string> skip_star_list_owners
+	{ "Klings" };
+
+	inline static const
+		std::set<std::string> skip_planet_list_owner
 	{ "None", "Kling" };
 
-	bool operator()(Profit& pr){
+	bool operator()(Profit& pr) {
 		auto s1 = pr.path.s1;
 		auto s2 = pr.path.s2;
 		auto p1 = pr.path.p1;
@@ -198,13 +197,53 @@ struct FilterByPath
 	}
 };
 
-struct FilterByProfit
+struct FilterByPath
 {
-	FilterByProfit()
-	{	}
+	FilterByPath( options::Options opt )
+		: opt_(opt)
+	{
+		max_dist_ = opt.max_dist.value_or(30); // TODO load from player
+	}
+
+	int max_dist_;
+	options::Options opt_;
+	//std::string star_from;
+	//std::string star_to;
+	//std::string planet_from;
+	//std::string planet_to;
 
 	bool operator()(Profit& pr){
-		if (pr.delta_profit < 1000) 
+		auto s1 = pr.path.s1;
+		auto s2 = pr.path.s2;
+		auto p1 = pr.path.p1;
+		auto p2 = pr.path.p2;
+
+		if (opt_.star_from && s1->StarName != opt_.star_from.value())
+			return false;
+
+		if (opt_.star_to && s2->StarName != opt_.star_to.value())
+			return false;
+
+		if (opt_.planet_from && p1->PlanetName != opt_.planet_from.value())
+			return false;
+
+		if (opt_.planet_to && p2->PlanetName != opt_.planet_to.value())
+			return false;
+
+		return true;
+	}
+};
+
+struct FilterByProfit
+{
+	FilterByProfit(std::optional<int> min_pofit_ )
+		: min_pofit_(min_pofit_.value_or(1000))
+	{	}
+
+	int min_pofit_;
+
+	bool operator()(Profit& pr){
+		if (pr.delta_profit < min_pofit_)
 			return false;
 
 		return true;
@@ -285,9 +324,10 @@ void analyzer::calc_profits()
 		}
 	}
 
-	auto f1 = FilterByProfit{};
-	auto f2 = FilterByPath{};
-	auto common_f = AND_opt( f1, f2);
+	auto f1 = FilterByProfit{ options::get_opt().min_profit };
+	auto f2 = FilterByPathCommon{};
+	auto f3 = FilterByPath{ options::get_opt() };
+	auto common_f = AND_opt( f1, f2, f3);
 
 	apply_filter(vp, common_f);
 
@@ -299,7 +339,7 @@ void analyzer::calc_profits()
 	);
 
 	std::cout << "total is: " << vp.size() << std::endl;
-	dump_top(vp, 10);
+	dump_top(vp, options::get_opt().tops_count.value_or(10));
 
 	return;
 }
