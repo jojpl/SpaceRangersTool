@@ -16,13 +16,13 @@ namespace options
 			po::options_description desc("Allowed options");
 			desc.add_options()
 				("help", "produce help message")
-				("max-dist", po::value<int>(), "max-dist descr")
-				("min-profit", po::value<int>(), "min-profit descr")
+				("max-dist", po::value<int>()->default_value(40), "max-dist descr")
+				("min-profit", po::value<int>()->default_value(1000), "min-profit descr")
 				("star-from", po::value<std::string>(), "star-from descr")
 				("star-to", po::value<std::string>(), "star-to descr")
 				("planet-from", po::value<std::string>(), "planet-from descr")
 				("planet-to", po::value<std::string>(), "planet-to descr")
-				("tops-count", po::value<int>(), "top's count descr")
+				("tops-count", po::value<int>()->default_value(10), "top's count descr")
 				;
 
 			po::store(po::parse_command_line(argc, argv, desc), vm);

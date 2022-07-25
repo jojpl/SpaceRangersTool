@@ -1,6 +1,7 @@
 #include "analyzer.hpp"
 #include "performance_tracker.hpp"
 #include "programargs.hpp"
+#include "factory.hpp"
 
 #include <algorithm>
 #include <array>
@@ -85,10 +86,10 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	// stars add info
 	std::string s_from_name       = cut_to<15>(pr.path.s1->StarName);
 	std::string s_to_name         = cut_to<15>(pr.path.s2->StarName);
-	int distance                 = pr.path.distance;
+	int distance                  = pr.path.distance;
 
 	const static std::string templ = 
-	"%-15s ==> %-15s distance: %3d\n"
+	"%-15s => %-15s distance: %3d\n"
 	"%-15s -- %-15s %-5s q: %-5d (%4d - %-4d) profit: %d";
 
 	size_t buf_sz = 
@@ -109,7 +110,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 
 void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 {
-	int top_size = opt.tops_count.value_or(10);
+	int top_size = opt.tops_count.value();
 
 	int cnt = 0;
 	for (auto& pr: vp)
@@ -161,7 +162,7 @@ struct IFilter
 	~IFilter() = default;
 };
 
-struct FilterByPathCommon
+struct FilterByPathCommon : IFilter
 {
 	inline static const std::set<std::string>
 		skip_star_list_name
@@ -200,26 +201,25 @@ struct FilterByPathCommon
 	}
 };
 
-struct FilterByPath
+struct FilterByPath : IFilter
 {
 	FilterByPath( options::Options opt )
 		: opt_(opt)
 	{
-		max_dist_ = opt.max_dist.value_or(30); // TODO load from player
+		max_dist_ = opt.max_dist.value();; // TODO load from player
 	}
 
 	int max_dist_;
 	options::Options opt_;
-	//std::string star_from;
-	//std::string star_to;
-	//std::string planet_from;
-	//std::string planet_to;
 
 	bool operator()(Profit& pr){
 		auto s1 = pr.path.s1;
 		auto s2 = pr.path.s2;
 		auto p1 = pr.path.p1;
 		auto p2 = pr.path.p2;
+
+		if(pr.path.distance > max_dist_)
+			return false;
 
 		if (opt_.star_from && s1->StarName != opt_.star_from.value())
 			return false;
@@ -237,10 +237,10 @@ struct FilterByPath
 	}
 };
 
-struct FilterByProfit
+struct FilterByProfit : IFilter
 {
 	FilterByProfit( options::Options opt )
-		: min_profit_(opt.min_profit.value_or(1000))
+		: min_profit_(opt.min_profit.value())
 	{	}
 
 	int min_profit_;
@@ -255,17 +255,17 @@ struct FilterByProfit
 
 // some template magic
 template <typename ... Args>
-struct AND_opt
+struct AND_opt : IFilter
 {
-	AND_opt(Args&& ... args)
-		: filters( std::forward<Args>(args)... )
-	{	}
+	//AND_opt(Args&& ... args)
+	//	: filters( std::forward<Args>(args)... )
+	//{	}
 
-	AND_opt(Args& ... args)
+	AND_opt(Args* ... args)
 		: filters(args...)
 	{	}
 	
-	std::tuple<Args ...> filters;
+	std::tuple<Args* ...> filters;
 
 	// aka template labmda c++20
 	struct Help_Me
@@ -273,10 +273,10 @@ struct AND_opt
 		Profit& pr;
 
 		template<typename ... Args>
-		bool operator()(Args ... args)
+		bool operator()(Args* ... args)
 		{
 			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
-			bool res = (args(pr) && ...);
+			bool res = ((*args)(pr) && ...);
 			if (res)
 				return true;
 
@@ -289,23 +289,35 @@ struct AND_opt
 	}
 };
 
-template <typename Callable>
-void apply_filter(std::vector<Profit>& vp, Callable&& c)
+
+struct NOT_opt : IFilter
+{
+	NOT_opt(IFilter* f)
+		: f_(f)
+	{	}
+
+	IFilter* f_ = nullptr;
+	bool operator()(Profit& pr) {
+		return !(*f_)(pr); 
+	}
+};
+
+void apply_filter(std::vector<Profit>& vp, IFilter* callable)
 {
 	// some inverted filter logic for remove_if context
 	auto pos = std::remove_if(
 		vp.begin(), vp.end(),
-		std::not_fn(std::forward<Callable>(c))
+		NOT_opt(callable)
 	);
 
 	vp.erase(pos, vp.end());
 }
 
-void analyzer::calc_profits()
+void analyzer::calc_profits(IFilter* filt)
 {
 	std::vector<Profit> vp; 
 	vp.reserve(1'000'000);
-
+	
 	for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 	{
 		Entities::Star*   s1 = *it1.starlist_iter;
@@ -327,12 +339,7 @@ void analyzer::calc_profits()
 		}
 	}
 
-	auto f1 = FilterByProfit{ options::get_opt() };
-	auto f2 = FilterByPathCommon{};
-	auto f3 = FilterByPath{ options::get_opt() };
-	auto common_f = AND_opt( f1, f2, f3);
-
-	apply_filter(vp, common_f);
+	apply_filter(vp, filt);
 
 	std::sort(vp.rbegin(), vp.rend(), 
 		[](Profit& pr1, Profit& pr2)
@@ -348,8 +355,30 @@ void analyzer::calc_profits()
 	return;
 }
 
+void analyzer::calc_profits()
+{
+	auto f1 = FilterByProfit{ options::get_opt() };
+	auto f2 = FilterByPathCommon{};
+	auto f3 = FilterByPath{ options::get_opt() };
+	auto common_f = AND_opt(&f1, &f2, &f3);
+	calc_profits(&common_f);
+}
+
+const Entities::Star* 
+find_curstar(Entities::Player* p)
+{
+	int id = p->ICurStarId;
+	return Factory<Entities::Star>::find(
+		[id](const Entities::Star& s){
+				return s.Id == id; 
+			}
+	);
+}
+
 void analyzer::analyze_profit()
 {
 	performance_tracker tr;
+	find_curstar(data->Player);
+
 	calc_profits();
 }

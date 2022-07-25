@@ -62,4 +62,16 @@ public:
 		auto* item = &storage.emplace_back(std::forward<Args>(args)...);
 		return item;
 	}
+
+	template<typename FindPred>
+	static const T* find(FindPred&& pred)
+	{
+		auto& storage = storage::get<T>();
+		auto f = std::find_if(storage.cbegin(), storage.cend(), 
+			std::forward<FindPred>(pred));
+
+		if(f == storage.cend()) return nullptr;
+
+		return std::addressof(*f);
+	}
 };

@@ -26,6 +26,8 @@ struct Profit
 	int delta_profit         = 0;
 };
 
+struct IFilter;
+
 class analyzer
 {
 	Entities::Global * data = nullptr;
@@ -35,8 +37,8 @@ public:
 	{}
 
 	void calc_profits();
+	void calc_profits(IFilter* filt);
 
-	void draw_stars_ASCII_pic();
 	void analyze_profit();
 };
 
