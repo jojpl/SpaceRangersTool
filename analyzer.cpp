@@ -17,169 +17,7 @@
 #include <tuple>
 #include <utility>
 
-struct Coord
-{
-	double X;
-	double Y;
-};
-
-struct Content
-{
-	Coord xy;
-	std::string content;
-};
-
-struct Path
-{
-	// from
-	Entities::Planet* p1;
-	// to
-	Entities::Planet* p2;
-	int distance = 0;
-	// for additional info
-	// from
-	Entities::Star* s1;
-	// to
-	Entities::Star* s2;
-};
-
-struct Profit
-{
-	Path path;
-
-	std::array<int, ENUM_COUNT(Entities::GoodsEnum)> delta_buy_sale;
-	std::pair<Entities::GoodsEnum, int> best_deal;
-};
-
-struct Vis
-{
-	Vis()
-	{ //::SetConsoleOutputCP(1251); 
-	}
-
-	static constexpr int max_width = 75;//80; //X
-	static constexpr int max_height = 30;//50; //Y
-
-	void normlize(std::vector<Content>& c)
-	{
-		double maxX = 0;
-		double maxY = 0;
-		for (auto& item: c)
-		{
-			if(maxX < item.xy.X) maxX = item.xy.X;
-			if(maxY < item.xy.Y) maxY = item.xy.Y;
-		}
-
-		for (auto& item : c)
-		{
-			if( item.xy.X > 0.0)
-			{
-				item.xy.X = (item.xy.X * (max_width-2)) / maxX;
-			}
-			if( item.xy.Y > 0.0)
-			{
-				 item.xy.Y = (item.xy.Y * (max_height-2)) / maxY;
-			}
-		}
-
-	}
-
-	constexpr static int myround(double d)
-	{
-		//(0.98 ... 1.98) ->1
-		int di = (int) d;
-		double lb = (di - 1) + 0.98;
-		double rb = di + 0.98;
-		if(d<lb)      return di - 1;
-		else if(d>rb) return di + 1;
-		else          return di;
-		//std::fmod(2.89, &i);
-	}
-
-	bool find(std::vector<Content>& c, int x, int y, Content*& ref)
-	{
-		auto f = std::find_if(c.cbegin(), c.cend(), [x, y](const Content& ct)
-			{
-				if(myround(ct.xy.X)==x && myround(ct.xy.Y)==y)
-					return true;
-				return false;
-			}
-		);
-
-		if(f==c.cend())
-			return false;
-
-		ref = &c[std::distance(c.cbegin(), f)];
-		return true;
-	}
-
-	void fill(std::vector<Content> c)
-	{
-		normlize(c);
-
-		using h_line = std::array<char, max_width>;
-		using lines = std::array<h_line, max_height>;
-
-		lines screen;
-
-		for (size_t y = 0; y < max_height; y++)
-			for (size_t x = 0; x < max_width; x++)
-				screen[y][x] = '\1';
-
-		//auto in_range = [&c](int x, int y)->bool {};
-
-		std::ostream& os = std::cout;
-		constexpr char nl = '\n';
-
-
-		for (size_t y = 0; y < max_height; y++)
-		{
-			for (size_t x = 0; x < max_width; x++)
-			{
-				if(screen[y][x]!='\1')
-					continue;
-
-				Content* ref = 0;
-				if (find(c, x, y, ref))
-				{
-					int sz = ref->content.size();
-					int pos = 0;
-					while (sz && (x + pos < max_width))
-					{
-						screen[y][x + pos] = ref->content[pos];
-						sz--;
-						pos++;
-					}
-					// os << ref->content 
-				}
-			}
-		}
-
-		for (size_t y = 0; y < max_height; y++)
-			for (size_t x = 0; x < max_width; x++)
-				if(screen[y][x] == '\1') screen[y][x] = ' ';
-
-		for (size_t y = 0; y < max_height; y++, os << nl)
-			for (size_t x = 0; x < max_width; x++)
-			{
-				os << screen[y][x];
-			}
-	}
-};
-
-
-void fillStarList(std::vector<Content>& vc, Entities::Global * data)
-{
-	for (auto* star : data->StarList.list)
-	{
-		Content c;
-		c.xy.X = star->X;
-		c.xy.Y = star->Y;
-		c.content += "*";//star->StarName;
-		c.content += star->StarName[0];
-		vc.push_back(std::move(c));
-	}
-}
+using Profits = std::array<Profit, ENUM_COUNT(Entities::GoodsEnum)>;
 
 class planet_iterator
 {
@@ -231,7 +69,8 @@ std::string cut_to(std::string s)
 
 std::ostream& operator<<(std::ostream& os, Profit& pr)
 {
-	auto&[bd_good, bd_profit]     = pr.best_deal;
+	auto bd_good                  = pr.good;
+	auto bd_profit                = pr.delta_profit;
 	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
 	std::string good_name         = cut_to<7>({good_name_sw.data(), good_name_sw.size()});
 	std::string p_from_name       = cut_to<12>(pr.path.p1->PlanetName);
@@ -276,35 +115,37 @@ void dump_top(std::vector<Profit>& vp, int top_size)
 	}
 }
 
-void fill_profit(Profit& p,
+
+void fill_profits(Profits& profits,
 	Entities::Star* s1,
 	Entities::Star* s2,
 	Entities::Planet* p1,
 	Entities::Planet* p2)
 {
-	p.path.p1 = p1;
-	p.path.p2 = p2;
-	p.path.s1 = s1;
-	p.path.s2 = s2;
-	p.path.distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
+	int distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
 
-	//p.best_deal = { Entities::GoodsEnum{}, INT_MIN};
-	for (size_t item = 0; item < ENUM_COUNT(Entities::GoodsEnum); item++)
+	for (size_t item = 0; item < profits.size(); item++)
 	{
+		auto& p = profits[item];
+
+		auto bd_good = (Entities::GoodsEnum)item;
 		int aviable_qty = p1->ShopGoods.packed[item];
 		int sale = p1->ShopGoodsSale.packed[item]; // from
 
 		int buy = p2->ShopGoodsBuy.packed[item]; // to
 		int delta_profit = aviable_qty * (buy - sale);
 
-		p.delta_buy_sale[item] = delta_profit;
-
-		auto&[bd_good, bd_profit] = p.best_deal;
-		if (bd_profit < delta_profit)
-		{
-			bd_profit = delta_profit;
-			bd_good = (Entities::GoodsEnum)item;
-		}
+		p.path.p1 = p1;
+		p.path.p2 = p2;
+		p.path.s1 = s1;
+		p.path.s2 = s2;
+		p.path.distance = distance;
+		
+		p.good = bd_good;
+		p.aviable_qty = aviable_qty;
+		p.buy = buy;
+		p.sale = buy;
+		p.delta_profit = delta_profit;
 	}
 }
 
@@ -315,7 +156,7 @@ struct IFilter
 	~IFilter() = default;
 };
 
-struct FilterByPath : IFilter
+struct FilterByPath
 {
 	FilterByPath()
 	{	}
@@ -332,7 +173,7 @@ struct FilterByPath : IFilter
 	std::set<std::string> skip_planet_list_owner
 	{ "None", "Kling" };
 
-	virtual bool operator()(Profit& pr) override {
+	bool operator()(Profit& pr){
 		auto s1 = pr.path.s1;
 		auto s2 = pr.path.s2;
 		auto p1 = pr.path.p1;
@@ -357,14 +198,13 @@ struct FilterByPath : IFilter
 	}
 };
 
-struct FilterByProfit : IFilter
+struct FilterByProfit
 {
 	FilterByProfit()
 	{	}
 
-	virtual bool operator()(Profit& pr) override {
-		auto&[bd_good, bd_profit] = pr.best_deal;
-		if (bd_profit < 1000) 
+	bool operator()(Profit& pr){
+		if (pr.delta_profit < 1000) 
 			return false;
 
 		return true;
@@ -373,7 +213,7 @@ struct FilterByProfit : IFilter
 
 // some template magic
 template <typename ... Args>
-struct AND_opt : IFilter
+struct AND_opt
 {
 	AND_opt(Args&& ... args)
 		: filters( std::forward<Args>(args)... )
@@ -402,7 +242,7 @@ struct AND_opt : IFilter
 		}
 	};
 
-	virtual bool operator()(Profit& pr) override {
+	bool operator()(Profit& pr){
 		return std::apply(Help_Me{pr}, filters); // unfold tuple to args ...
 	}
 };
@@ -421,7 +261,8 @@ void apply_filter(std::vector<Profit>& vp, Callable&& c)
 
 void analyzer::calc_profits()
 {
-	std::vector<Profit> vp;
+	std::vector<Profit> vp; 
+	vp.reserve(1'000'000);
 
 	for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 	{
@@ -436,10 +277,11 @@ void analyzer::calc_profits()
 			if (p1 == p2)
 				continue;
 
-			Profit p;
-			fill_profit(p, s1, s2, p1, p2);
+			Profits profits;
+			fill_profits(profits, s1, s2, p1, p2);
 
-			vp.push_back(std::move(p));
+			std::move(profits.begin(), profits.end(),
+				std::back_inserter(vp));
 		}
 	}
 
@@ -452,10 +294,7 @@ void analyzer::calc_profits()
 	std::sort(vp.rbegin(), vp.rend(), 
 		[](Profit& pr1, Profit& pr2)
 		{
-			auto&[bd_good1, bd_profit1] = pr1.best_deal;
-			auto&[bd_good2, bd_profit2] = pr2.best_deal;
-
-			return bd_profit1 < bd_profit2;
+			return pr1.delta_profit < pr2.delta_profit;
 		}
 	);
 
@@ -465,24 +304,8 @@ void analyzer::calc_profits()
 	return;
 }
 
-void analyzer::draw_stars_ASCII_pic()
-{
-	//std::vector<Content> vc {
-	//	{ {0.0, 0.0}, "****"},
-	//	{ {0.0, 1.0}, "*****************"},
-	//	{ {0.0, 2.0}, "**"},
-	//};
-	std::vector<Content> vc;
-	fillStarList(vc, data);
-
-	Vis v;
-	v.fill(vc);
-}
-
 void analyzer::analyze_profit()
 {
 	performance_tracker tr;
 	calc_profits();
-	return;
-	//std::cout << data->Player->IFullName << std::endl;
 }
