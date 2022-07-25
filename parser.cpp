@@ -250,6 +250,10 @@ void Handler::on_new_obj(Entities::Player * p, std::string_view obj_name)
 	{
 		ctx.stack.push({ &p->EqList });
 	}
+	else if (obj_name == "ArtsList")
+	{
+		ctx.stack.push({ &p->ArtsList });
+	}
 }
 
 void Handler::on_kv(Entities::Player * p, std::string_view key, std::string_view value)
@@ -337,6 +341,20 @@ void Handler::on_new_obj(Entities::EqList * p, std::string_view obj_name)
 	}
 }
 
+void Handler::on_new_obj(Entities::ArtsList * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "ItemId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto IType = get_IType_use_lookup_ahead(ctx);
+
+		auto* item = Factory<Entities::Item>::create(id);
+		p->list.push_back(item);
+
+		ctx.stack.push({ item });
+	}
+}
+
 void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ShipId"))
@@ -356,6 +374,10 @@ void Handler::on_new_obj(Entities::Ship * p, std::string_view obj_name)
 	if (obj_name == "EqList")
 	{
 		ctx.stack.push({ &p->EqList });
+	}
+	else if (obj_name == "ArtsList")
+	{
+		ctx.stack.push({ &p->ArtsList });
 	}
 }
 

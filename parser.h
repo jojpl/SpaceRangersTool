@@ -30,7 +30,7 @@ struct Parser_Ctx
 			Entities::StarList*,
 			Entities::Star*,
 			Entities::EqList*,
-			//Entities::ArtsList*,
+			Entities::ArtsList*,
 			Entities::Item*,
 			Entities::ShipList*,
 			Entities::Ship*,
@@ -130,6 +130,9 @@ private:
 
 	// EqList
 	void on_new_obj(Entities::EqList* p, std::string_view obj_name);
+
+	//ArtList
+	void on_new_obj(Entities::ArtsList* p, std::string_view obj_name);
 
 	// ShipList
 	void on_new_obj(Entities::ShipList* p, std::string_view obj_name);
