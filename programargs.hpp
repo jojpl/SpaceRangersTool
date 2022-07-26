@@ -12,10 +12,13 @@ namespace options
 		std::optional<int>         max_dist;
 		std::optional<int>         min_profit;
 		std::optional<std::string> star_from;
+		bool star_from_use_current = false; //hidden opt
 		std::optional<std::string> star_to;
 		std::optional<std::string> planet_from;
+		bool planet_from_use_current = false; //hidden opt
 		std::optional<std::string> planet_to;
-		std::optional<int>         tops_count;
+		std::optional<int>         count;
+		std::optional<std::string> sort_by;
 	};
 
 	inline Options& get_opt()
