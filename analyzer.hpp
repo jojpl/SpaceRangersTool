@@ -33,6 +33,13 @@ struct IFilter
 	~IFilter() = default;
 };
 
+struct ISort
+{
+	// less operator
+	virtual bool operator()(Profit&, Profit&) const = 0;
+	~ISort() = default;
+};
+
 class analyzer
 {
 public:
@@ -46,8 +53,9 @@ public:
 private:
 	void calc_profits(std::shared_ptr<IFilter> filt);
 	std::shared_ptr<IFilter> createFilter();
+	std::shared_ptr<ISort>   createSort();
 
 	Entities::Global * data = nullptr;
-	
+	std::shared_ptr<ISort> sorter_;
 };
 

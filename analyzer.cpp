@@ -20,6 +20,8 @@
 #include <optional>
 #include <utility>
 
+#include <boost/algorithm/string/split.hpp>
+
 using Profits = std::array<Profit, ENUM_COUNT(Entities::GoodsEnum)>;
 
 class planet_iterator
@@ -110,7 +112,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 
 void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 {
-	int top_size = opt.tops_count.value();
+	int top_size = opt.count.value();
 
 	int cnt = 0;
 	for (auto& pr: vp)
@@ -119,6 +121,7 @@ void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 		if(++cnt == top_size)
 			break;
 	}
+	std::cout << "show: " << cnt << " from total: " << vp.size() << std::endl;
 }
 
 
@@ -197,17 +200,53 @@ struct FilterByPathCommon : IFilter
 	}
 };
 
+struct FilterCurStar : IFilter
+{
+	FilterCurStar(int id)
+		: s_from_id(id)
+	{
+	}
+
+	int s_from_id;
+
+	virtual ~FilterCurStar() = default;
+	bool operator()(Profit& pr) {
+		auto* s1 = pr.path.s1;
+
+		if (s1->Id != s_from_id) // faster than name cmp
+			return false;
+		return true;
+	}
+};
+
+struct FilterCurPlanet : IFilter
+{
+	FilterCurPlanet(int id)
+		: p_from_id(id)
+	{
+	}
+
+	int p_from_id;
+
+	virtual ~FilterCurPlanet() = default;
+	bool operator()(Profit& pr) {
+		auto* p1 = pr.path.p1;
+		
+		if (p1->Id != p_from_id) // faster than name cmp
+			return false;
+		return true;
+	}
+};
+
 struct FilterByPath : IFilter
 {
 	FilterByPath( options::Options opt )
 		: opt_(opt)
 	{
-		max_dist_ = opt.max_dist.value();; // TODO load from player
 	}
 
 	virtual ~FilterByPath() = default;
 
-	int max_dist_;
 	options::Options opt_;
 
 	bool operator()(Profit& pr){
@@ -216,7 +255,7 @@ struct FilterByPath : IFilter
 		auto p1 = pr.path.p1;
 		auto p2 = pr.path.p2;
 
-		if(pr.path.distance > max_dist_)
+		if(pr.path.distance > opt_.max_dist.value())
 			return false;
 
 		if (opt_.star_from && s1->StarName != opt_.star_from.value())
@@ -275,7 +314,7 @@ struct AND_opt : IFilter
 		Profit& pr;
 
 		template<typename ... Args>
-		bool operator()(std::shared_ptr<Args> ... args)
+		bool operator()(std::shared_ptr<Args>& ... args)
 		{
 			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
 			bool res = ((*args)(pr) && ...);
@@ -307,6 +346,7 @@ struct NOT_opt : IFilter
 
 void apply_filter(std::vector<Profit>& vp, std::shared_ptr<IFilter> callable)
 {
+	performance_tracker tr(__FUNCTION__);
 	// some inverted filter logic for remove_if context
 	auto pos = std::remove_if(
 		vp.begin(), vp.end(),
@@ -343,15 +383,16 @@ void analyzer::calc_profits(std::shared_ptr<IFilter> filt)
 	}
 
 	apply_filter(vp, filt);
-
 	std::sort(vp.rbegin(), vp.rend(), 
-		[](Profit& pr1, Profit& pr2)
+		//ProfitSorter()
+
+		[this](Profit& pr1, Profit& pr2)
 		{
-			return pr1.delta_profit < pr2.delta_profit;
+			//auto res = sorter_->operator()(pr1, pr2);
+			return (*sorter_)(pr1, pr2);
 		}
 	);
 
-	std::cout << "total is: " << vp.size() << std::endl;
 	//std::ostream& os = std::cout;
 	dump_top(std::cout, vp, options::get_opt());
 
@@ -369,29 +410,79 @@ find_curstar(Entities::Player* p)
 	);
 }
 
+const Entities::Planet*
+find_curplanet(Entities::Player* p)
+{
+	auto name = p->IPlanet;
+	if(name.empty()) return nullptr;
+
+	return Factory<Entities::Planet>::find(
+		[name](const Entities::Planet& s) {
+			return s.PlanetName == name;
+		}
+	);
+}
+
 std::shared_ptr<IFilter> analyzer::createFilter()
 {
 	auto opt = options::get_opt();
-	IFilter * filter = 0;
-	auto f1 = std::make_shared<FilterByProfit>( opt );
-	auto f2 = std::make_shared<FilterByPathCommon>();
+	auto f1 = std::make_shared<FilterByPathCommon>();
+	auto f2 = std::make_shared<FilterByProfit>( opt );
 	auto f3 = std::make_shared<FilterByPath>( opt );
-	//auto c = new AND_opt(f1, f2, f3);
-	//auto common_f = std::make_shared<AND_opt>(f1, f2, f3); //some err
-	auto common_f = std::shared_ptr<IFilter>(new AND_opt(f1, f2, f3)); //some err
-	return common_f;//std::shared_ptr(c);
+	auto common_f = std::shared_ptr<IFilter>(new AND_opt(f1, f2, f3));
+	if (opt.star_from_use_current)
+	{
+		auto* s = find_curstar(data->Player);
+		if(!s) throw std::logic_error("Player's curstar not set!");
+		auto f = std::make_shared<FilterCurStar>(s->Id);
+		common_f = std::shared_ptr<IFilter>(new AND_opt(common_f, f));
+	}
+	if (opt.planet_from_use_current)
+	{
+		auto* p = find_curplanet(data->Player);
+		if (!p) throw std::logic_error("Player's curplanet not set!");
+		auto f = std::make_shared<FilterCurPlanet>(p->Id);
+		common_f = std::shared_ptr<IFilter>(new AND_opt(common_f, f));
+	}
+	return common_f;
+}
+
+struct ProfitSorter : ISort
+{
+	ProfitSorter() = default;
+	virtual ~ProfitSorter() = default;
+
+	bool operator()(Profit& pr1, Profit& pr2) const override
+	{
+		return pr1.delta_profit < pr2.delta_profit;
+	}
+};
+
+std::shared_ptr<ISort> analyzer::createSort()
+{
+	auto opt = options::get_opt();
+	std::string_view val = opt.sort_by.value();
+
+	std::vector<boost::iterator_range<std::string_view::iterator>> splitVec;
+	boost::split(splitVec, val, [](char ch) { return ch == ','; });
+
+	for (auto rng : splitVec)
+	{
+		std::string field { &*rng.begin(), rng.size() };
+	}
+	auto common = std::make_shared<ProfitSorter>();
+	return common;
 }
 
 void analyzer::calc_profits()
 {
 	std::shared_ptr<IFilter> common_f = createFilter();
+	sorter_ = createSort();
 	calc_profits(common_f);
 }
 
 void analyzer::analyze_profit()
 {
 	performance_tracker tr;
-	find_curstar(data->Player);
-
 	calc_profits();
 }
