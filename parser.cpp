@@ -145,7 +145,7 @@ void validate(const std::string& mem)
 
 Entities::Global* parse(const std::string& mem)
 {
-	performance_tracker tr;
+	performance_tracker tr(__FUNCTION__);
 	validate(mem);
 	
 	Parser p;

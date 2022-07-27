@@ -21,8 +21,12 @@
 #include <utility>
 
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
 
 using Profits = std::array<Profit, ENUM_COUNT(Entities::GoodsEnum)>;
+using namespace std::string_literals;
 
 class planet_iterator
 {
@@ -64,12 +68,9 @@ public:
 };
 
 template<size_t Cnt>
-std::string cut_to(std::string s)
+std::string cut_to(std::string_view s)
 {
-	//static const char ellipse[] = "...";
-	if(s.size() <=Cnt) return s;
-	//return s.substr(0, Cnt - 3) + ellipse;
-	return s.substr(0, Cnt);
+	return { s.data(), std::min(Cnt, s.size()) };
 }
 
 std::ostream& operator<<(std::ostream& os, Profit& pr)
@@ -77,7 +78,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	auto bd_good                  = pr.good;
 	auto bd_profit                = pr.delta_profit;
 	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
-	std::string good_name         = cut_to<5>({good_name_sw.data(), good_name_sw.size()});
+	std::string good_name         = cut_to<5>(good_name_sw);
 	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
 	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);
 
@@ -384,11 +385,7 @@ void analyzer::calc_profits(std::shared_ptr<IFilter> filt)
 
 	apply_filter(vp, filt);
 	std::sort(vp.rbegin(), vp.rend(), 
-		//ProfitSorter()
-
-		[this](Profit& pr1, Profit& pr2)
-		{
-			//auto res = sorter_->operator()(pr1, pr2);
+		[this](Profit& pr1, Profit& pr2) {
 			return (*sorter_)(pr1, pr2);
 		}
 	);
@@ -447,6 +444,17 @@ std::shared_ptr<IFilter> analyzer::createFilter()
 	return common_f;
 }
 
+struct DefaultSorter : ISort
+{
+	DefaultSorter() = default;
+	virtual ~DefaultSorter() = default;
+
+	bool operator()(Profit& pr1, Profit& pr2) const override
+	{
+		return pr1.delta_profit < pr2.delta_profit;
+	}
+};
+
 struct ProfitSorter : ISort
 {
 	ProfitSorter() = default;
@@ -458,19 +466,139 @@ struct ProfitSorter : ISort
 	}
 };
 
+struct ASC_Sort_Wrapper: ISort
+{
+	ASC_Sort_Wrapper(std::shared_ptr<ISort> obj_)
+		: obj(obj_)
+	{	}
+
+	std::shared_ptr<ISort> obj;
+	bool operator()(Profit& pr1, Profit& pr2) const override
+	{
+		return (*obj)(pr2, pr1); //revert
+	}
+};
+
+struct DistanceSorter : ISort
+{
+	DistanceSorter() = default;
+	virtual ~DistanceSorter() = default;
+
+	bool operator()(Profit& pr1, Profit& pr2) const override
+	{
+		return pr1.path.distance < pr2.path.distance;
+	}
+};
+
+struct AndSorter : ISort
+{
+	using Ptr = std::shared_ptr<ISort>;
+	AndSorter(Ptr p1, Ptr p2)
+		: p1_(p1), p2_(p2) 
+	{	}
+	virtual ~AndSorter() = default;
+	
+	Ptr p1_;
+	Ptr p2_;
+
+	bool operator()(Profit& pr1, Profit& pr2) const override
+	{
+		if (!p1_->operator()(pr1, pr2) && !p1_->operator()(pr2, pr1)) //eq
+		{
+			return p2_->operator()(pr1, pr2);
+		}
+		return p1_->operator()(pr1, pr2);
+	}
+};
+
+enum class SortDirection
+{
+	unknown,
+
+	DESC,
+	ASC,
+};
+
+enum class SortField
+{
+	unknown,
+
+	profit,
+	distance,
+};
+
+void from_string(SortField& f, std::string_view sw)
+{
+	if (boost::iequals(sw, "profit"))
+		f = SortField::profit;
+	else if(boost::iequals(sw, "distance"))
+		f = SortField::distance;
+	else
+		throw std::logic_error("can't convert "  __FUNCTION__);
+}
+
+void from_string(std::pair<SortField, SortDirection>& f, std::string_view sw)
+{
+	using split_range_it = boost::iterator_range<std::string_view::iterator>;
+	std::vector<split_range_it> split_param;
+	boost::split(split_param, sw, [](char ch) { return ch == ':'; });
+
+	if (split_param.size() == 0)
+		throw std::logic_error("can't convert "  __FUNCTION__);
+
+	for (size_t i = 0; i < split_param.size(); i++)
+	{
+		auto rng = split_param[i];
+		std::string param = { rng.begin(), rng.end() };
+		boost::trim(param);
+		
+		if(i == 0) 
+			from_string(f.first, param);
+		else if (i == 1 )
+		{
+			if (boost::istarts_with(param, "ASC"))
+				f.second = SortDirection::ASC;
+			else
+				f.second = SortDirection::DESC;
+		}
+	}
+}
+
 std::shared_ptr<ISort> analyzer::createSort()
 {
+	std::shared_ptr<ISort> common;
+
 	auto opt = options::get_opt();
-	std::string_view val = opt.sort_by.value();
+	std::string val = opt.sort_by.value();
 
-	std::vector<boost::iterator_range<std::string_view::iterator>> splitVec;
-	boost::split(splitVec, val, [](char ch) { return ch == ','; });
-
-	for (auto rng : splitVec)
+	//using split_range_it = boost::iterator_range<std::string_view::iterator>;
+	using tokenizer = boost::tokenizer<boost::escaped_list_separator<char>>;
+	tokenizer csv_tok ( val );
+	for (const auto &t : csv_tok)
 	{
-		std::string field { &*rng.begin(), rng.size() };
+		auto p = std::pair<SortField, SortDirection>();
+		from_string(p, t);
+		std::shared_ptr<ISort> s;
+
+		if (p.first == SortField::distance)
+			s = std::make_shared<DistanceSorter>();
+		else if (p.first == SortField::profit)
+			s = std::make_shared<ProfitSorter>();
+		else
+			s = std::make_shared<DefaultSorter>();
+			
+		
+		if(p.second == SortDirection::ASC)
+			s = std::make_shared<ASC_Sort_Wrapper>(s);
+
+		if(!common) common = s;
+		else
+			common = std::make_shared<AndSorter>(common, s);
 	}
-	auto common = std::make_shared<ProfitSorter>();
+
+	//auto s1 = std::make_shared<DistanceSorter>();
+	//auto s2 = std::make_shared<ProfitSorter>();
+	//common = std::make_shared<AndSorter>(s1, s2);
 	return common;
 }
 
@@ -483,6 +611,6 @@ void analyzer::calc_profits()
 
 void analyzer::analyze_profit()
 {
-	performance_tracker tr;
+	performance_tracker tr(__FUNCTION__);
 	calc_profits();
 }

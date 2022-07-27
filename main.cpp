@@ -14,13 +14,13 @@ void on_new_file_found(std::string file)
 		std::string mem;
 		if(read_file(mem, file))
 			out = parse(mem);
+		analyzer(out).analyze_profit();
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what();
 		return;
 	}
-	analyzer(out).analyze_profit();
 }
 
 int main(int argc, char *argv[])
