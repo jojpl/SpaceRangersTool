@@ -2,6 +2,7 @@
 #include "performance_tracker.hpp"
 #include "programargs.hpp"
 #include "factory.hpp"
+#include "model.hpp"
 
 #include <algorithm>
 #include <array>
@@ -159,192 +160,6 @@ void fill_profits(Profits& profits,
 	}
 }
 
-struct FilterByPathCommon : IFilter
-{
-	FilterByPathCommon()          = default;
-	virtual ~FilterByPathCommon() = default;
-
-	inline static const std::set<std::string>
-		skip_star_list_name
-	{ "Тортугац", "Нифигац" };
-
-	inline static const
-		std::set<std::string> skip_star_list_owners
-	{ "Klings" };
-
-	inline static const
-		std::set<std::string> skip_planet_list_owner
-	{ "None", "Kling" };
-
-	bool operator()(Profit& pr) {
-		auto s1 = pr.path.s1;
-		auto s2 = pr.path.s2;
-		auto p1 = pr.path.p1;
-		auto p2 = pr.path.p2;
-
-		if (skip_star_list_name.count(s1->StarName))
-			return false;
-		if (skip_star_list_name.count(s2->StarName))
-			return false;
-
-		if (skip_star_list_owners.count(s1->Owners))
-			return false;
-		if (skip_star_list_owners.count(s2->Owners))
-			return false;
-
-		if (skip_planet_list_owner.count(p1->Owner))
-			return false;
-		if (skip_planet_list_owner.count(p2->Owner))
-			return false;
-
-		return true;
-	}
-};
-
-struct FilterCurStar : IFilter
-{
-	FilterCurStar(int id)
-		: s_from_id(id)
-	{
-	}
-
-	int s_from_id;
-
-	virtual ~FilterCurStar() = default;
-	bool operator()(Profit& pr) {
-		auto* s1 = pr.path.s1;
-
-		if (s1->Id != s_from_id) // faster than name cmp
-			return false;
-		return true;
-	}
-};
-
-struct FilterCurPlanet : IFilter
-{
-	FilterCurPlanet(int id)
-		: p_from_id(id)
-	{
-	}
-
-	int p_from_id;
-
-	virtual ~FilterCurPlanet() = default;
-	bool operator()(Profit& pr) {
-		auto* p1 = pr.path.p1;
-		
-		if (p1->Id != p_from_id) // faster than name cmp
-			return false;
-		return true;
-	}
-};
-
-struct FilterByPath : IFilter
-{
-	FilterByPath( options::Options opt )
-		: opt_(opt)
-	{
-	}
-
-	virtual ~FilterByPath() = default;
-
-	options::Options opt_;
-
-	bool operator()(Profit& pr){
-		auto s1 = pr.path.s1;
-		auto s2 = pr.path.s2;
-		auto p1 = pr.path.p1;
-		auto p2 = pr.path.p2;
-
-		if(pr.path.distance > opt_.max_dist.value())
-			return false;
-
-		if (opt_.star_from && s1->StarName != opt_.star_from.value())
-			return false;
-
-		if (opt_.star_to && s2->StarName != opt_.star_to.value())
-			return false;
-
-		if (opt_.planet_from && p1->PlanetName != opt_.planet_from.value())
-			return false;
-
-		if (opt_.planet_to && p2->PlanetName != opt_.planet_to.value())
-			return false;
-
-		return true;
-	}
-};
-
-struct FilterByProfit : IFilter
-{
-	FilterByProfit( options::Options opt )
-		: min_profit_(opt.min_profit.value())
-	{	}
-
-	virtual ~FilterByProfit() = default;
-
-	int min_profit_;
-
-	bool operator()(Profit& pr){
-		if (pr.delta_profit < min_profit_)
-			return false;
-
-		return true;
-	}
-};
-
-// some template magic
-template <typename ... Args>
-struct AND_opt : IFilter
-{
-	//AND_opt(std::shared_ptr<Args>&& ... args)
-	//	: filters( std::forward<std::shared_ptr<Args>>(args)... )
-	//{	}
-
-	AND_opt(std::shared_ptr<Args> ... args)
-		: filters(args...)
-	{	}
-
-	virtual ~AND_opt() = default;
-	
-	std::tuple<std::shared_ptr<Args> ...> filters;
-
-	// aka template labmda c++20
-	struct Help_Me
-	{
-		Profit& pr;
-
-		template<typename ... Args>
-		bool operator()(std::shared_ptr<Args>& ... args)
-		{
-			// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
-			bool res = ((*args)(pr) && ...);
-			if (res)
-				return true;
-
-			return false;
-		}
-	};
-
-	bool operator()(Profit& pr){
-		return std::apply(Help_Me{pr}, filters); // unfold tuple to args ...
-	}
-
-};
-
-
-struct NOT_opt : IFilter
-{
-	NOT_opt(std::shared_ptr<IFilter> f)
-		: f_(f)
-	{	}
-
-	std::shared_ptr<IFilter> f_;
-	bool operator()(Profit& pr) {
-		return !(*f_)(pr); 
-	}
-};
-
 void apply_filter(std::vector<Profit>& vp, std::shared_ptr<IFilter> callable)
 {
 	performance_tracker tr(__FUNCTION__);
@@ -384,11 +199,14 @@ void analyzer::calc_profits(std::shared_ptr<IFilter> filt)
 	}
 
 	apply_filter(vp, filt);
-	std::sort(vp.rbegin(), vp.rend(), 
-		[this](Profit& pr1, Profit& pr2) {
+	{
+		performance_tracker tr("sort");
+		std::sort(vp.rbegin(), vp.rend(), 
+			[this](Profit& pr1, Profit& pr2) {
 			return (*sorter_)(pr1, pr2);
 		}
-	);
+		);
+	}
 
 	//std::ostream& os = std::cout;
 	dump_top(std::cout, vp, options::get_opt());
@@ -443,73 +261,6 @@ std::shared_ptr<IFilter> analyzer::createFilter()
 	}
 	return common_f;
 }
-
-struct DefaultSorter : ISort
-{
-	DefaultSorter() = default;
-	virtual ~DefaultSorter() = default;
-
-	bool operator()(Profit& pr1, Profit& pr2) const override
-	{
-		return pr1.delta_profit < pr2.delta_profit;
-	}
-};
-
-struct ProfitSorter : ISort
-{
-	ProfitSorter() = default;
-	virtual ~ProfitSorter() = default;
-
-	bool operator()(Profit& pr1, Profit& pr2) const override
-	{
-		return pr1.delta_profit < pr2.delta_profit;
-	}
-};
-
-struct ASC_Sort_Wrapper: ISort
-{
-	ASC_Sort_Wrapper(std::shared_ptr<ISort> obj_)
-		: obj(obj_)
-	{	}
-
-	std::shared_ptr<ISort> obj;
-	bool operator()(Profit& pr1, Profit& pr2) const override
-	{
-		return (*obj)(pr2, pr1); //revert
-	}
-};
-
-struct DistanceSorter : ISort
-{
-	DistanceSorter() = default;
-	virtual ~DistanceSorter() = default;
-
-	bool operator()(Profit& pr1, Profit& pr2) const override
-	{
-		return pr1.path.distance < pr2.path.distance;
-	}
-};
-
-struct AndSorter : ISort
-{
-	using Ptr = std::shared_ptr<ISort>;
-	AndSorter(Ptr p1, Ptr p2)
-		: p1_(p1), p2_(p2) 
-	{	}
-	virtual ~AndSorter() = default;
-	
-	Ptr p1_;
-	Ptr p2_;
-
-	bool operator()(Profit& pr1, Profit& pr2) const override
-	{
-		if (!p1_->operator()(pr1, pr2) && !p1_->operator()(pr2, pr1)) //eq
-		{
-			return p2_->operator()(pr1, pr2);
-		}
-		return p1_->operator()(pr1, pr2);
-	}
-};
 
 enum class SortDirection
 {
@@ -596,9 +347,6 @@ std::shared_ptr<ISort> analyzer::createSort()
 			common = std::make_shared<AndSorter>(common, s);
 	}
 
-	//auto s1 = std::make_shared<DistanceSorter>();
-	//auto s2 = std::make_shared<ProfitSorter>();
-	//common = std::make_shared<AndSorter>(s1, s2);
 	return common;
 }
 

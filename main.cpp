@@ -25,6 +25,10 @@ void on_new_file_found(std::string file)
 
 int main(int argc, char *argv[])
 {
+	//extern void Db_test();
+	//Db_test();
+	//return 0;
+
 	::SetConsoleOutputCP(1251);
 
 	if(!options::parse_args(argc, argv))

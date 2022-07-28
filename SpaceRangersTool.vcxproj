@@ -93,12 +93,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\src\boost_1_73_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\src\boost_1_73_0;C:\lib\SOCI_SQLITE\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\lib\SOCI_SQLITE\lib\libsoci_sqlite3_4_0d.lib;C:\lib\SOCI_SQLITE\lib\libsoci_core_4_0d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -127,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\src\boost_1_73_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\src\boost_1_73_0;C:\lib\SOCI_SQLITE\include;C:\src\sqlite3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -136,6 +137,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\lib\SOCI_SQLITE\lib\libsoci_sqlite3_4_0.lib;C:\lib\SOCI_SQLITE\lib\libsoci_core_4_0.lib;C:\src\sqlite3\sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,8 +162,10 @@
   <ItemGroup>
     <ClCompile Include="analyzer.cpp" />
     <ClCompile Include="convert.cpp" />
+    <ClCompile Include="db.cpp" />
     <ClCompile Include="factory.cpp" />
     <ClCompile Include="filefinder.cpp" />
+    <ClCompile Include="filters.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="main.cpp" />
@@ -170,14 +174,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="analyzer.hpp" />
+    <ClInclude Include="analyzer_entities.h" />
     <ClInclude Include="convert.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="factory.hpp" />
     <ClInclude Include="filefinder.hpp" />
+    <ClInclude Include="filters.hpp" />
     <ClInclude Include="model.hpp" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="performance_tracker.hpp" />
     <ClInclude Include="programargs.hpp" />
+    <ClInclude Include="sorters.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
