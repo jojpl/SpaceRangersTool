@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <iostream>
 
 namespace filters
 {
@@ -14,26 +15,25 @@ namespace filters
 	{
 		// true - accept, false - decline
 		virtual bool operator()(Profit&) = 0;
-		~IFilter() = default;
+		virtual ~IFilter() = default;
 	};
 
 	using filter_ptr = std::shared_ptr<IFilter>;
 
 	struct FilterByPathCommon : IFilter
 	{
-		FilterByPathCommon() = default;
+		FilterByPathCommon() {
+			std::cout << "!" << std::endl;
+		}
 		virtual ~FilterByPathCommon() = default;
 
-		inline static const std::set<std::string>
-			skip_star_list_name
+		const std::set<std::string> skip_star_list_name
 		{ "Тортугац", "Нифигац" };
 
-		inline static const
-			std::set<std::string> skip_star_list_owners
+		const std::set<std::string> skip_star_list_owners
 		{ "Klings" };
 
-		inline static const
-			std::set<std::string> skip_planet_list_owner
+		const std::set<std::string> skip_planet_list_owner
 		{ "None", "Kling" };
 
 		bool operator()(Profit& pr) {

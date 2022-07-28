@@ -8,7 +8,7 @@ namespace sorters
 	{
 		// less operator
 		virtual bool operator()(Profit&, Profit&) const = 0;
-		~ISort() = default;
+		virtual ~ISort() = default;
 	};
 
 	using sorter_ptr = std::shared_ptr<ISort>;

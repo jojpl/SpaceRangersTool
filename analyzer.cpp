@@ -244,7 +244,8 @@ std::shared_ptr<IFilter> analyzer::createFilter()
 	auto f1 = std::make_shared<FilterByPathCommon>();
 	auto f2 = std::make_shared<FilterByProfit>( opt );
 	auto f3 = std::make_shared<FilterByPath>( opt );
-	auto common_f = std::shared_ptr<IFilter>(new AND_opt(f1, f2, f3));
+	
+	std::shared_ptr<IFilter> common_f (new AND_opt(f1, f2, f3));
 	if (opt.star_from_use_current)
 	{
 		auto* s = find_curstar(data->Player);
@@ -353,8 +354,8 @@ std::shared_ptr<ISort> analyzer::createSort()
 void analyzer::calc_profits()
 {
 	std::shared_ptr<IFilter> common_f = createFilter();
-	sorter_ = createSort();
-	calc_profits(common_f);
+	//sorter_ = createSort();
+	//calc_profits(common_f);
 }
 
 void analyzer::analyze_profit()
