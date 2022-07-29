@@ -34,9 +34,10 @@ class planet_iterator
 	using PlanetList_Iter = decltype(Entities::PlanetList::list)::iterator;
 	using StarList_Iter   = decltype(Entities::StarList::list)::iterator;
 	
-	decltype(Entities::StarList::list)& starlist;
+	using StarList_t = decltype(Entities::StarList::list);
+	StarList_t& starlist;
 public:
-	planet_iterator(decltype(Entities::StarList::list)& starlist_)
+	planet_iterator(StarList_t& starlist_)
 		: starlist(starlist_)
 	{
 		starlist_iter   = starlist.begin();
@@ -126,10 +127,9 @@ void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 	std::cout << "show: " << cnt << " from total: " << vp.size() << std::endl;
 }
 
-
 void fill_profits(Profits& profits,
-	Entities::Star* s1,
-	Entities::Star* s2,
+	Entities::Star*   s1,
+	Entities::Star*   s2,
 	Entities::Planet* p1,
 	Entities::Planet* p2)
 {
@@ -160,10 +160,11 @@ void fill_profits(Profits& profits,
 	}
 }
 
-void apply_filter(std::vector<Profit>& vp, std::shared_ptr<IFilter> callable)
+void apply_filter(std::vector<Profit>& vp, filter_ptr callable)
 {
 	performance_tracker tr(__FUNCTION__);
 	// some inverted filter logic for remove_if context
+
 	auto pos = std::remove_if(
 		vp.begin(), vp.end(),
 		NOT_opt(callable)
@@ -172,41 +173,42 @@ void apply_filter(std::vector<Profit>& vp, std::shared_ptr<IFilter> callable)
 	vp.erase(pos, vp.end());
 }
 
-void analyzer::calc_profits(std::shared_ptr<IFilter> filt)
+void analyzer::calc_profits(filter_ptr filt)
 {
 	std::vector<Profit> vp; 
 	vp.reserve(1'000'000);
 	
-	for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 	{
-		Entities::Star*   s1 = *it1.starlist_iter;
-		Entities::Planet* p1 = *it1.planetlist_iter;
-
-		for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
+		performance_tracker tr("iter");
+		for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 		{
-			Entities::Star*   s2 = *it2.starlist_iter;
-			Entities::Planet* p2 = *it2.planetlist_iter;
+			Entities::Star*   s1 = *it1.starlist_iter;
+			Entities::Planet* p1 = *it1.planetlist_iter;
 
-			if (p1 == p2)
-				continue;
+			for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
+			{
+				Entities::Star*   s2 = *it2.starlist_iter;
+				Entities::Planet* p2 = *it2.planetlist_iter;
 
-			Profits profits;
-			fill_profits(profits, s1, s2, p1, p2);
+				if (p1 == p2)
+					continue;
 
-			std::move(profits.begin(), profits.end(),
-				std::back_inserter(vp));
+				Profits profits;
+				fill_profits(profits, s1, s2, p1, p2);
+
+				std::move(profits.begin(), profits.end(),
+					std::back_inserter(vp));
+			}
 		}
 	}
 
 	apply_filter(vp, filt);
-	{
-		performance_tracker tr("sort");
-		std::sort(vp.rbegin(), vp.rend(), 
-			[this](Profit& pr1, Profit& pr2) {
+
+	std::sort(vp.rbegin(), vp.rend(), 
+		[this](Profit& pr1, Profit& pr2) {
 			return (*sorter_)(pr1, pr2);
 		}
-		);
-	}
+	);
 
 	//std::ostream& os = std::cout;
 	dump_top(std::cout, vp, options::get_opt());
@@ -238,112 +240,54 @@ find_curplanet(Entities::Player* p)
 	);
 }
 
-std::shared_ptr<IFilter> analyzer::createFilter()
+filter_ptr analyzer::createFilter()
 {
 	auto opt = options::get_opt();
 	auto f1 = std::make_shared<FilterByPathCommon>();
 	auto f2 = std::make_shared<FilterByProfit>( opt );
 	auto f3 = std::make_shared<FilterByPath>( opt );
 	
-	std::shared_ptr<IFilter> common_f (new AND_opt(f1, f2, f3));
+	filter_ptr common_f (new AND_opt(f1, f2, f3));
 	if (opt.star_from_use_current)
 	{
 		auto* s = find_curstar(data->Player);
 		if(!s) throw std::logic_error("Player's curstar not set!");
+		
 		auto f = std::make_shared<FilterCurStar>(s->Id);
-		common_f = std::shared_ptr<IFilter>(new AND_opt(common_f, f));
+		common_f = filter_ptr(new AND_opt(common_f, f));
 	}
 	if (opt.planet_from_use_current)
 	{
 		auto* p = find_curplanet(data->Player);
 		if (!p) throw std::logic_error("Player's curplanet not set!");
+		
 		auto f = std::make_shared<FilterCurPlanet>(p->Id);
-		common_f = std::shared_ptr<IFilter>(new AND_opt(common_f, f));
+		common_f = filter_ptr(new AND_opt(common_f, f));
 	}
 	return common_f;
 }
 
-enum class SortDirection
+sorter_ptr analyzer::createSort()
 {
-	unknown,
-
-	DESC,
-	ASC,
-};
-
-enum class SortField
-{
-	unknown,
-
-	profit,
-	distance,
-};
-
-void from_string(SortField& f, std::string_view sw)
-{
-	if (boost::iequals(sw, "profit"))
-		f = SortField::profit;
-	else if(boost::iequals(sw, "distance"))
-		f = SortField::distance;
-	else
-		throw std::logic_error("can't convert "  __FUNCTION__);
-}
-
-void from_string(std::pair<SortField, SortDirection>& f, std::string_view sw)
-{
-	using split_range_it = boost::iterator_range<std::string_view::iterator>;
-	std::vector<split_range_it> split_param;
-	boost::split(split_param, sw, [](char ch) { return ch == ':'; });
-
-	if (split_param.size() == 0)
-		throw std::logic_error("can't convert "  __FUNCTION__);
-
-	for (size_t i = 0; i < split_param.size(); i++)
-	{
-		auto rng = split_param[i];
-		std::string param = { rng.begin(), rng.end() };
-		boost::trim(param);
-		
-		if(i == 0) 
-			from_string(f.first, param);
-		else if (i == 1 )
-		{
-			if (boost::istarts_with(param, "ASC"))
-				f.second = SortDirection::ASC;
-			else
-				f.second = SortDirection::DESC;
-		}
-	}
-}
-
-std::shared_ptr<ISort> analyzer::createSort()
-{
-	std::shared_ptr<ISort> common;
-
+	sorter_ptr common;
 	auto opt = options::get_opt();
-	std::string val = opt.sort_by.value();
+	options::SortOptions& sort_options = opt.sort_options;
 
-	//using split_range_it = boost::iterator_range<std::string_view::iterator>;
-	using tokenizer = boost::tokenizer<boost::escaped_list_separator<char>>;
-	tokenizer csv_tok ( val );
-	for (const auto &t : csv_tok)
+	for( auto p : sort_options)
 	{
-		auto p = std::pair<SortField, SortDirection>();
-		from_string(p, t);
-		std::shared_ptr<ISort> s;
-
-		if (p.first == SortField::distance)
+		sorter_ptr s;
+		if (p.first == options::SortField::distance)
 			s = std::make_shared<DistanceSorter>();
-		else if (p.first == SortField::profit)
+		else if (p.first == options::SortField::profit)
 			s = std::make_shared<ProfitSorter>();
 		else
 			s = std::make_shared<DefaultSorter>();
 			
-		
-		if(p.second == SortDirection::ASC)
+		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<ASC_Sort_Wrapper>(s);
 
-		if(!common) common = s;
+		if(!common) 
+			common = s;
 		else
 			common = std::make_shared<AndSorter>(common, s);
 	}
@@ -353,9 +297,9 @@ std::shared_ptr<ISort> analyzer::createSort()
 
 void analyzer::calc_profits()
 {
-	std::shared_ptr<IFilter> common_f = createFilter();
-	//sorter_ = createSort();
-	//calc_profits(common_f);
+	filter_ptr common_f = createFilter();
+	sorter_ = createSort();
+	calc_profits(common_f);
 }
 
 void analyzer::analyze_profit()

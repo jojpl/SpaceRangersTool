@@ -1,7 +1,7 @@
 #pragma once
 
-#include "filters.hpp"
 #include "analyzer_entities.h"
+#include "filters.hpp"
 #include "sorters.hpp"
 
 using namespace filters; // fix it!
@@ -17,11 +17,11 @@ public:
 	void analyze_profit();
 
 private:
-	void calc_profits(std::shared_ptr<IFilter> filt);
-	std::shared_ptr<IFilter> createFilter();
-	std::shared_ptr<ISort>   createSort();
+	void calc_profits(filter_ptr filt);
+	filter_ptr createFilter();
+	sorter_ptr createSort();
 
 	Entities::Global * data = nullptr;
-	std::shared_ptr<ISort> sorter_;
+	sorter_ptr sorter_;
 };
 

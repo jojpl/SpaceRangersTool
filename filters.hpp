@@ -22,9 +22,7 @@ namespace filters
 
 	struct FilterByPathCommon : IFilter
 	{
-		FilterByPathCommon() {
-			std::cout << "!" << std::endl;
-		}
+		FilterByPathCommon() {}
 		virtual ~FilterByPathCommon() = default;
 
 		const std::set<std::string> skip_star_list_name
