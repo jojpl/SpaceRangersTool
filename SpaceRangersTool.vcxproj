@@ -186,6 +186,11 @@
     <ClInclude Include="programargs.hpp" />
     <ClInclude Include="sorters.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO_list.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </Text>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

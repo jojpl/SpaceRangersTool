@@ -238,6 +238,20 @@ namespace filters
 		}
 	};
 
+	struct FilterGoods : IFilter
+	{
+		FilterGoods(std::set<Entities::GoodsEnum> g)
+			: g_(g)
+		{	}
+
+		const std::set<Entities::GoodsEnum> g_;
+
+		// true - accept, false - decline
+		bool operator()(const Profit& pr) {
+			return g_.count(pr.good);
+		}
+	};
+
 	// some template magic
 	template <typename ... Args>
 	struct AND_opt : IFilter

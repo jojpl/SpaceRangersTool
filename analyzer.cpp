@@ -3,6 +3,7 @@
 #include "programargs.hpp"
 #include "factory.hpp"
 #include "model.hpp"
+#include "convert.h"
 
 #include <algorithm>
 #include <array>
@@ -336,13 +337,44 @@ filter_ptr analyzer::createPathFilter()
 		);
 }
 
+filter_ptr analyzer::createGoodsFilter()
+{
+	auto opt = options::get_opt();
+	//using namespace conv;
+	std::set<Entities::GoodsEnum> sg;
+	const auto& m = model::get_map<Entities::GoodsEnum>();
+	for (const auto& [k, v]: m) // Food, ... , NUM
+		sg.insert(v);
+
+	if(!opt.goods.empty()) 
+	{
+		sg.clear();
+		for (const auto& gs: opt.goods)
+		{
+			Entities::GoodsEnum g;
+			conv::from_string(g, gs);
+			sg.insert(g);
+		}
+	}
+
+	for (const auto& gs : opt.no_goods)
+	{
+		Entities::GoodsEnum g;
+		conv::from_string(g, gs);
+		sg.erase(g);
+	}
+
+	return filter_ptr(new FilterGoods(sg));
+}
+
 filter_ptr analyzer::createFilter()
 {
 	auto opt = options::get_opt();
 	auto f1 = filter_ptr(new FilterByPathCommon());
 	auto f2 = filter_ptr(new FilterByProfit( opt ));
 	auto f3 = createPathFilter();
-	filter_ptr common_f (new AND_opt(f1, f2, f3));
+	auto f4 = createGoodsFilter();
+	filter_ptr common_f (new AND_opt(f1, f2, f3, f4));
 	return common_f;
 }
 

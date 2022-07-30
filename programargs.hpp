@@ -40,6 +40,8 @@ namespace options
 		std::optional<int>         count;
 		std::optional<std::string> sort_by;
 		SortOptions                sort_options;
+		std::vector<std::string>   goods;
+		std::vector<std::string>   no_goods;
 	};
 
 	inline Options& get_opt()
@@ -55,4 +57,6 @@ namespace options
 	static void handle_star_to(const std::string& val);
 	static void handle_planet_from(const std::string& val);
 	static void handle_planet_to(const std::string& val);
+	static void handle_goods(const std::vector<std::string>& val);
+	static void handle_no_goods(const std::vector<std::string>& val);
 }

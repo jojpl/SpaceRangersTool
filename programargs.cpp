@@ -6,6 +6,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/range/algorithm/transform.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 
@@ -34,6 +35,10 @@ namespace options
 			"sort \"1[,2 .. ]\"\n"
 			"profit, distance:desc, star-from ...\n"
 			"use quotes!")
+	("goods,g", po::value<std::vector<std::string>>()->composing()->notifier(handle_goods),
+			"goods include list")
+	("no-goods", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
+			"goods exclude list")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -51,14 +56,14 @@ namespace options
 				return false;
 			}
 
-			#define SAVE_OPTION(name, alias) \
+			#define SAVE_OPTION_AS_IS(name, alias) \
 			if (vm.count(name)) get_opt().alias = vm[name].as<typename decltype(alias)::value_type>();
 
-			SAVE_OPTION("max-dist", Options::max_dist)
-			SAVE_OPTION("min-profit", Options::min_profit)
-			SAVE_OPTION("count", Options::count)
-			SAVE_OPTION("sort-by", Options::sort_by)
-			#undef SAVE_OPTION
+			SAVE_OPTION_AS_IS("max-dist", Options::max_dist)
+			SAVE_OPTION_AS_IS("min-profit", Options::min_profit)
+			SAVE_OPTION_AS_IS("count", Options::count)
+			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
+			#undef SAVE_OPTION_AS_IS
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";
@@ -169,5 +174,48 @@ namespace options
 		}
 		else
 			opt.planet_to = val;
+	}
+
+	void handle_goods(const std::vector<std::string>& vals)
+	{
+		auto& opt = get_opt();
+		for (const auto& v : vals)
+		{
+			std::vector<std::string> split_param;
+			boost::split(split_param, v,
+				[](char ch) {
+					return ch == ',';
+				}
+				, boost::token_compress_on
+			);
+
+			for (auto& item : split_param)
+			{
+				boost::trim(item);
+				opt.goods.push_back(item);
+			}
+		}
+	}
+
+	void handle_no_goods(const std::vector<std::string>& vals)
+	{
+		auto& opt = get_opt();
+
+		for (const auto& v : vals)
+		{
+			std::vector<std::string> split_param;
+			boost::split(split_param, v,
+				[](char ch) {
+					return ch == ',';
+				}
+				, boost::token_compress_on
+			);
+
+			for (auto& item : split_param)
+			{
+				boost::trim(item);
+				opt.goods.push_back(item);
+			}
+		}
 	}
 }
