@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="analyzer.cpp" />
+    <ClCompile Include="common_algo.cpp" />
     <ClCompile Include="convert.cpp" />
     <ClCompile Include="db.cpp" />
     <ClCompile Include="factory.cpp" />
@@ -175,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="analyzer.hpp" />
     <ClInclude Include="analyzer_entities.h" />
+    <ClInclude Include="common_algo.h" />
     <ClInclude Include="convert.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="factory.hpp" />

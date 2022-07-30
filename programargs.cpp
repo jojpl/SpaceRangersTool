@@ -1,4 +1,5 @@
 #include "programargs.hpp"
+#include "common_algo.h"
 
 #include <string>
 #include <iostream>
@@ -6,7 +7,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/range/algorithm/transform.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 
@@ -186,7 +186,6 @@ namespace options
 				[](char ch) {
 					return ch == ',';
 				}
-				, boost::token_compress_on
 			);
 
 			for (auto& item : split_param)
@@ -208,14 +207,14 @@ namespace options
 				[](char ch) {
 					return ch == ',';
 				}
-				, boost::token_compress_on
 			);
 
 			for (auto& item : split_param)
 			{
 				boost::trim(item);
-				opt.goods.push_back(item);
+				opt.no_goods.push_back(item);
 			}
 		}
 	}
+
 }

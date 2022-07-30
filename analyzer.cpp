@@ -4,10 +4,10 @@
 #include "factory.hpp"
 #include "model.hpp"
 #include "convert.h"
+#include "common_algo.h"
 
 #include <algorithm>
 #include <array>
-#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -16,11 +16,8 @@
 #include <cmath>
 #include <sstream>
 #include <set>
-#include <string_view>
-#include <type_traits>
 #include <tuple>
 #include <optional>
-#include <utility>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -342,23 +339,37 @@ filter_ptr analyzer::createGoodsFilter()
 	auto opt = options::get_opt();
 	//using namespace conv;
 	std::set<Entities::GoodsEnum> sg;
+	std::vector<std::string> gn;
 	const auto& m = model::get_map<Entities::GoodsEnum>();
 	for (const auto& [k, v]: m) // Food, ... , NUM
+	{
 		sg.insert(v);
+		gn.push_back({k.data(), k.size()});
+	}
 
 	if(!opt.goods.empty()) 
 	{
 		sg.clear();
-		for (const auto& gs: opt.goods)
+		for (const auto& gs_raw : opt.goods)
 		{
+			auto pos = common_algo::soft_search(gs_raw, gn);
+			if(pos == gs_raw.npos)
+				throw std::logic_error("Good named as \""s + gs_raw + "\" not set");
+			auto gs = gn[pos];
+
 			Entities::GoodsEnum g;
 			conv::from_string(g, gs);
 			sg.insert(g);
 		}
 	}
 
-	for (const auto& gs : opt.no_goods)
+	for (const auto& gs_raw : opt.no_goods)
 	{
+		auto pos = common_algo::soft_search(gs_raw, gn);
+		if (pos == gs_raw.npos)
+			throw std::logic_error("Good named as \""s + gs_raw + "\" not set");
+		auto gs = gn[pos];
+
 		Entities::GoodsEnum g;
 		conv::from_string(g, gs);
 		sg.erase(g);
