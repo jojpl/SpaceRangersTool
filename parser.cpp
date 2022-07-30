@@ -16,12 +16,7 @@ static const std::string close_tag = "}";
 static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
-// MCVS
-#ifdef _MSC_VER
-#define Starts_with(sw, example) (sw._Starts_with(example))
-#else
 #define Starts_with(sw, example) (sw.rfind(example, 0) == 0)
-#endif
 
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
@@ -312,19 +307,24 @@ void Handler::on_kv(Entities::Star * p, std::string_view key, std::string_view v
 	END_PARSE()
 }
 
-std::string_view get_IType_use_lookup_ahead(Parser_Ctx& ctx)
+Entities::Type get_IType_use_lookup_ahead(std::string_view tail)
 {
 	// use Parser_Ctx is more correct
-	std::string_view out_line, out_next = ctx.tail_;
+	std::string_view out_line, out_next = tail;
+	
+	Entities::Type t{};
 	int findwidth = 10;
 	while (getline(out_next, out_line, out_next) && findwidth--)
 	{
 		trim_tabs(out_line);
 		auto [k, v] = split_to_kv(out_line);
-		if(k == "IType")
-			return v;
+		if (k == "IType")
+		{
+			conv::from_string(t, v);
+			return t;
+		}
 	}
-	return {};
+	return t;
 }
 
 void Handler::on_new_obj(Entities::EqList * p, std::string_view obj_name)
@@ -332,7 +332,7 @@ void Handler::on_new_obj(Entities::EqList * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
 		auto* item = Factory<Entities::Item>::create(id);
 		p->list.push_back(item);
@@ -346,7 +346,7 @@ void Handler::on_new_obj(Entities::ArtsList * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
 		auto* item = Factory<Entities::Item>::create(id);
 		p->list.push_back(item);
@@ -360,12 +360,20 @@ void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ShipId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
-		auto* item = Factory<Entities::Ship>::create();
-		item->Id = id;
-		p->list.push_back(item);
-
-		ctx.stack.push({ item });
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
+		if (Entities::ShipBases::allowedTypes.count(IType))
+		{
+			auto* item = Factory<Entities::ShipBases>::create();
+			item->Id = id;
+			p->list.push_back(item);
+			ctx.stack.push({ item });
+		}
+		else {
+			auto* item = Factory<Entities::Ship>::create();
+			item->Id = id;
+			p->list.push_back(item);
+			ctx.stack.push({ item });
+		}
 	}
 }
 
@@ -391,6 +399,31 @@ void Handler::on_kv(Entities::Ship * p, std::string_view key, std::string_view v
 		PARSE_TO(IPlanet)
 		PARSE_TO(Goods)
 		PARSE_TO(Money)
+	END_PARSE()
+}
+
+void Handler::on_new_obj(Entities::ShipBases * p, std::string_view obj_name)
+{
+	if (obj_name == "EqList")
+	{
+		ctx.stack.push({ &p->EqList });
+	}
+	else if (obj_name == "EqShop")
+	{
+		ctx.stack.push({ &p->EqShop });
+	}
+}
+
+void Handler::on_kv(Entities::ShipBases * p, std::string_view key, std::string_view value)
+{
+	using namespace Entities;
+	BEGIN_PARSE_FOR(ShipBases)
+		PARSE_TO(IFullName)
+		PARSE_TO(IType)
+		PARSE_TO(Name)
+		PARSE_TO(ShopGoods)
+		PARSE_TO(ShopGoodsSale)
+		PARSE_TO(ShopGoodsBuy)
 	END_PARSE()
 }
 
@@ -447,7 +480,7 @@ void Handler::on_new_obj(Entities::Junk * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
 		auto* item = Factory<Entities::Item>::create(id);
 		p->list.push_back(item);
@@ -461,7 +494,7 @@ void Handler::on_new_obj(Entities::EqShop * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
 		auto* item = Factory<Entities::Item>::create(id);;
 		p->list.push_back(item);
@@ -475,7 +508,7 @@ void Handler::on_new_obj(Entities::Treasure * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "HiddenItem"))
 	{
 		//int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 		auto* item = Factory<Entities::HiddenItem>::create();
 		p->list.push_back(item);
 
@@ -488,7 +521,7 @@ void Handler::on_new_obj(Entities::HiddenItem * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto IType = get_IType_use_lookup_ahead(ctx);
+		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 		auto* item = Factory<Entities::Item>::create(id);
 		p->item = item;
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <stack>
+#include <set>
 #include <tuple>
 
 //#include "boost\variant.hpp"
@@ -34,6 +35,7 @@ struct Parser_Ctx
 			Entities::Item*,
 			Entities::ShipList*,
 			Entities::Ship*,
+			Entities::ShipBases*,
 			Entities::PlanetList*,
 			Entities::Planet*,
 			Entities::Junk*,
@@ -60,6 +62,8 @@ struct Parser_Ctx
 	std::string_view tail_;
 
 	std::stack<variants> stack;
+
+	std::set<std::string_view> unregistered_obj;
 
 };
 
@@ -141,6 +145,10 @@ private:
 	void on_new_obj(Entities::Ship* p, std::string_view obj_name);
 	void on_kv(Entities::Ship*      p, std::string_view key, std::string_view value);
 
+	// ShipBases
+	void on_new_obj(Entities::ShipBases* p, std::string_view obj_name);
+	void on_kv(Entities::ShipBases*      p, std::string_view key, std::string_view value);
+
 	// PlanetList
 	void on_new_obj(Entities::PlanetList* p, std::string_view obj_name);
 
@@ -174,6 +182,7 @@ private:
 	template <typename T>
 	void on_new_obj(T* p, std::string_view obj_name)
 	{
+		ctx.unregistered_obj.insert(obj_name);
 	}
 
 	Parser_Ctx& ctx;

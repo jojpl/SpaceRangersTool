@@ -134,6 +134,12 @@ namespace model
 				ADD_DEF(Money)
 			END_DEF()
 
+			BEGIN_DEF_FOR(ShipBases)
+				ADD_DEF(ShopGoods)
+				ADD_DEF(ShopGoodsSale)
+				ADD_DEF(ShopGoodsBuy)
+			END_DEF()
+
 			BEGIN_DEF_FOR(Item)
 				ADD_DEF(IName)
 				ADD_DEF(IType)

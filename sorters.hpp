@@ -7,7 +7,7 @@ namespace sorters
 	struct ISort
 	{
 		// less operator
-		virtual bool operator()(Profit&, Profit&) const = 0;
+		virtual bool operator()(const Profit&, const Profit&) const = 0;
 		virtual ~ISort() = default;
 	};
 
@@ -18,7 +18,7 @@ namespace sorters
 		DefaultSorter() = default;
 		virtual ~DefaultSorter() = default;
 
-		bool operator()(Profit& pr1, Profit& pr2) const override
+		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
 			return pr1.delta_profit < pr2.delta_profit;
 		}
@@ -29,7 +29,7 @@ namespace sorters
 		ProfitSorter() = default;
 		virtual ~ProfitSorter() = default;
 
-		bool operator()(Profit& pr1, Profit& pr2) const override
+		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
 			return pr1.delta_profit < pr2.delta_profit;
 		}
@@ -42,7 +42,7 @@ namespace sorters
 		{	}
 
 		sorter_ptr obj;
-		bool operator()(Profit& pr1, Profit& pr2) const override
+		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
 			return (*obj)(pr2, pr1); //revert
 		}
@@ -53,7 +53,7 @@ namespace sorters
 		DistanceSorter() = default;
 		virtual ~DistanceSorter() = default;
 
-		bool operator()(Profit& pr1, Profit& pr2) const override
+		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
 			return pr1.path.distance < pr2.path.distance;
 		}
@@ -69,7 +69,7 @@ namespace sorters
 		sorter_ptr p1_;
 		sorter_ptr p2_;
 
-		bool operator()(Profit& pr1, Profit& pr2) const override
+		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
 			if (!p1_->operator()(pr1, pr2) && !p1_->operator()(pr2, pr1)) //eq
 			{

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <set>
 #include <map>
 #include <optional>
 
@@ -202,6 +203,17 @@ namespace Entities
 
 	};
 
+	struct ShipBases : Ship
+	{
+		inline static const std::set<Type> allowedTypes
+		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
+
+		EqShop     EqShop;
+		GoodsQty   ShopGoods;
+		GoodsPrice ShopGoodsSale;
+		GoodsPrice ShopGoodsBuy;
+	};
+
 	struct Item
 	{
 		Item(int Id_)
@@ -276,11 +288,11 @@ namespace Entities
 		int	CurrentInvention = 0;
 		int	CurrentInventionPoints = 0;
 
-		EqShop EqShop;
-		GoodsQty ShopGoods;
+		EqShop     EqShop;
+		GoodsQty   ShopGoods;
 		GoodsPrice ShopGoodsSale;
 		GoodsPrice ShopGoodsBuy;
-		Treasure Treasure;
+		Treasure   Treasure;
 	};
 
 	struct Star

@@ -75,18 +75,29 @@ std::string cut_to(std::string_view s)
 	return { s.data(), std::min(Cnt, s.size()) };
 }
 
+template<typename ... Args>
+std::string string_format(const char* format, Args ... args)
+{
+	int buf_sz = snprintf(nullptr, 0, format, args...);
+	auto buf = std::make_unique<char[]>(buf_sz + 1);
+	snprintf(buf.get(), buf_sz + 1, format, args...);
+
+	return std::string(buf.get());
+}
+
 std::ostream& operator<<(std::ostream& os, Profit& pr)
 {
 	auto bd_good                  = pr.good;
 	auto bd_profit                = pr.delta_profit;
 	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
-	std::string good_name         = cut_to<5>(good_name_sw);
+	std::string good_name         = cut_to<9>(good_name_sw);
 	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
 	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);
 
-	int qty                       = pr.path.p1->ShopGoods.packed[(int)bd_good];
-	int sale                      = pr.path.p1->ShopGoodsSale.packed[(int)bd_good];
-	int buy                       = pr.path.p1->ShopGoodsBuy.packed[(int)bd_good];
+	int qty                       = pr.aviable_qty;
+	int sale                      = pr.sale;
+	int buy                       = pr.buy;
+	int purchase                  = qty*sale;
 	
 	// stars add info
 	std::string s_from_name       = cut_to<15>(pr.path.s1->StarName);
@@ -94,22 +105,16 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	int distance                  = pr.path.distance;
 
 	const static std::string templ = 
-	"%-15s => %-15s distance: %3d\n"
-	"%-15s -- %-15s %-5s q: %-5d (%4d - %-4d) profit: %d";
+	"%-15s => %-15s distance: %-2d\n"
+	"%-15s -- %-15s %-9s p: %6d q: %-5d (%4d - %-4d) profit: %d";
 
-	size_t buf_sz = 
-	snprintf(nullptr, 0, templ.data(),
+	auto res = string_format(templ.data(),
 		s_from_name.data(), s_to_name.data(), distance,
 		p_from_name.data(), p_to_name.data(),
-		good_name.data(), qty, sale, buy, bd_profit
+		good_name.data(), purchase, qty, sale, buy, bd_profit
 	);
-	auto buf = std::make_unique<char[]>(buf_sz + 1);
-	snprintf(buf.get(), buf_sz + 1, templ.data(),
-		s_from_name.data(), s_to_name.data(), distance,
-		p_from_name.data(), p_to_name.data(),
-		good_name.data(), qty, sale, buy, bd_profit
-	);
-	os << buf << std::endl;
+	
+	os << res << std::endl;
 	return os;
 }
 
@@ -163,14 +168,17 @@ void fill_profits(Profits& profits,
 void apply_filter(std::vector<Profit>& vp, filter_ptr callable)
 {
 	performance_tracker tr(__FUNCTION__);
-	// some inverted filter logic for remove_if context
+	// optimization - filter cut >90% of vp values usually.
+	std::vector<Profit> new_vp;
 
-	auto pos = std::remove_if(
-		vp.begin(), vp.end(),
-		NOT_opt(callable)
+	auto pos = std::copy_if(
+		vp.begin(), vp.end(), std::back_inserter(new_vp),
+		[&callable](Profit& pr){
+			return (*callable)(pr);
+		}
 	);
 
-	vp.erase(pos, vp.end());
+	vp.swap(new_vp);
 }
 
 void analyzer::calc_profits(filter_ptr filt)
@@ -204,7 +212,7 @@ void analyzer::calc_profits(filter_ptr filt)
 
 	apply_filter(vp, filt);
 
-	std::sort(vp.rbegin(), vp.rend(), 
+	std::sort(vp.rbegin(), vp.rend(),
 		[this](Profit& pr1, Profit& pr2) {
 			return (*sorter_)(pr1, pr2);
 		}
@@ -217,12 +225,38 @@ void analyzer::calc_profits(filter_ptr filt)
 }
 
 const Entities::Star*
-find_curstar(Entities::Player* p)
+find_star_by_name(std::string_view sw)
 {
-	int id = p->ICurStarId;
+	return Factory<Entities::Star>::find(
+		[sw](const Entities::Star& s) {
+			return s.StarName == sw;
+		}
+	);
+}
+
+const Entities::Star*
+find_star_by_id(int id)
+{
 	return Factory<Entities::Star>::find(
 		[id](const Entities::Star& s) {
 			return s.Id == id;
+		}
+	);
+}
+
+const Entities::Star*
+find_curstar(Entities::Player* p)
+{
+	int id = p->ICurStarId;
+	return find_star_by_id(id);
+}
+
+const Entities::Planet*
+find_planet_by_name(std::string_view sw)
+{
+	return Factory<Entities::Planet>::find(
+		[sw](const Entities::Planet& s) {
+			return s.PlanetName == sw;
 		}
 	);
 }
@@ -233,37 +267,82 @@ find_curplanet(Entities::Player* p)
 	auto name = p->IPlanet;
 	if(name.empty()) return nullptr;
 
-	return Factory<Entities::Planet>::find(
-		[name](const Entities::Planet& s) {
-			return s.PlanetName == name;
-		}
-	);
+	return find_planet_by_name(name);
+}
+
+filter_ptr analyzer::createPathFilter()
+{
+	auto opt = options::get_opt();
+	int max_dist = opt.max_dist.value();
+	auto* cur_s = find_curstar(data->Player);
+	if (!cur_s) throw std::logic_error("Player's curstar not set (sic!)");
+	auto* cur_p = find_curplanet(data->Player);
+	
+	// reslove id's using options
+	int s1_id = 0, s2_id = 0,
+		p1_id = 0, p2_id = 0;
+
+	if (opt.star_from_use_current) 
+		s1_id = cur_s->Id;
+	else if (opt.star_from)
+	{
+		auto name = opt.star_from.value();
+		auto* s = find_star_by_name(name);
+		if (!s) throw std::logic_error(name + " star not found!");
+		s1_id = s->Id;
+	}
+
+	if (opt.star_to_use_current)
+		s2_id = cur_s->Id;
+	else if (opt.star_to)
+	{
+		auto name = opt.star_to.value();
+		auto* s = find_star_by_name(name);
+		if (!s) throw std::logic_error(name + " star not found!");
+		s2_id = s->Id;
+	}
+
+	if (opt.planet_from_use_current)
+	{
+		if (!cur_p) throw std::logic_error("Player's curplanet not set");
+		p1_id = cur_p->Id;
+	}
+	else if (opt.planet_from)
+	{
+		auto name = opt.planet_from.value();
+		auto* p = find_planet_by_name(name);
+		if (!p) throw std::logic_error(name + " planet not found!");
+		p1_id = p->Id;
+	}
+
+	if (opt.planet_to_use_current)
+	{
+		if (!cur_p) throw std::logic_error("Player's curplanet not set");
+		p2_id = cur_p->Id;
+	}
+	else if (opt.planet_to)
+	{
+		auto name = opt.planet_to.value();
+		auto* p = find_planet_by_name(name);
+		if (!p) throw std::logic_error(name + " planet not found!");
+		p2_id = p->Id;
+	}
+
+	// create filter
+	return filter_ptr(new FilterByPath_v2(
+		max_dist,
+		s1_id, s2_id,
+		p1_id, p2_id)
+		);
 }
 
 filter_ptr analyzer::createFilter()
 {
 	auto opt = options::get_opt();
-	auto f1 = std::make_shared<FilterByPathCommon>();
-	auto f2 = std::make_shared<FilterByProfit>( opt );
-	auto f3 = std::make_shared<FilterByPath>( opt );
-	
+	auto f1 = filter_ptr(new FilterByPathCommon());
+	auto f2 = filter_ptr(new FilterByProfit( opt ));
+	auto f3 = createPathFilter();
 	filter_ptr common_f (new AND_opt(f1, f2, f3));
-	if (opt.star_from_use_current)
-	{
-		auto* s = find_curstar(data->Player);
-		if(!s) throw std::logic_error("Player's curstar not set!");
-		
-		auto f = std::make_shared<FilterCurStar>(s->Id);
-		common_f = filter_ptr(new AND_opt(common_f, f));
-	}
-	if (opt.planet_from_use_current)
-	{
-		auto* p = find_curplanet(data->Player);
-		if (!p) throw std::logic_error("Player's curplanet not set!");
-		
-		auto f = std::make_shared<FilterCurPlanet>(p->Id);
-		common_f = filter_ptr(new AND_opt(common_f, f));
-	}
 	return common_f;
 }
 
