@@ -85,10 +85,12 @@ public:
 private:
 	void init_ctx(std::string_view mem);
 
+	void fix_skiped_look_forwarded_options();
+
 	void parse_line();
 
 	Parser_Ctx ctx;
-	Global * out = nullptr;
+	Global * out_ = nullptr;
 };
 
 class Handler

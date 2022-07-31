@@ -11,21 +11,20 @@
 
 namespace filters
 {
-	struct IFilter;
 	using namespace analyzer;
+	struct IFilter;
 	using filter_ptr = std::shared_ptr<IFilter>;
 
 	struct IFilter
 	{
 		// true - accept, false - decline
-		virtual bool operator()(const Profit&) = 0;
+		virtual bool operator()(const TradeInfo&) = 0;
 		virtual ~IFilter() = default;
 	};
 
 	struct FilterByPathCommon : IFilter
 	{
 		FilterByPathCommon() {}
-		virtual ~FilterByPathCommon() = default;
 
 		const std::set<std::string> skip_star_list_name
 		{ "Тортугац", "Нифигац" };
@@ -36,11 +35,11 @@ namespace filters
 		const std::set<std::string> skip_planet_list_owner
 		{ "None", "Kling" };
 
-		bool operator()(const Profit& pr) {
-			auto s1 = pr.path.s1;
-			auto s2 = pr.path.s2;
-			auto p1 = pr.path.p1;
-			auto p2 = pr.path.p2;
+		bool operator()(const TradeInfo& ti) {
+			auto s1 = ti.path.s1;
+			auto s2 = ti.path.s2;
+			auto p1 = ti.path.p1;
+			auto p2 = ti.path.p2;
 
 			if (skip_star_list_name.count(s1->StarName))
 				return false;
@@ -65,13 +64,12 @@ namespace filters
 	{
 		FilterCurStarFrom(int id)
 			: s_from_id(id)
-		{
-		}
+		{	}
 
 		int s_from_id;
 
-		bool operator()(const Profit& pr) {
-			auto* s1 = pr.path.s1;
+		bool operator()(const TradeInfo& ti) {
+			auto* s1 = ti.path.s1;
 
 			if (s1->Id != s_from_id) // faster than name cmp
 				return false;
@@ -83,13 +81,12 @@ namespace filters
 	{
 		FilterCurStarTo(int id)
 			: s_to_id(id)
-		{
-		}
+		{	}
 
 		int s_to_id;
 
-		bool operator()(const Profit& pr) {
-			auto* s2 = pr.path.s2;
+		bool operator()(const TradeInfo& ti) {
+			auto* s2 = ti.path.s2;
 
 			if (s2->Id != s_to_id) // faster than name cmp
 				return false;
@@ -101,13 +98,12 @@ namespace filters
 	{
 		FilterCurPlanetFrom(int id)
 			: p_from_id(id)
-		{
-		}
+		{	}
 
 		int p_from_id;
 
-		bool operator()(const Profit& pr) {
-			auto* p1 = pr.path.p1;
+		bool operator()(const TradeInfo& ti) {
+			auto* p1 = ti.path.p1;
 
 			if (p1->Id != p_from_id) // faster than name cmp
 				return false;
@@ -119,13 +115,12 @@ namespace filters
 	{
 		FilterCurPlanetTo(int id)
 			: p_to_id(id)
-		{
-		}
+		{	}
 
 		int p_to_id;
 
-		bool operator()(const Profit& pr) {
-			auto* p2 = pr.path.p2;
+		bool operator()(const TradeInfo& ti) {
+			auto* p2 = ti.path.p2;
 
 			if (p2->Id != p_to_id) // faster than name cmp
 				return false;
@@ -137,18 +132,17 @@ namespace filters
 	{
 		FilterByPath(options::Options opt)
 			: opt_(opt)
-		{
-		}
+		{	}
 
 		options::Options opt_;
 
-		bool operator()(const Profit& pr) {
-			auto s1 = pr.path.s1;
-			auto s2 = pr.path.s2;
-			auto p1 = pr.path.p1;
-			auto p2 = pr.path.p2;
+		bool operator()(const TradeInfo& ti) {
+			auto s1 = ti.path.s1;
+			auto s2 = ti.path.s2;
+			auto p1 = ti.path.p1;
+			auto p2 = ti.path.p2;
 
-			if (pr.path.distance > opt_.max_dist.value())
+			if (opt_.max_dist && ti.path.distance > opt_.max_dist.value())
 				return false;
 
 			if (opt_.star_from && s1->StarName != opt_.star_from.value())
@@ -184,13 +178,13 @@ namespace filters
 		int p1_id_;
 		int p2_id_;
 
-		bool operator()(const Profit& pr) {
-			auto s1 = pr.path.s1;
-			auto s2 = pr.path.s2;
-			auto p1 = pr.path.p1;
-			auto p2 = pr.path.p2;
+		bool operator()(const TradeInfo& ti) {
+			auto s1 = ti.path.s1;
+			auto s2 = ti.path.s2;
+			auto p1 = ti.path.p1;
+			auto p2 = ti.path.p2;
 
-			if (pr.path.distance > max_dist_)
+			if (ti.path.distance > max_dist_)
 				return false;
 
 			if (s1_id_ && s1->Id != s1_id_)
@@ -217,8 +211,8 @@ namespace filters
 
 		int min_profit_;
 
-		bool operator()(const Profit& pr) {
-			if (pr.delta_profit < min_profit_)
+		bool operator()(const TradeInfo& ti) {
+			if (ti.profit.delta_profit < min_profit_)
 				return false;
 
 			return true;
@@ -232,22 +226,22 @@ namespace filters
 		{	}
 
 		filter_ptr f_;
-		bool operator()(const Profit& pr) {
-			return !(*f_)(pr);
+		bool operator()(const TradeInfo& ti) {
+			return !(*f_)(ti);
 		}
 	};
 
 	struct FilterGoods : IFilter
 	{
-		FilterGoods(std::set<Entities::GoodsEnum> g)
+		FilterGoods(std::set<GoodsEnum> g)
 			: g_(g)
 		{	}
 
-		const std::set<Entities::GoodsEnum> g_;
+		const std::set<GoodsEnum> g_;
 
 		// true - accept, false - decline
-		bool operator()(const Profit& pr) {
-			return g_.count(pr.good);
+		bool operator()(const TradeInfo& ti) {
+			return g_.count(ti.profit.good);
 		}
 	};
 
@@ -268,13 +262,13 @@ namespace filters
 		// aka template labmda c++20
 		struct Help_Me
 		{
-			const Profit& pr;
+			const TradeInfo& ti;
 
 			template<typename ... Args>
 			bool operator()(std::shared_ptr<Args>& ... args)
 			{
 				// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
-				bool res = ((*args)(pr) && ...);
+				bool res = ((*args)(ti) && ...);
 				if (res)
 					return true;
 
@@ -282,10 +276,9 @@ namespace filters
 			}
 		};
 
-		bool operator()(const Profit& pr) {
-			return std::apply(Help_Me{ pr }, filters); // unfold tuple to args ...
+		bool operator()(const TradeInfo& ti) {
+			return std::apply(Help_Me{ ti }, filters); // unfold tuple to args ...
 		}
-
 	};
-}
+} // namespace filters
 

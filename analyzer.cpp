@@ -90,24 +90,24 @@ std::string string_format(const char* format, Args ... args)
 	return std::string(buf.get());
 }
 
-std::ostream& operator<<(std::ostream& os, Profit& pr)
+std::ostream& operator<<(std::ostream& os, TradeInfo& ti)
 {
-	auto bd_good                  = pr.good;
-	auto bd_profit                = pr.delta_profit;
+	auto bd_good                  = ti.profit.good;
+	auto bd_profit                = ti.profit.delta_profit;
 	std::string_view good_name_sw = conv::to_string(bd_good);
 	std::string good_name         = cut_to<9>(good_name_sw);
-	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
-	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);
+	std::string p_from_name       = cut_to<15>(ti.path.p1->PlanetName);
+	std::string p_to_name         = cut_to<15>(ti.path.p2->PlanetName);
 
-	int qty                       = pr.aviable_qty;
-	int sale                      = pr.sale;
-	int buy                       = pr.buy;
+	int qty                       = ti.profit.aviable_qty;
+	int sale                      = ti.profit.sale;
+	int buy                       = ti.profit.buy;
 	int purchase                  = qty*sale;
 	
 	// stars add info
-	std::string s_from_name       = cut_to<15>(pr.path.s1->StarName);
-	std::string s_to_name         = cut_to<15>(pr.path.s2->StarName);
-	int distance                  = pr.path.distance;
+	std::string s_from_name       = cut_to<15>(ti.path.s1->StarName);
+	std::string s_to_name         = cut_to<15>(ti.path.s2->StarName);
+	int distance                  = ti.path.distance;
 
 	const std::string templ = 
 	"%-15s => %-15s distance: %-2d\n"
@@ -123,21 +123,21 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	return os;
 }
 
-void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
+void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options opt)
 {
 	int top_size = opt.count.value();
 
 	int cnt = 0;
-	for (auto& pr: vp)
+	for (auto& ti: vti)
 	{
-		os << pr << std::endl;
+		os << ti << std::endl;
 		if(++cnt == top_size)
 			break;
 	}
-	std::cout << "show: " << cnt << " from total: " << vp.size() << std::endl;
+	std::cout << "show: " << cnt << " from total: " << vti.size() << std::endl;
 }
 
-void fill_profits(Profits& profits,
+void fill_profits(TradeInfos& profits,
 	Star*   s1,
 	Star*   s2,
 	Planet* p1,
@@ -162,29 +162,29 @@ void fill_profits(Profits& profits,
 		p.path.s2 = s2;
 		p.path.distance = distance;
 		
-		p.good = bd_good;
-		p.aviable_qty = aviable_qty;
-		p.buy = buy;
-		p.sale = sale;
-		p.delta_profit = delta_profit;
+		p.profit.good = bd_good;
+		p.profit.aviable_qty = aviable_qty;
+		p.profit.buy = buy;
+		p.profit.sale = sale;
+		p.profit.delta_profit = delta_profit;
 	}
 }
 
-void apply_filter(std::vector<Profit>& vp, filter_ptr callable)
+void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 {
 	performance_tracker tr(__FUNCTION__);
 	
 	// some inverted filter logic for remove_if context
-	boost::remove_erase_if(vp,
-		[&callable](Profit& pr){
-			return !(*callable)(pr);
+	boost::remove_erase_if(vti,
+		[&callable](TradeInfo& ti){
+			return !(*callable)(ti);
 		}
 	);
 }
 
 void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
-	std::vector<Profit> vp; 
+	std::vector<TradeInfo> vp; 
 	vp.reserve(1'000'000);
 	
 	{
@@ -202,7 +202,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 				if (p1 == p2)
 					continue;
 
-				Profits profits;
+				TradeInfos profits;
 				fill_profits(profits, s1, s2, p1, p2);
 				std::move(profits.begin(), profits.end(),
 					std::back_inserter(vp));
@@ -213,7 +213,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	// optimization - filter cut >90% of vp values usually.
 	//auto f = FilterByMinProfit(options::get_opt());
 	//auto v1 = boost::remove_erase_if(vp, 
-	//	[&f](Profit& pr1)	{
+	//	[&f](TradeInfo& pr1)	{
 	//		return !f(pr1);
 	//	}
 	//);
@@ -221,7 +221,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	apply_filter(vp, filt);
 
 	std::sort(vp.rbegin(), vp.rend(),
-		[sorter](Profit& pr1, Profit& pr2) {
+		[sorter](TradeInfo& pr1, TradeInfo& pr2) {
 			return (*sorter)(pr1, pr2);
 		}
 	);
@@ -231,80 +231,39 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	return;
 }
 
-const Star*
-find_star_by_name(std::string_view sw)
-{
-	return Factory<Star>::find(
-		[sw](const Star& s) {
-			return s.StarName == sw;
-		}
-	);
-}
-
-const Star*
-find_star_by_id(int id)
-{
-	return Factory<Star>::find(
-		[id](const Star& s) {
-			return s.Id == id;
-		}
-	);
-}
-
-const Star*
-find_curstar(Player* p)
-{
-	int id = p->ICurStarId;
-	return find_star_by_id(id);
-}
-
-const Planet*
-find_planet_by_name(std::string_view sw)
-{
-	return Factory<Planet>::find(
-		[sw](const Planet& s) {
-			return s.PlanetName == sw;
-		}
-	);
-}
-
-const Planet*
-find_curplanet(Player* p)
-{
-	auto name = p->IPlanet;
-	if(name.empty()) return nullptr;
-
-	return find_planet_by_name(name);
-}
-
 filter_ptr analyzer::createPathFilter()
 {
 	auto opt = options::get_opt();
 	int max_dist = opt.max_dist.value();
-	auto* cur_s = find_curstar(data->Player);
-	if (!cur_s) throw std::logic_error("Player's curstar not set (sic!)");
-	auto* cur_p = find_curplanet(data->Player);
+	auto* cur_s = data->Player->location.star;
+	auto* cur_p = data->Player->location.planet;
 	
 	// reslove id's using options
 	int s1_id = 0, s2_id = 0,
 		p1_id = 0, p2_id = 0;
 
 	if (opt.star_from_use_current) 
+	{
+		if (!cur_s) throw std::logic_error("Player's curstar not set (sic!)");
 		s1_id = cur_s->Id;
+	}
 	else if (opt.star_from)
 	{
 		auto name = opt.star_from.value();
-		auto* s = find_star_by_name(name);
+		auto* s = storage::find_star_by_name(name);
 		if (!s) throw std::logic_error(name + " star not found!");
 		s1_id = s->Id;
 	}
 
 	if (opt.star_to_use_current)
+	{
+		if (!cur_s) throw std::logic_error("Player's curstar not set (sic!)");
 		s2_id = cur_s->Id;
+	}
 	else if (opt.star_to)
 	{
 		auto name = opt.star_to.value();
-		auto* s = find_star_by_name(name);
+		auto* s = storage::find_star_by_name(name);
 		if (!s) throw std::logic_error(name + " star not found!");
 		s2_id = s->Id;
 	}
@@ -317,7 +276,7 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.planet_from)
 	{
 		auto name = opt.planet_from.value();
-		auto* p = find_planet_by_name(name);
+		auto* p = storage::find_planet_by_name(name);
 		if (!p) throw std::logic_error(name + " planet not found!");
 		p1_id = p->Id;
 	}
@@ -330,7 +289,7 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.planet_to)
 	{
 		auto name = opt.planet_to.value();
-		auto* p = find_planet_by_name(name);
+		auto* p = storage::find_planet_by_name(name);
 		if (!p) throw std::logic_error(name + " planet not found!");
 		p2_id = p->Id;
 	}

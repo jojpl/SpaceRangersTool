@@ -4,16 +4,16 @@
 
 namespace sorters
 {
+	using namespace analyzer;
 	struct ISort;
 	struct MaxProfitSorter;
-	using namespace analyzer;
 	using sorter_ptr = std::shared_ptr<ISort>;
 	using DefaultSorter = MaxProfitSorter;
 
 	struct ISort
 	{
 		// less operator
-		virtual bool operator()(const Profit&, const Profit&) const = 0;
+		virtual bool operator()(const TradeInfo&, const TradeInfo&) const = 0;
 		virtual ~ISort() = default;
 	};
 
@@ -22,9 +22,9 @@ namespace sorters
 		MaxProfitSorter() = default;
 		virtual ~MaxProfitSorter() = default;
 
-		bool operator()(const Profit& pr1, const Profit& pr2) const override
+		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
 		{
-			return pr1.delta_profit < pr2.delta_profit;
+			return pr1.profit.delta_profit < pr2.profit.delta_profit;
 		}
 	};
 
@@ -35,7 +35,7 @@ namespace sorters
 		{	}
 
 		sorter_ptr obj;
-		bool operator()(const Profit& pr1, const Profit& pr2) const override
+		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
 		{
 			return (*obj)(pr2, pr1); //revert
 		}
@@ -46,7 +46,7 @@ namespace sorters
 		DistanceSorter() = default;
 		virtual ~DistanceSorter() = default;
 
-		bool operator()(const Profit& pr1, const Profit& pr2) const override
+		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
 		{
 			return pr1.path.distance < pr2.path.distance;
 		}
@@ -62,7 +62,7 @@ namespace sorters
 		sorter_ptr p1_;
 		sorter_ptr p2_;
 
-		bool operator()(const Profit& pr1, const Profit& pr2) const override
+		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
 		{
 			if (!p1_->operator()(pr1, pr2) && !p1_->operator()(pr2, pr1)) //eq
 			{
