@@ -62,13 +62,13 @@ namespace sorters
 		sorter_ptr p1_;
 		sorter_ptr p2_;
 
-		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+		bool operator()(const TradeInfo& ti1, const TradeInfo& ti2) const override
 		{
-			if (!p1_->operator()(pr1, pr2) && !p1_->operator()(pr2, pr1)) //eq
+			if (!p1_->operator()(ti1, ti2) && !p1_->operator()(ti2, ti1)) //eq
 			{
-				return p2_->operator()(pr1, pr2);
+				return p2_->operator()(ti1, ti2);
 			}
-			return p1_->operator()(pr1, pr2);
+			return p1_->operator()(ti1, ti2);
 		}
 	};
 }

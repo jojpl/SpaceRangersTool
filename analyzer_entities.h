@@ -12,12 +12,12 @@ struct Path
 	Planet* p1 = nullptr;
 	// to
 	Planet* p2 = nullptr;
-	int distance         = 0;
-	// for additional info
 	// from
 	Star* s1   = nullptr;
 	// to
 	Star* s2   = nullptr;
+
+	int distance = 0;
 };
 
 struct Profit

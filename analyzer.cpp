@@ -28,6 +28,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/move/iterator.hpp>
 
 using namespace std::string_literals;
 
@@ -144,11 +145,12 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 
 void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
-	std::vector<TradeInfo> vp; 
-	vp.reserve(1'000'000);
-	
+	std::vector<TradeInfo> vti; 
+	vti.reserve(1'000'000); // 8 * planets_qty^2
+
 	{
 		performance_tracker tr("iter");
+
 		auto& planets = storage::get<Planet>();
 		for (auto& p_from : planets)
 		{
@@ -165,29 +167,34 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 
 				TradeInfos profits;
 				fill_profits(profits, s1, s2, p1, p2);
-				std::move(profits.begin(), profits.end(),
-					std::back_inserter(vp));
+
+				bool doskip = std::none_of(begin(profits), end(profits), 
+					filters::FilterByMinProfit(options::get_opt())
+				);
+
+				if(!doskip)
+					std::move(begin(profits), end(profits), back_inserter(vti));
 			}
 		}
 	}
 
 	// optimization - filter cut >90% of vp values usually.
-	//auto f = FilterByMinProfit(options::get_opt());
-	//auto v1 = boost::remove_erase_if(vp, 
+	//auto f = filters::FilterByMinProfit(options::get_opt());
+	//auto v1 = boost::remove_erase_if(vti, 
 	//	[&f](TradeInfo& pr1)	{
 	//		return !f(pr1);
 	//	}
 	//);
 
-	apply_filter(vp, filt);
+	apply_filter(vti, filt);
 
-	std::sort(vp.rbegin(), vp.rend(),
-		[sorter](TradeInfo& pr1, TradeInfo& pr2) {
-			return (*sorter)(pr1, pr2);
+	std::sort(vti.rbegin(), vti.rend(),
+		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
+			return (*sorter)(ti1, ti2);
 		}
 	);
 
-	dump_top(std::cout, vp, options::get_opt());
+	dump_top(std::cout, vti, options::get_opt());
 
 	return;
 }
@@ -256,7 +263,7 @@ filter_ptr analyzer::createPathFilter()
 	}
 
 	// create filter
-	return filter_ptr(new filters::FilterByPath_v2(
+	return filter_ptr(new filters::FilterByPath(
 		max_dist,
 		s1_id, s2_id,
 		p1_id, p2_id)

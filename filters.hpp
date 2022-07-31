@@ -130,40 +130,7 @@ namespace filters
 
 	struct FilterByPath : IFilter
 	{
-		FilterByPath(options::Options opt)
-			: opt_(opt)
-		{	}
-
-		options::Options opt_;
-
-		bool operator()(const TradeInfo& ti) {
-			auto s1 = ti.path.s1;
-			auto s2 = ti.path.s2;
-			auto p1 = ti.path.p1;
-			auto p2 = ti.path.p2;
-
-			if (opt_.max_dist && ti.path.distance > opt_.max_dist.value())
-				return false;
-
-			if (opt_.star_from && s1->StarName != opt_.star_from.value())
-				return false;
-
-			if (opt_.star_to && s2->StarName != opt_.star_to.value())
-				return false;
-
-			if (opt_.planet_from && p1->PlanetName != opt_.planet_from.value())
-				return false;
-
-			if (opt_.planet_to && p2->PlanetName != opt_.planet_to.value())
-				return false;
-
-			return true;
-		}
-	};
-
-	struct FilterByPath_v2 : IFilter
-	{
-		FilterByPath_v2(
+		FilterByPath(
 			int max_dist,
 			int s1_id, int s2_id,
 			int p1_id, int p2_id)
@@ -249,10 +216,6 @@ namespace filters
 	template <typename ... Args>
 	struct AND_opt : IFilter
 	{
-		//AND_opt(std::shared_ptr<Args>&& ... args)
-		//	: filters( std::forward<std::shared_ptr<Args>>(args)... )
-		//{	}
-
 		AND_opt(std::shared_ptr<Args> ... args)
 			: filters(args...)
 		{	}
