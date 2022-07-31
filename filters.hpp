@@ -11,6 +11,9 @@
 
 namespace filters
 {
+	struct IFilter;
+	using namespace analyzer;
+	using filter_ptr = std::shared_ptr<IFilter>;
 
 	struct IFilter
 	{
@@ -18,8 +21,6 @@ namespace filters
 		virtual bool operator()(const Profit&) = 0;
 		virtual ~IFilter() = default;
 	};
-
-	using filter_ptr = std::shared_ptr<IFilter>;
 
 	struct FilterByPathCommon : IFilter
 	{
@@ -208,13 +209,11 @@ namespace filters
 		}
 	};
 
-	struct FilterByProfit : IFilter
+	struct FilterByMinProfit : IFilter
 	{
-		FilterByProfit(options::Options opt)
+		FilterByMinProfit(options::Options opt)
 			: min_profit_(opt.min_profit.value())
 		{	}
-
-		virtual ~FilterByProfit() = default;
 
 		int min_profit_;
 
@@ -263,8 +262,6 @@ namespace filters
 		AND_opt(std::shared_ptr<Args> ... args)
 			: filters(args...)
 		{	}
-
-		virtual ~AND_opt() = default;
 
 		std::tuple<std::shared_ptr<Args> ...> filters;
 

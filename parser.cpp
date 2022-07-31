@@ -11,6 +11,9 @@
 #include <string_view>
 #include <type_traits>
 
+namespace parser
+{
+
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
 static const std::string kv_delim_tag = "=";
@@ -138,7 +141,7 @@ void validate(const std::string& mem)
 		throw std::logic_error("mismatch {}");
 }
 
-Entities::Global* parse(const std::string& mem)
+Global* parse(const std::string& mem)
 {
 	performance_tracker tr(__FUNCTION__);
 	validate(mem);
@@ -157,14 +160,14 @@ void Parser::parse(const std::string& mem)
 		parse_line();
 }
 
-Entities::Global * Parser::get_parsed()
+Global * Parser::get_parsed()
 {
 	return out;
 }
 
 void Parser::init_ctx(std::string_view mem)
 {
-	out = Factory<Entities::Global>::create();
+	out = Factory<Global>::create();
 	ctx.stack.push({ out });
 
 	ctx.tail_ = mem;
@@ -178,7 +181,7 @@ void Parser::parse_line()
 
 bool Parser_Ctx::getline()
 {
-	if (!::getline(tail_, line_, tail_))
+	if (!parser::getline(tail_, line_, tail_))
 		return false;
 	
 	trim_tabs(line_);
@@ -218,11 +221,11 @@ Parser_Ctx::get_kv() const
 }
 
 
-void Handler::on_new_obj(Entities::Global* p, std::string_view obj_name)
+void Handler::on_new_obj(Global* p, std::string_view obj_name)
 {
 	if (obj_name == "Player")
 	{
-		p->Player = Factory<Entities::Player>::create();
+		p->Player = Factory<Player>::create();
 		ctx.stack.push({ p->Player });
 	}
 	else if (obj_name == "StarList")
@@ -231,7 +234,7 @@ void Handler::on_new_obj(Entities::Global* p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::Global* p, std::string_view key, std::string_view value)
+void Handler::on_kv(Global* p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Global)
@@ -239,7 +242,7 @@ void Handler::on_kv(Entities::Global* p, std::string_view key, std::string_view 
 	END_PARSE()
 }
 
-void Handler::on_new_obj(Entities::Player * p, std::string_view obj_name)
+void Handler::on_new_obj(Player * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
@@ -251,7 +254,7 @@ void Handler::on_new_obj(Entities::Player * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::Player * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Player * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Player)
@@ -267,12 +270,12 @@ void Handler::on_kv(Entities::Player * p, std::string_view key, std::string_view
 	END_PARSE()
 }
 
-void Handler::on_new_obj(Entities::StarList * p, std::string_view obj_name)
+void Handler::on_new_obj(StarList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "StarId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto* star = Factory<Entities::Star>::create();
+		auto* star = Factory<Star>::create();
 		star->Id = id;
 		p->list.push_back(star);
 
@@ -280,7 +283,7 @@ void Handler::on_new_obj(Entities::StarList * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_new_obj(Entities::Star * p, std::string_view obj_name)
+void Handler::on_new_obj(Star * p, std::string_view obj_name)
 {
 	if (obj_name == "ShipList")
 	{
@@ -296,7 +299,7 @@ void Handler::on_new_obj(Entities::Star * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::Star * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Star * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Star)
@@ -307,12 +310,12 @@ void Handler::on_kv(Entities::Star * p, std::string_view key, std::string_view v
 	END_PARSE()
 }
 
-Entities::Type get_IType_use_lookup_ahead(std::string_view tail)
+Type get_IType_use_lookup_ahead(std::string_view tail)
 {
 	// use Parser_Ctx is more correct
 	std::string_view out_line, out_next = tail;
 	
-	Entities::Type t{};
+	Type t{};
 	int findwidth = 10;
 	while (getline(out_next, out_line, out_next) && findwidth--)
 	{
@@ -327,49 +330,51 @@ Entities::Type get_IType_use_lookup_ahead(std::string_view tail)
 	return t;
 }
 
-void Handler::on_new_obj(Entities::EqList * p, std::string_view obj_name)
+void Handler::on_new_obj(EqList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Entities::Item>::create(id);
+		auto* item = Factory<Item>::create(id);
 		p->list.push_back(item);
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_new_obj(Entities::ArtsList * p, std::string_view obj_name)
+void Handler::on_new_obj(ArtsList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Entities::Item>::create(id);
+		auto* item = Factory<Item>::create(id);
 		p->list.push_back(item);
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
+void Handler::on_new_obj(ShipList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ShipId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
-		if (Entities::ShipBases::allowedTypes.count(IType))
+		if (std::find(cbegin(ShipBases::allowedTypes),
+					cend(ShipBases::allowedTypes),
+					IType) != cend(ShipBases::allowedTypes))
 		{
-			auto* item = Factory<Entities::ShipBases>::create();
+			auto* item = Factory<ShipBases>::create();
 			item->Id = id;
 			p->list.push_back(item);
 			ctx.stack.push({ item });
 		}
 		else {
-			auto* item = Factory<Entities::Ship>::create();
+			auto* item = Factory<Ship>::create();
 			item->Id = id;
 			p->list.push_back(item);
 			ctx.stack.push({ item });
@@ -377,7 +382,7 @@ void Handler::on_new_obj(Entities::ShipList * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_new_obj(Entities::Ship * p, std::string_view obj_name)
+void Handler::on_new_obj(Ship * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
@@ -389,7 +394,7 @@ void Handler::on_new_obj(Entities::Ship * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::Ship * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Ship)
@@ -402,7 +407,7 @@ void Handler::on_kv(Entities::Ship * p, std::string_view key, std::string_view v
 	END_PARSE()
 }
 
-void Handler::on_new_obj(Entities::ShipBases * p, std::string_view obj_name)
+void Handler::on_new_obj(ShipBases * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
@@ -414,7 +419,7 @@ void Handler::on_new_obj(Entities::ShipBases * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::ShipBases * p, std::string_view key, std::string_view value)
+void Handler::on_kv(ShipBases * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(ShipBases)
@@ -427,13 +432,13 @@ void Handler::on_kv(Entities::ShipBases * p, std::string_view key, std::string_v
 	END_PARSE()
 }
 
-void Handler::on_new_obj(Entities::PlanetList * p, std::string_view obj_name)
+void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "PlanetId"))
 	{
 		int id = conv::extractId(obj_name);
 
-		auto* item = Factory<Entities::Planet>::create(id);
+		auto* item = Factory<Planet>::create(id);
 		item->Id = id;
 		p->list.push_back(item);
 
@@ -441,7 +446,7 @@ void Handler::on_new_obj(Entities::PlanetList * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_new_obj(Entities::Planet * p, std::string_view obj_name)
+void Handler::on_new_obj(Planet * p, std::string_view obj_name)
 {
 	if (obj_name == "EqShop")
 	{
@@ -453,7 +458,7 @@ void Handler::on_new_obj(Entities::Planet * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(Entities::Planet * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Planet)
@@ -475,61 +480,61 @@ void Handler::on_kv(Entities::Planet * p, std::string_view key, std::string_view
 	END_PARSE()
 }
 
-void Handler::on_new_obj(Entities::Junk * p, std::string_view obj_name)
+void Handler::on_new_obj(Junk * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Entities::Item>::create(id);
+		auto* item = Factory<Item>::create(id);
 		p->list.push_back(item);
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_new_obj(Entities::EqShop * p, std::string_view obj_name)
+void Handler::on_new_obj(EqShop * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Entities::Item>::create(id);;
+		auto* item = Factory<Item>::create(id);;
 		p->list.push_back(item);
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_new_obj(Entities::Treasure * p, std::string_view obj_name)
+void Handler::on_new_obj(Treasure * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "HiddenItem"))
 	{
 		//int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
-		auto* item = Factory<Entities::HiddenItem>::create();
+		auto* item = Factory<HiddenItem>::create();
 		p->list.push_back(item);
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_new_obj(Entities::HiddenItem * p, std::string_view obj_name)
+void Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
-		auto* item = Factory<Entities::Item>::create(id);
+		auto* item = Factory<Item>::create(id);
 		p->item = item;
 
 		ctx.stack.push({ item });
 	}
 }
 
-void Handler::on_kv(Entities::HiddenItem * p, std::string_view key, std::string_view value)
+void Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(HiddenItem)
@@ -538,7 +543,7 @@ void Handler::on_kv(Entities::HiddenItem * p, std::string_view key, std::string_
 	END_PARSE()
 }
 
-void Handler::on_kv(Entities::Item * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
 	BEGIN_PARSE_FOR(Item)
@@ -579,3 +584,5 @@ void Handler::on_kv(Entities::Item * p, std::string_view key, std::string_view v
 		PARSE_TO(Y)
 	END_PARSE()
 }
+
+} // namespace parser

@@ -9,9 +9,12 @@
 
 //#include "boost\variant.hpp"
 #include <variant>
+namespace parser
+{
+using namespace Entities;
 
 bool read_file(std::string& out, const std::string& path);
-Entities::Global* parse(const std::string& mem);
+Global* parse(const std::string& mem);
 void trim_tabs(std::string_view& beg);
 bool getline(std::string_view str,
 	std::string_view& out_line,
@@ -23,25 +26,25 @@ split_to_kv(std::string_view line);
 struct Parser_Ctx
 {
 	using variants = std::variant<
-			Entities::Unknown*, //unknown type
+			Unknown*, //unknown type
 
-			Entities::Global*,
-			Entities::Player*,
-			Entities::Warrior*,
-			Entities::StarList*,
-			Entities::Star*,
-			Entities::EqList*,
-			Entities::ArtsList*,
-			Entities::Item*,
-			Entities::ShipList*,
-			Entities::Ship*,
-			Entities::ShipBases*,
-			Entities::PlanetList*,
-			Entities::Planet*,
-			Entities::Junk*,
-			Entities::EqShop*,
-			Entities::Treasure*,
-			Entities::HiddenItem*
+			Global*,
+			Player*,
+			Warrior*,
+			StarList*,
+			Star*,
+			EqList*,
+			ArtsList*,
+			Item*,
+			ShipList*,
+			Ship*,
+			ShipBases*,
+			PlanetList*,
+			Planet*,
+			Junk*,
+			EqShop*,
+			Treasure*,
+			HiddenItem*
 		>;
 
 	bool getline();
@@ -72,7 +75,7 @@ class Parser
 public:
 	void parse(const std::string& mem);
 
-	Entities::Global *get_parsed();
+	Global *get_parsed();
 
 private:
 	void init_ctx(std::string_view mem);
@@ -80,7 +83,7 @@ private:
 	void parse_line();
 
 	Parser_Ctx ctx;
-	Entities::Global * out = nullptr;
+	Global * out = nullptr;
 };
 
 class Handler
@@ -103,7 +106,7 @@ public:
 			auto new_sz = ctx.stack.size();
 
 			if (sz == new_sz)
-				ctx.stack.push({ (Entities::Unknown*)nullptr });
+				ctx.stack.push({ (Unknown*)nullptr });
 		}
 		else if (ctx.is_object_close())
 		{
@@ -118,59 +121,59 @@ public:
 
 private:
 	// Global
-	void on_new_obj(Entities::Global* p, std::string_view obj_name);
-	void on_kv     (Entities::Global* p, std::string_view key, std::string_view value);
+	void on_new_obj(Global* p, std::string_view obj_name);
+	void on_kv     (Global* p, std::string_view key, std::string_view value);
 
 	// Player
-	void on_new_obj(Entities::Player* p, std::string_view obj_name);
-	void on_kv(Entities::Player*      p, std::string_view key, std::string_view value);
+	void on_new_obj(Player* p, std::string_view obj_name);
+	void on_kv(Player*      p, std::string_view key, std::string_view value);
 
 	// StarList
-	void on_new_obj(Entities::StarList* p, std::string_view obj_name);
+	void on_new_obj(StarList* p, std::string_view obj_name);
 
 	// Star
-	void on_new_obj(Entities::Star* p, std::string_view obj_name);
-	void on_kv(Entities::Star*      p, std::string_view key, std::string_view value);
+	void on_new_obj(Star* p, std::string_view obj_name);
+	void on_kv(Star*      p, std::string_view key, std::string_view value);
 
 	// EqList
-	void on_new_obj(Entities::EqList* p, std::string_view obj_name);
+	void on_new_obj(EqList* p, std::string_view obj_name);
 
 	//ArtList
-	void on_new_obj(Entities::ArtsList* p, std::string_view obj_name);
+	void on_new_obj(ArtsList* p, std::string_view obj_name);
 
 	// ShipList
-	void on_new_obj(Entities::ShipList* p, std::string_view obj_name);
+	void on_new_obj(ShipList* p, std::string_view obj_name);
 
 	// Ship
-	void on_new_obj(Entities::Ship* p, std::string_view obj_name);
-	void on_kv(Entities::Ship*      p, std::string_view key, std::string_view value);
+	void on_new_obj(Ship* p, std::string_view obj_name);
+	void on_kv(Ship*      p, std::string_view key, std::string_view value);
 
 	// ShipBases
-	void on_new_obj(Entities::ShipBases* p, std::string_view obj_name);
-	void on_kv(Entities::ShipBases*      p, std::string_view key, std::string_view value);
+	void on_new_obj(ShipBases* p, std::string_view obj_name);
+	void on_kv(ShipBases*      p, std::string_view key, std::string_view value);
 
 	// PlanetList
-	void on_new_obj(Entities::PlanetList* p, std::string_view obj_name);
+	void on_new_obj(PlanetList* p, std::string_view obj_name);
 
 	// Planet
-	void on_new_obj(Entities::Planet* p, std::string_view obj_name);
-	void on_kv(Entities::Planet*      p, std::string_view key, std::string_view value);
+	void on_new_obj(Planet* p, std::string_view obj_name);
+	void on_kv(Planet*      p, std::string_view key, std::string_view value);
 
 	// Junk
-	void on_new_obj(Entities::Junk* p, std::string_view obj_name);
+	void on_new_obj(Junk* p, std::string_view obj_name);
 
 	// EqShop
-	void on_new_obj(Entities::EqShop* p, std::string_view obj_name);
+	void on_new_obj(EqShop* p, std::string_view obj_name);
 
 	// Treasure
-	void on_new_obj(Entities::Treasure* p, std::string_view obj_name);
+	void on_new_obj(Treasure* p, std::string_view obj_name);
 
 	// HiddenItem
-	void on_new_obj(Entities::HiddenItem* p, std::string_view obj_name);
-	void on_kv(Entities::HiddenItem*      p, std::string_view key, std::string_view value);
+	void on_new_obj(HiddenItem* p, std::string_view obj_name);
+	void on_kv(HiddenItem*      p, std::string_view key, std::string_view value);
 
 	// Item
-	void on_kv(Entities::Item*      p, std::string_view key, std::string_view value);
+	void on_kv(Item*      p, std::string_view key, std::string_view value);
 
 	//defaults
 	template <typename T>
@@ -187,3 +190,5 @@ private:
 
 	Parser_Ctx& ctx;
 };
+
+} // namespace parser

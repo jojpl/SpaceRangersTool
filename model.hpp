@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Entities.h"
 
 namespace model

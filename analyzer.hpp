@@ -4,12 +4,16 @@
 #include "filters.hpp"
 #include "sorters.hpp"
 
-using namespace filters; // fix it!
-using namespace sorters; // fix it!
+namespace analyzer
+{
+using sorters::sorter_ptr;
+using filters::filter_ptr;
+using namespace Entities;
+
 class analyzer
 {
 public:
-	analyzer(Entities::Global * data_)
+	analyzer(Global * data_)
 		:data(data_)
 	{}
 
@@ -17,13 +21,13 @@ public:
 	void analyze_profit();
 
 private:
-	void calc_profits(filter_ptr filt);
+	void calc_profits(filter_ptr filt, sorter_ptr sorter);
 	filter_ptr createPathFilter();
 	filter_ptr createGoodsFilter();
 	filter_ptr createFilter();
 	sorter_ptr createSort();
 
-	Entities::Global * data = nullptr;
-	sorter_ptr sorter_;
+	Global * data = nullptr;
 };
 
+} //namespace analyzer

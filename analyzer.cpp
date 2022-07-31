@@ -22,17 +22,20 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/tokenizer.hpp>
 
-using Profits = std::array<Profit, ENUM_COUNT(Entities::GoodsEnum)>;
 using namespace std::string_literals;
+
+namespace analyzer
+{
 
 class planet_iterator
 {
-	using PlanetList_Iter = decltype(Entities::PlanetList::list)::iterator;
-	using StarList_Iter   = decltype(Entities::StarList::list)::iterator;
+	using PlanetList_Iter = decltype(PlanetList::list)::iterator;
+	using StarList_Iter   = decltype(StarList::list)::iterator;
 	
-	using StarList_t = decltype(Entities::StarList::list);
+	using StarList_t = decltype(StarList::list);
 	StarList_t& starlist;
 public:
 	planet_iterator(StarList_t& starlist_)
@@ -87,7 +90,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 {
 	auto bd_good                  = pr.good;
 	auto bd_profit                = pr.delta_profit;
-	std::string_view good_name_sw = model::converter<Entities::GoodsEnum>::to_string(bd_good);
+	std::string_view good_name_sw = model::converter<GoodsEnum>::to_string(bd_good);
 	std::string good_name         = cut_to<9>(good_name_sw);
 	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
 	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);
@@ -131,10 +134,10 @@ void dump_top(std::ostream& os, std::vector<Profit>& vp, options::Options opt)
 }
 
 void fill_profits(Profits& profits,
-	Entities::Star*   s1,
-	Entities::Star*   s2,
-	Entities::Planet* p1,
-	Entities::Planet* p2)
+	Star*   s1,
+	Star*   s2,
+	Planet* p1,
+	Planet* p2)
 {
 	int distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
 
@@ -142,7 +145,7 @@ void fill_profits(Profits& profits,
 	{
 		auto& p = profits[item];
 
-		auto bd_good = (Entities::GoodsEnum)item;
+		auto bd_good = (GoodsEnum)item;
 		int aviable_qty = p1->ShopGoods.packed[item];
 		int sale = p1->ShopGoodsSale.packed[item]; // from
 
@@ -158,7 +161,7 @@ void fill_profits(Profits& profits,
 		p.good = bd_good;
 		p.aviable_qty = aviable_qty;
 		p.buy = buy;
-		p.sale = buy;
+		p.sale = sale;
 		p.delta_profit = delta_profit;
 	}
 }
@@ -166,20 +169,16 @@ void fill_profits(Profits& profits,
 void apply_filter(std::vector<Profit>& vp, filter_ptr callable)
 {
 	performance_tracker tr(__FUNCTION__);
-	// optimization - filter cut >90% of vp values usually.
-	std::vector<Profit> new_vp;
-
-	auto pos = std::copy_if(
-		vp.begin(), vp.end(), std::back_inserter(new_vp),
+	
+	// some inverted filter logic for remove_if context
+	boost::remove_erase_if(vp,
 		[&callable](Profit& pr){
-			return (*callable)(pr);
+			return !(*callable)(pr);
 		}
 	);
-
-	vp.swap(new_vp);
 }
 
-void analyzer::calc_profits(filter_ptr filt)
+void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<Profit> vp; 
 	vp.reserve(1'000'000);
@@ -188,13 +187,13 @@ void analyzer::calc_profits(filter_ptr filt)
 		performance_tracker tr("iter");
 		for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
 		{
-			Entities::Star*   s1 = *it1.starlist_iter;
-			Entities::Planet* p1 = *it1.planetlist_iter;
+			Star*   s1 = *it1.starlist_iter;
+			Planet* p1 = *it1.planetlist_iter;
 
 			for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
 			{
-				Entities::Star*   s2 = *it2.starlist_iter;
-				Entities::Planet* p2 = *it2.planetlist_iter;
+				Star*   s2 = *it2.starlist_iter;
+				Planet* p2 = *it2.planetlist_iter;
 
 				if (p1 == p2)
 					continue;
@@ -208,59 +207,66 @@ void analyzer::calc_profits(filter_ptr filt)
 		}
 	}
 
+	// optimization - filter cut >90% of vp values usually.
+	//auto f = FilterByMinProfit(options::get_opt());
+	//auto v1 = boost::remove_erase_if(vp, 
+	//	[&f](Profit& pr1)	{
+	//		return !f(pr1);
+	//	}
+	//);
+
 	apply_filter(vp, filt);
 
 	std::sort(vp.rbegin(), vp.rend(),
-		[this](Profit& pr1, Profit& pr2) {
-			return (*sorter_)(pr1, pr2);
+		[sorter](Profit& pr1, Profit& pr2) {
+			return (*sorter)(pr1, pr2);
 		}
 	);
 
-	//std::ostream& os = std::cout;
 	dump_top(std::cout, vp, options::get_opt());
 
 	return;
 }
 
-const Entities::Star*
+const Star*
 find_star_by_name(std::string_view sw)
 {
-	return Factory<Entities::Star>::find(
-		[sw](const Entities::Star& s) {
+	return Factory<Star>::find(
+		[sw](const Star& s) {
 			return s.StarName == sw;
 		}
 	);
 }
 
-const Entities::Star*
+const Star*
 find_star_by_id(int id)
 {
-	return Factory<Entities::Star>::find(
-		[id](const Entities::Star& s) {
+	return Factory<Star>::find(
+		[id](const Star& s) {
 			return s.Id == id;
 		}
 	);
 }
 
-const Entities::Star*
-find_curstar(Entities::Player* p)
+const Star*
+find_curstar(Player* p)
 {
 	int id = p->ICurStarId;
 	return find_star_by_id(id);
 }
 
-const Entities::Planet*
+const Planet*
 find_planet_by_name(std::string_view sw)
 {
-	return Factory<Entities::Planet>::find(
-		[sw](const Entities::Planet& s) {
+	return Factory<Planet>::find(
+		[sw](const Planet& s) {
 			return s.PlanetName == sw;
 		}
 	);
 }
 
-const Entities::Planet*
-find_curplanet(Entities::Player* p)
+const Planet*
+find_curplanet(Player* p)
 {
 	auto name = p->IPlanet;
 	if(name.empty()) return nullptr;
@@ -327,7 +333,7 @@ filter_ptr analyzer::createPathFilter()
 	}
 
 	// create filter
-	return filter_ptr(new FilterByPath_v2(
+	return filter_ptr(new filters::FilterByPath_v2(
 		max_dist,
 		s1_id, s2_id,
 		p1_id, p2_id)
@@ -337,10 +343,10 @@ filter_ptr analyzer::createPathFilter()
 filter_ptr analyzer::createGoodsFilter()
 {
 	auto opt = options::get_opt();
-	//using namespace conv;
-	std::set<Entities::GoodsEnum> sg;
+
+	std::set<GoodsEnum> sg;
 	std::vector<std::string> gn;
-	const auto& m = model::get_map<Entities::GoodsEnum>();
+	const auto& m = model::get_map<GoodsEnum>();
 	for (const auto& [k, v]: m) // Food, ... , NUM
 	{
 		sg.insert(v);
@@ -357,7 +363,7 @@ filter_ptr analyzer::createGoodsFilter()
 				throw std::logic_error("Good named as \""s + gs_raw + "\" not set");
 			auto gs = gn[pos];
 
-			Entities::GoodsEnum g;
+			GoodsEnum g;
 			conv::from_string(g, gs);
 			sg.insert(g);
 		}
@@ -370,22 +376,22 @@ filter_ptr analyzer::createGoodsFilter()
 			throw std::logic_error("Good named as \""s + gs_raw + "\" not set");
 		auto gs = gn[pos];
 
-		Entities::GoodsEnum g;
+		GoodsEnum g;
 		conv::from_string(g, gs);
 		sg.erase(g);
 	}
 
-	return filter_ptr(new FilterGoods(sg));
+	return filter_ptr(new filters::FilterGoods(sg));
 }
 
 filter_ptr analyzer::createFilter()
 {
 	auto opt = options::get_opt();
-	auto f1 = filter_ptr(new FilterByPathCommon());
-	auto f2 = filter_ptr(new FilterByProfit( opt ));
+	auto f1 = filter_ptr(new filters::FilterByPathCommon());
+	auto f2 = filter_ptr(new filters::FilterByMinProfit( opt ));
 	auto f3 = createPathFilter();
 	auto f4 = createGoodsFilter();
-	filter_ptr common_f (new AND_opt(f1, f2, f3, f4));
+	filter_ptr common_f (new filters::AND_opt(f1, f2, f3, f4));
 	return common_f;
 }
 
@@ -399,19 +405,19 @@ sorter_ptr analyzer::createSort()
 	{
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
-			s = std::make_shared<DistanceSorter>();
+			s = std::make_shared<sorters::DistanceSorter>();
 		else if (p.first == options::SortField::profit)
-			s = std::make_shared<ProfitSorter>();
+			s = std::make_shared<sorters::MaxProfitSorter>();
 		else
-			s = std::make_shared<DefaultSorter>();
+			s = std::make_shared<sorters::DefaultSorter>();
 			
 		if(p.second == options::SortDirection::ASC)
-			s = std::make_shared<ASC_Sort_Wrapper>(s);
+			s = std::make_shared<sorters::ASC_Wrapper>(s);
 
 		if(!common) 
 			common = s;
 		else
-			common = std::make_shared<AndSorter>(common, s);
+			common = std::make_shared<sorters::AndSorter>(common, s);
 	}
 
 	return common;
@@ -420,8 +426,8 @@ sorter_ptr analyzer::createSort()
 void analyzer::calc_profits()
 {
 	filter_ptr common_f = createFilter();
-	sorter_ = createSort();
-	calc_profits(common_f);
+	sorter_ptr sorter = createSort();
+	calc_profits(common_f, sorter);
 }
 
 void analyzer::analyze_profit()
@@ -429,3 +435,5 @@ void analyzer::analyze_profit()
 	performance_tracker tr(__FUNCTION__);
 	calc_profits();
 }
+
+}//namespace analyzer

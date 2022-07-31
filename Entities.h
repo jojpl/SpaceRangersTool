@@ -204,8 +204,8 @@ namespace Entities
 	};
 
 	struct ShipBases : Ship
-	{
-		inline static const std::set<Type> allowedTypes
+	{	// fix it strange errors on static deinit
+		inline static std::array<Type, 7> allowedTypes
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
 
 		EqShop     EqShop;

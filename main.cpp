@@ -12,9 +12,11 @@ void on_new_file_found(std::string file)
 	try
 	{
 		std::string mem;
-		if(read_file(mem, file))
-			out = parse(mem);
-		analyzer(out).analyze_profit();
+		if(parser::read_file(mem, file))
+			out = parser::parse(mem);
+		mem.clear();
+
+		analyzer::analyzer(out).analyze_profit();
 	}
 	catch (const std::exception& e)
 	{

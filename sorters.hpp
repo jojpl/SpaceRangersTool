@@ -4,6 +4,12 @@
 
 namespace sorters
 {
+	struct ISort;
+	struct MaxProfitSorter;
+	using namespace analyzer;
+	using sorter_ptr = std::shared_ptr<ISort>;
+	using DefaultSorter = MaxProfitSorter;
+
 	struct ISort
 	{
 		// less operator
@@ -11,12 +17,10 @@ namespace sorters
 		virtual ~ISort() = default;
 	};
 
-	using sorter_ptr = std::shared_ptr<ISort>;
-
-	struct DefaultSorter : ISort
+	struct MaxProfitSorter : ISort
 	{
-		DefaultSorter() = default;
-		virtual ~DefaultSorter() = default;
+		MaxProfitSorter() = default;
+		virtual ~MaxProfitSorter() = default;
 
 		bool operator()(const Profit& pr1, const Profit& pr2) const override
 		{
@@ -24,20 +28,9 @@ namespace sorters
 		}
 	};
 
-	struct ProfitSorter : ISort
+	struct ASC_Wrapper : ISort
 	{
-		ProfitSorter() = default;
-		virtual ~ProfitSorter() = default;
-
-		bool operator()(const Profit& pr1, const Profit& pr2) const override
-		{
-			return pr1.delta_profit < pr2.delta_profit;
-		}
-	};
-
-	struct ASC_Sort_Wrapper : ISort
-	{
-		ASC_Sort_Wrapper(sorter_ptr obj_)
+		ASC_Wrapper(sorter_ptr obj_)
 			: obj(obj_)
 		{	}
 

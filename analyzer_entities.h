@@ -1,18 +1,23 @@
 #pragma once
 #include "Entities.h"
 
+namespace analyzer
+{
+
+using namespace Entities;
+
 struct Path
 {
 	// from
-	Entities::Planet* p1 = nullptr;
+	Planet* p1 = nullptr;
 	// to
-	Entities::Planet* p2 = nullptr;
+	Planet* p2 = nullptr;
 	int distance         = 0;
 	// for additional info
 	// from
-	Entities::Star* s1   = nullptr;
+	Star* s1   = nullptr;
 	// to
-	Entities::Star* s2   = nullptr;
+	Star* s2   = nullptr;
 };
 
 struct Profit
@@ -25,3 +30,7 @@ struct Profit
 	int buy                  = 0;
 	int delta_profit         = 0;
 };
+
+using Profits = std::array<Profit, ENUM_COUNT(GoodsEnum)>;
+
+} //namespace analyzer
