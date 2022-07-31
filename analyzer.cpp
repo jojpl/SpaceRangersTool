@@ -94,7 +94,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 {
 	auto bd_good                  = pr.good;
 	auto bd_profit                = pr.delta_profit;
-	std::string_view good_name_sw = model::converter<GoodsEnum>::to_string(bd_good);
+	std::string_view good_name_sw = conv::to_string(bd_good);
 	std::string good_name         = cut_to<9>(good_name_sw);
 	std::string p_from_name       = cut_to<15>(pr.path.p1->PlanetName);
 	std::string p_to_name         = cut_to<15>(pr.path.p2->PlanetName);

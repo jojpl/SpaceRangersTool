@@ -10,33 +10,11 @@ namespace model
 		return map_for;
 	}
 
-	template<typename T>
-	struct converter
-	{
-		static T from_string(std::string_view sw)
-		{
-			const auto& map = get_map<T>();
-			return map.at(sw);
-		}
-
-		static std::string_view to_string(T t)
-		{
-			const auto& map = get_map<T>();
-			for(auto& [key, value]: map)
-			{
-				if(value == t)
-					return key;
-			}
-			return {};
-		}
-	};
-
 	namespace kv
 	{
 		// restore key for specified struct field
 		template<typename T, typename Ret>
 		std::string_view get_value(const Ret T::* field);
-
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
