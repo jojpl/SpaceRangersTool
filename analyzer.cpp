@@ -1,3 +1,7 @@
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include "analyzer.hpp"
 #include "performance_tracker.hpp"
 #include "programargs.hpp"
@@ -105,7 +109,7 @@ std::ostream& operator<<(std::ostream& os, Profit& pr)
 	std::string s_to_name         = cut_to<15>(pr.path.s2->StarName);
 	int distance                  = pr.path.distance;
 
-	const static std::string templ = 
+	const std::string templ = 
 	"%-15s => %-15s distance: %-2d\n"
 	"%-15s -- %-15s %-9s p: %6d q: %-5d (%4d - %-4d) profit: %d";
 

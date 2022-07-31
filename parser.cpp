@@ -11,6 +11,8 @@
 #include <string_view>
 #include <type_traits>
 
+#include <boost/algorithm/string/predicate.hpp>
+
 namespace parser
 {
 
@@ -190,12 +192,14 @@ bool Parser_Ctx::getline()
 
 bool Parser_Ctx::is_object_open() const
 {
-	return line_.find(open_tag)!= line_.npos;
+	return boost::ends_with(line_, open_tag);
+	//return line_.find(open_tag)!= line_.npos;
 }
 
 bool Parser_Ctx::is_object_close() const
 {
-	return line_.find(close_tag) != line_.npos;
+	return boost::ends_with(line_, close_tag);
+	//return line_.find(close_tag) != line_.npos;
 }
 
 bool Parser_Ctx::is_object_kv() const
@@ -206,7 +210,8 @@ bool Parser_Ctx::is_object_kv() const
 std::string_view 
 Parser_Ctx::get_object_name() const
 {
-	const auto f = line_.find(open_tag);
+	//const auto f = line_.find(open_tag);
+	const auto f = line_.rfind(open_tag);
 	if (f != line_.npos)
 	{
 		return line_.substr(0, f);
