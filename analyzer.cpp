@@ -204,7 +204,6 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 
 				Profits profits;
 				fill_profits(profits, s1, s2, p1, p2);
-
 				std::move(profits.begin(), profits.end(),
 					std::back_inserter(vp));
 			}

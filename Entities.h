@@ -122,6 +122,13 @@ namespace Entities
 
 	using GoodsPack = std::array<int, ENUM_COUNT(GoodsEnum)>;
 
+	// help struct, for make structs more plain
+	struct Location
+	{
+		Star*     star = nullptr;
+		Planet* planet = nullptr;
+	};
+
 	struct GoodsQty
 	{
 		GoodsPack packed;
@@ -181,6 +188,10 @@ namespace Entities
 
 	struct Ship
 	{
+		Ship(int Id_, Location location_)
+			: Id(Id_), location(location_)
+		{	}
+
 		int Id = 0;	
 		string IFullName;
 		Type IType = Type::Unknown;
@@ -190,21 +201,33 @@ namespace Entities
 		int Money = 0;
 		EqList EqList;
 		ArtsList ArtsList;
+
+		Location location;
 	};
 
 	struct Player : Ship
 	{
+		Player(int Id_, Location location_)
+			: Ship(Id_, location_)
+		{	}
+
 		int ICurStarId = 0;
 		int Debt = 0;
 	};
 
 	struct Warrior : Ship
 	{
-
+		Warrior(int Id_, Location location_)
+			: Ship(Id_, location_)
+		{	}
 	};
 
 	struct ShipBases : Ship
-	{	// fix it strange errors on static deinit
+	{
+		ShipBases(int Id_, Location location_)
+			: Ship(Id_, location_)
+		{	}
+
 		inline static std::array<Type, 7> allowedTypes
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
 
@@ -216,9 +239,9 @@ namespace Entities
 
 	struct Item
 	{
-		Item(int Id_)
-			: Id(Id_)
-		{}
+		Item(int Id_, Location location_)
+			: Id(Id_),  location(location_)
+		{	}
 
 		int Id = 0;
 		string IName;
@@ -257,6 +280,8 @@ namespace Entities
 		int	TechLevel = 0;
 		optional<double> X;
 		optional<double> Y;
+
+		Location location;
 	};
 
 	struct HiddenItem
@@ -268,10 +293,9 @@ namespace Entities
 
 	struct Planet
 	{
-		Planet(int Id_)
-			:Id(Id_)
-		{
-		}
+		Planet(int Id_, Location location_)
+			: Id(Id_), location(location_)
+		{	}
 
 		int Id = 0;
 		string PlanetName;
@@ -293,10 +317,16 @@ namespace Entities
 		GoodsPrice ShopGoodsSale;
 		GoodsPrice ShopGoodsBuy;
 		Treasure   Treasure;
+
+		Location location;
 	};
 
 	struct Star
 	{
+		Star(int Id_)
+			: Id(Id_)
+		{	}
+
 		int Id = 0;
 		string StarName;
 		double X = 0.0;

@@ -21,7 +21,7 @@ static const std::string close_tag = "}";
 static const std::string kv_delim_tag = "=";
 static const std::string crlf_tag = "\r\n";
 
-#define Starts_with(sw, example) (sw.rfind(example, 0) == 0)
+#define Starts_with(sw, example) (boost::starts_with(sw, example))
 
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
@@ -151,7 +151,7 @@ Global* parse(const std::string& mem)
 	Parser p;
 	p.parse(mem);
 	//storage::Registrator::clear_storage();
-	return p.get_parsed();;
+	return p.get_parsed();
 }
 
 void Parser::parse(const std::string& mem)
@@ -169,10 +169,9 @@ Global * Parser::get_parsed()
 
 void Parser::init_ctx(std::string_view mem)
 {
-	out = Factory<Global>::create();
-	ctx.stack.push({ out });
-
 	ctx.tail_ = mem;
+	out       = Factory<Global>::create();
+	ctx.stack.push({ out });
 }
 
 void Parser::parse_line()
@@ -230,7 +229,7 @@ void Handler::on_new_obj(Global* p, std::string_view obj_name)
 {
 	if (obj_name == "Player")
 	{
-		p->Player = Factory<Player>::create();
+		p->Player = Factory<Player>::create(0, ctx.location_);
 		ctx.stack.push({ p->Player });
 	}
 	else if (obj_name == "StarList")
@@ -280,10 +279,9 @@ void Handler::on_new_obj(StarList * p, std::string_view obj_name)
 	if (Starts_with(obj_name, "StarId"))
 	{
 		int id = conv::extractId(obj_name);
-		auto* star = Factory<Star>::create();
-		star->Id = id;
+		auto* star = Factory<Star>::create(id);
 		p->list.push_back(star);
-
+		ctx.location_.star = star;
 		ctx.stack.push({ star });
 	}
 }
@@ -315,6 +313,11 @@ void Handler::on_kv(Star * p, std::string_view key, std::string_view value)
 	END_PARSE()
 }
 
+void Handler::on_close_obj(Star * p)
+{
+	ctx.location_.star = nullptr;
+}
+
 Type get_IType_use_lookup_ahead(std::string_view tail)
 {
 	// use Parser_Ctx is more correct
@@ -342,9 +345,8 @@ void Handler::on_new_obj(EqList * p, std::string_view obj_name)
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Item>::create(id);
+		auto* item = Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
-
 		ctx.stack.push({ item });
 	}
 }
@@ -356,9 +358,8 @@ void Handler::on_new_obj(ArtsList * p, std::string_view obj_name)
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Item>::create(id);
+		auto* item = Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
-
 		ctx.stack.push({ item });
 	}
 }
@@ -373,14 +374,12 @@ void Handler::on_new_obj(ShipList * p, std::string_view obj_name)
 					cend(ShipBases::allowedTypes),
 					IType) != cend(ShipBases::allowedTypes))
 		{
-			auto* item = Factory<ShipBases>::create();
-			item->Id = id;
+			auto* item = Factory<ShipBases>::create(id, ctx.location_);
 			p->list.push_back(item);
 			ctx.stack.push({ item });
 		}
 		else {
-			auto* item = Factory<Ship>::create();
-			item->Id = id;
+			auto* item = Factory<Ship>::create(id, ctx.location_);
 			p->list.push_back(item);
 			ctx.stack.push({ item });
 		}
@@ -443,11 +442,11 @@ void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
 	{
 		int id = conv::extractId(obj_name);
 
-		auto* item = Factory<Planet>::create(id);
-		item->Id = id;
-		p->list.push_back(item);
-
-		ctx.stack.push({ item });
+		auto* planet = Factory<Planet>::create(id, ctx.location_);
+		p->list.push_back(planet);
+		planet->location.planet = planet; //fix it
+		ctx.location_.planet = planet;
+		ctx.stack.push({ planet });
 	}
 }
 
@@ -485,6 +484,11 @@ void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 	END_PARSE()
 }
 
+void Handler::on_close_obj(Planet * p)
+{
+	ctx.location_.planet = nullptr;
+}
+
 void Handler::on_new_obj(Junk * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
@@ -492,9 +496,8 @@ void Handler::on_new_obj(Junk * p, std::string_view obj_name)
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Item>::create(id);
+		auto* item = Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
-
 		ctx.stack.push({ item });
 	}
 }
@@ -506,9 +509,8 @@ void Handler::on_new_obj(EqShop * p, std::string_view obj_name)
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 
-		auto* item = Factory<Item>::create(id);;
+		auto* item = Factory<Item>::create(id, ctx.location_);;
 		p->list.push_back(item);
-
 		ctx.stack.push({ item });
 	}
 }
@@ -521,7 +523,6 @@ void Handler::on_new_obj(Treasure * p, std::string_view obj_name)
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
 		auto* item = Factory<HiddenItem>::create();
 		p->list.push_back(item);
-
 		ctx.stack.push({ item });
 	}
 }
@@ -532,9 +533,8 @@ void Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
-		auto* item = Factory<Item>::create(id);
+		auto* item = Factory<Item>::create(id, ctx.location_);
 		p->item = item;
-
 		ctx.stack.push({ item });
 	}
 }

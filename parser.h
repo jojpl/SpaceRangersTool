@@ -14,19 +14,22 @@ namespace parser
 using namespace Entities;
 
 bool read_file(std::string& out, const std::string& path);
+
 Global* parse(const std::string& mem);
+
 void trim_tabs(std::string_view& beg);
+
 bool getline(std::string_view str,
 	std::string_view& out_line,
 	std::string_view& out_next);
 
 std::pair<std::string_view, std::string_view>
-split_to_kv(std::string_view line);
+	split_to_kv(std::string_view line);
 
 struct Parser_Ctx
 {
 	using variants = std::variant<
-			Unknown*, //unknown type
+			Entities::Unknown*, //unknown type
 
 			Global*,
 			Player*,
@@ -66,6 +69,8 @@ struct Parser_Ctx
 
 	std::stack<variants> stack;
 
+	Location location_;
+
 	std::set<std::string_view> unregistered_obj;
 
 };
@@ -101,15 +106,21 @@ public:
 		{
 			auto obj_name = ctx.get_object_name();
 
-			auto sz = ctx.stack.size();
+			const auto sz = ctx.stack.size();
 			on_new_obj(t, obj_name);
-			auto new_sz = ctx.stack.size();
+			const auto new_sz = ctx.stack.size();
 
 			if (sz == new_sz)
-				ctx.stack.push({ (Unknown*)nullptr });
+			{
+				//std::string nn = { obj_name.data(), obj_name.size()};
+				//auto c = nn.c_str();
+				//ctx.unregistered_obj.insert(obj_name);
+				ctx.stack.push({ (Entities::Unknown*)nullptr });
+			}
 		}
 		else if (ctx.is_object_close())
 		{
+			on_close_obj(t);
 			ctx.stack.pop();
 		}
 		else if (ctx.is_object_kv())
@@ -134,11 +145,12 @@ private:
 	// Star
 	void on_new_obj(Star* p, std::string_view obj_name);
 	void on_kv(Star*      p, std::string_view key, std::string_view value);
+	void on_close_obj(Star* p);
 
 	// EqList
 	void on_new_obj(EqList* p, std::string_view obj_name);
 
-	//ArtList
+	// ArtList
 	void on_new_obj(ArtsList* p, std::string_view obj_name);
 
 	// ShipList
@@ -158,6 +170,7 @@ private:
 	// Planet
 	void on_new_obj(Planet* p, std::string_view obj_name);
 	void on_kv(Planet*      p, std::string_view key, std::string_view value);
+	void on_close_obj(Planet* p);
 
 	// Junk
 	void on_new_obj(Junk* p, std::string_view obj_name);
@@ -185,7 +198,12 @@ private:
 	template <typename T>
 	void on_new_obj(T* p, std::string_view obj_name)
 	{
-		ctx.unregistered_obj.insert(obj_name);
+	}
+
+	//defaults
+	template <typename T>
+	void on_close_obj(T* p)
+	{
 	}
 
 	Parser_Ctx& ctx;
