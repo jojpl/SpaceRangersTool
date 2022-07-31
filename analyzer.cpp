@@ -34,46 +34,6 @@ using namespace std::string_literals;
 namespace analyzer
 {
 
-class planet_iterator
-{
-	using PlanetList_Iter = decltype(PlanetList::list)::iterator;
-	using StarList_Iter   = decltype(StarList::list)::iterator;
-	
-	using StarList_t = decltype(StarList::list);
-	StarList_t& starlist;
-public:
-	planet_iterator(StarList_t& starlist_)
-		: starlist(starlist_)
-	{
-		starlist_iter   = starlist.begin();
-		planetlist_iter = (*starlist_iter)->PlanetList.list.begin();
-	}
-
-	StarList_Iter     starlist_iter   {};
-	PlanetList_Iter   planetlist_iter {};
-
-	bool end()
-	{
-		if (starlist_iter == starlist.end()) 
-			return true;
-		if(planetlist_iter == (*starlist_iter)->PlanetList.list.end())
-			return true;
-
-		return false;
-	}
-
-	void next()
-	{
-		planetlist_iter++;
-		if (planetlist_iter == (*starlist_iter)->PlanetList.list.end())
-		{
-			starlist_iter++;
-			if (starlist_iter != starlist.end())
-				planetlist_iter = (*starlist_iter)->PlanetList.list.begin();
-		}
-	}
-};
-
 template<size_t Cnt>
 std::string cut_to(std::string_view s)
 {
@@ -189,15 +149,16 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	
 	{
 		performance_tracker tr("iter");
-		for (planet_iterator it1(data->StarList.list); !it1.end(); it1.next())
+		auto& planets = storage::get<Planet>();
+		for (auto& p_from : planets)
 		{
-			Star*   s1 = *it1.starlist_iter;
-			Planet* p1 = *it1.planetlist_iter;
+			Star*   s1 = p_from.location.star;
+			Planet* p1 = &p_from;
 
-			for (planet_iterator it2(data->StarList.list); !it2.end(); it2.next())
+			for (auto& p_to : planets)
 			{
-				Star*   s2 = *it2.starlist_iter;
-				Planet* p2 = *it2.planetlist_iter;
+				Star*   s2 = p_to.location.star;
+				Planet* p2 = &p_to;
 
 				if (p1 == p2)
 					continue;
