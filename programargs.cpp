@@ -13,6 +13,8 @@
 namespace po = boost::program_options;
 namespace options 
 {
+	using namespace std::placeholders;
+
 	po::variables_map vm;
 
 	bool parse_args(int argc, char *argv[])
@@ -98,7 +100,7 @@ namespace options
 	void from_string(SortOpt& f, std::string_view sw)
 	{
 		std::vector<std::string> split_param;
-		boost::split(split_param, sw, [](char ch) { return ch == ':'; });
+		boost::split(split_param, sw, std::bind(std::equal_to<char>(), _1, ':'));
 
 		int cnt = 0;
 		for (auto param : split_param)
@@ -182,10 +184,7 @@ namespace options
 		for (const auto& v : vals)
 		{
 			std::vector<std::string> split_param;
-			boost::split(split_param, v,
-				[](char ch) {
-					return ch == ',';
-				}
+			boost::split(split_param, v, std::bind(std::equal_to<char>(), _1, ',')
 			);
 
 			for (auto& item : split_param)
@@ -203,10 +202,7 @@ namespace options
 		for (const auto& v : vals)
 		{
 			std::vector<std::string> split_param;
-			boost::split(split_param, v,
-				[](char ch) {
-					return ch == ',';
-				}
+			boost::split(split_param, v, std::bind(std::equal_to<char>(), _1, ',')
 			);
 
 			for (auto& item : split_param)

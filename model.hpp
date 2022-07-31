@@ -3,6 +3,8 @@
 
 namespace model
 {
+	using namespace std::string_literals;
+
 	template<typename T>
 	auto& get_map()
 	{
@@ -13,8 +15,8 @@ namespace model
 	namespace kv
 	{
 		// restore key for specified struct field
-		template<typename T, typename Ret>
-		std::string_view get_value(const Ret T::* field);
+		//template<typename T, typename Ret>
+		//std::string_view get_value(const Ret T::* field);
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
@@ -43,7 +45,6 @@ namespace model
 					return item.second;
 			}
 
-			using namespace std::string_literals;
 			throw std::logic_error(
 				"empty value for: "s + typeid(field).name()
 			);
