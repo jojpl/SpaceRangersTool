@@ -34,7 +34,7 @@ namespace analyzer
 template<size_t Cnt>
 std::string cut_to(std::string_view s)
 {
-	return { s.data(), std::min(Cnt, s.size()) };
+	return { s.data(), Cnt };
 }
 
 template<typename ... Args>
@@ -208,7 +208,7 @@ filter_ptr analyzer::createPathFilter()
 	int s1_id = 0, s2_id = 0,
 		p1_id = 0, p2_id = 0;
 
-	if (opt.star_from_use_current) 
+	if (opt.star_from_use_current)
 	{
 		if (!cur_s) throw std::logic_error("Player's curstar not set (sic!)");
 		s1_id = cur_s->Id;

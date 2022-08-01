@@ -5,12 +5,12 @@
 
 using namespace soci;
 
-backend_factory const &backEnd = *soci::factory_sqlite3();
 
 void Db_test()
 {
 	try
 	{
+		backend_factory const &backEnd = *soci::factory_sqlite3();
 		connection_parameters par(backEnd, ":memory:");
 		session sql(par);
 

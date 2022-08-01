@@ -141,8 +141,6 @@ void validate(const std::string& mem)
 
 	if(st.cnt_open!= st.cnt_close)
 		throw std::logic_error("mismatch {}");
-	if (st.cnt_open < 100) //for example
-		throw std::logic_error("wrong format");
 	if (!boost::starts_with(mem, "FinalizationName="))
 		throw std::logic_error("wrong format");
 }
@@ -158,12 +156,24 @@ Global* parse(const std::string& mem)
 	return p.get_parsed();
 }
 
+bool Parser::validate_parsed()
+{
+	if(!out_) return false;
+	if(!out_->Player) return false;
+	if(out_->StarList.list.empty()) return false;
+	
+	return true;
+}
+
 void Parser::parse(const std::string& mem)
 {
 	init_ctx(mem);
 
 	while (ctx.getline())
 		parse_line();
+
+	if(!validate_parsed()) 
+		throw std::logic_error("Wrong parse!");
 
 	fix_skiped_look_forwarded_options();
 }

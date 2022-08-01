@@ -45,6 +45,7 @@ namespace options
 		std::vector<std::string>   goods;
 		std::vector<std::string>   no_goods;
 		std::optional<std::string> dir;
+		std::optional<int>         search_radius;
 	};
 
 	inline Options& get_opt()

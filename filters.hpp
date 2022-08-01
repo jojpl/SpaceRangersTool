@@ -222,25 +222,15 @@ namespace filters
 
 		std::tuple<std::shared_ptr<Args> ...> filters;
 
-		// aka template labmda c++20
-		struct Help_Me
-		{
-			const TradeInfo& ti;
-
-			template<typename ... Args2>
-			bool operator()(std::shared_ptr<Args2>& ... args)
-			{
-				// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
-				bool res = ((*args)(ti) && ...);
-				if (res)
-					return true;
-
-				return false;
-			}
-		};
-
 		bool operator()(const TradeInfo& ti) {
-			return std::apply(Help_Me{ ti }, filters); // unfold tuple to args ...
+			return std::apply
+			(
+				[&ti](std::shared_ptr<Args>& ... args){
+						// unfold typle for call each (arg1(pr) && ... && argN(pr)),
+						// stop if false
+						return ((*args)(ti) && ...);
+					}
+			, filters); // unfold tuple to args ...
 		}
 	};
 } // namespace filters

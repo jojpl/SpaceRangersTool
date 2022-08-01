@@ -24,8 +24,8 @@ performance_tracker::~performance_tracker()
 {
 	auto tp = steady_clock::now();
 	finish_ = duration_cast<milliseconds>(tp.time_since_epoch()).count();
-	//#if defined _DEBUG
+	#if defined _DEBUG
 	os_ << (finish_ - start_) << " ms" <<"   " << mes_;
 	os_	<< std::endl;
-	//#endif
+	#endif
 }

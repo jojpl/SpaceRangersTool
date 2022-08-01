@@ -14,14 +14,13 @@ namespace po = boost::program_options;
 namespace options 
 {
 	using namespace std::placeholders;
-
 	po::variables_map vm;
+	po::options_description desc("Allowed options");
 
 	bool parse_args(int argc, char *argv[])
 	{
 		try {
 
-			po::options_description desc("Allowed options");
 			desc.add_options()
 				("help,h", "produce help message")
 
@@ -39,9 +38,10 @@ namespace options
 						"use quotes!")
 				("goods,g", po::value<std::vector<std::string>>()->composing()->notifier(handle_goods),
 						"goods include list")
-				("no-goods", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
+				("goods-no", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
 						"goods exclude list")
 				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
+				("radius,r", po::value<int>(), "search radius around player")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -67,10 +67,12 @@ namespace options
 			SAVE_OPTION_AS_IS("count", Options::count)
 			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
 			SAVE_OPTION_AS_IS("dir", Options::dir)
+			SAVE_OPTION_AS_IS("radius", Options::radius)
 			#undef SAVE_OPTION_AS_IS
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";
+			std::cout << desc << "\n";
 			return false;
 		}
 		catch (...) {
