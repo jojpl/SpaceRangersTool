@@ -1,4 +1,5 @@
 #include "filefinder.hpp"
+#include "programargs.hpp"
 
 #include <filesystem>
 #include <set>
@@ -10,15 +11,27 @@ void filefinder::find()
 {
 	using namespace std::filesystem;
 	std::string file;
+	auto& opt = options::get_opt();
 
 	try
 	{
 		// TODO load from config!
-		path p (L"C:\\Users\\Administrator.LW7S\\Documents\\spacerangershd\\save\\");
+		path p;
+		if(opt.dir)
+			p = opt.dir.value();
+		else
+		{
+			// win
+			std::string home_drive = std::getenv("HOMEDRIVE");
+			std::string home_patch = std::getenv("HOMEPATH");
+			std::string save_game = "\\Documents\\spacerangershd\\save\\";
+			std::string real_dir = home_drive + home_patch + save_game;
+			p = real_dir;
+		}
 	
 		std::error_code ec;
 		directory_entry d(p, ec);
-		if(ec) throw filesystem_error("Message", p, ec);
+		if (ec)	d.assign(std::filesystem::current_path(), ec);
 
 		directory_iterator di(d, ec);
 		if (ec) throw filesystem_error("Message", p, ec);

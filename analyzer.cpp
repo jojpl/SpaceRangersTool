@@ -148,6 +148,8 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	std::vector<TradeInfo> vti; 
 	vti.reserve(1'000'000); // 8 * planets_qty^2
 
+	auto& opt = options::get_opt();
+
 	{
 		performance_tracker tr("iter");
 
@@ -168,23 +170,23 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 				TradeInfos profits;
 				fill_profits(profits, s1, s2, p1, p2);
 
-				bool doskip = std::none_of(begin(profits), end(profits), 
-					filters::FilterByMinProfit(options::get_opt())
-				);
 
-				if(!doskip)
-					std::move(begin(profits), end(profits), back_inserter(vti));
+				//std::copy_if(begin(profits), end(profits), back_inserter(vti),
+				//	filters::FilterByMinProfit(opt)
+				//	);
+				std::move(profits.begin(), profits.end(),
+					std::back_inserter(vti));
 			}
 		}
 	}
 
 	// optimization - filter cut >90% of vp values usually.
-	//auto f = filters::FilterByMinProfit(options::get_opt());
-	//auto v1 = boost::remove_erase_if(vti, 
-	//	[&f](TradeInfo& pr1)	{
-	//		return !f(pr1);
-	//	}
-	//);
+	auto f = filters::FilterByMinProfit(options::get_opt());
+	auto v1 = boost::remove_erase_if(vti, 
+		[&f](TradeInfo& pr1)	{
+			return !f(pr1);
+		}
+	);
 
 	apply_filter(vti, filt);
 

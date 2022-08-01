@@ -43,6 +43,7 @@ namespace options
 		SortOptions                sort_options;
 		std::vector<std::string>   goods;
 		std::vector<std::string>   no_goods;
+		std::optional<std::string> dir;
 	};
 
 	inline Options& get_opt()
@@ -60,4 +61,5 @@ namespace options
 	static void handle_planet_to(const std::string& val);
 	static void handle_goods(const std::vector<std::string>& val);
 	static void handle_no_goods(const std::vector<std::string>& val);
+	static void handle_dir(const std::string& val);
 }

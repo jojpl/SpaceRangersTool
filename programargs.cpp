@@ -23,24 +23,25 @@ namespace options
 
 			po::options_description desc("Allowed options");
 			desc.add_options()
-	("help,h", "produce help message")
+				("help,h", "produce help message")
 
-	("star-from", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
-	("star-to", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
-	("planet-from", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
-	("planet-to", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
-	("max-dist,d", po::value<int>()->default_value(40), "max-dist descr")
-	("count,c", po::value<int>()->default_value(10), "top's count descr")
-	("min-profit,p", po::value<int>()->default_value(1000), "min-profit descr")
-	("sort-by,s", po::value<std::string>()->default_value("profit")
-		->notifier(handle_sort_options),
-			"sort \"1[,2 .. ]\"\n"
-			"profit, distance:desc, star-from ...\n"
-			"use quotes!")
-	("goods,g", po::value<std::vector<std::string>>()->composing()->notifier(handle_goods),
-			"goods include list")
-	("no-goods", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
-			"goods exclude list")
+				("star-from", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
+				("star-to", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
+				("planet-from", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
+				("planet-to", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
+				("max-dist,d", po::value<int>()->default_value(40), "max-dist descr")
+				("count,c", po::value<int>()->default_value(10), "top's count descr")
+				("min-profit,p", po::value<int>()->default_value(1000), "min-profit descr")
+				("sort-by,s", po::value<std::string>()->default_value("profit")
+					->notifier(handle_sort_options),
+						"sort \"1[,2 .. ]\"\n"
+						"profit, distance:desc, star-from ...\n"
+						"use quotes!")
+				("goods,g", po::value<std::vector<std::string>>()->composing()->notifier(handle_goods),
+						"goods include list")
+				("no-goods", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
+						"goods exclude list")
+				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -65,6 +66,7 @@ namespace options
 			SAVE_OPTION_AS_IS("min-profit", Options::min_profit)
 			SAVE_OPTION_AS_IS("count", Options::count)
 			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
+			SAVE_OPTION_AS_IS("dir", Options::dir)
 			#undef SAVE_OPTION_AS_IS
 		}
 		catch (std::exception& e) {
@@ -211,6 +213,11 @@ namespace options
 				opt.no_goods.push_back(item);
 			}
 		}
+	}
+
+	void handle_dir(const std::string& val)
+	{
+		
 	}
 
 }
