@@ -7,7 +7,6 @@
 #include <set>
 #include <tuple>
 
-//#include "boost\variant.hpp"
 #include <variant>
 namespace parser
 {

@@ -143,7 +143,7 @@ void validate(const std::string& mem)
 		throw std::logic_error("mismatch {}");
 	if (st.cnt_open < 100) //for example
 		throw std::logic_error("wrong format");
-	if (!boost::starts_with("FinalizationName=", mem))
+	if (!boost::starts_with(mem, "FinalizationName="))
 		throw std::logic_error("wrong format");
 }
 

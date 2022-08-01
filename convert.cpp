@@ -20,7 +20,7 @@ namespace conv
 			return i;
 		}
 
-		throw std::logic_error(__FUNCTION__ " err!");
+		throw std::logic_error("in "s + __FUNCTION__ + " err!");
 	}
 
 	void from_string(Entities::GoodsPack& packed, std::string_view sw)

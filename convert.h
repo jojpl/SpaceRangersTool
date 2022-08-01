@@ -4,6 +4,8 @@
 #include <string_view>
 #include <charconv>
 #include <typeinfo>
+#include <limits>
+#include <boost/lexical_cast.hpp>
 
 namespace conv
 {
@@ -32,16 +34,26 @@ namespace conv
 			std::from_chars(value.data(), value.data() + value.size(), ret);
 
 		if (err.ec != std::errc{})
-			throw std::logic_error(__FUNCTION__ " err!");
+			throw std::logic_error("in "s + __FUNCTION__ + " err!");
 	}
 
 	inline void from_string(double& ret, std::string_view value)
 	{
+#ifdef _MSC_VER
 		std::from_chars_result err =
 			std::from_chars(value.data(), value.data() + value.size(), ret);
 
 		if (err.ec != std::errc{})
-			throw std::logic_error(__FUNCTION__ " err!");
+			throw std::logic_error("in "s + __FUNCTION__ + " err!");
+#else
+		constexpr size_t max_digits = std::numeric_limits<double>::max_digits10;
+		static std::string buf (max_digits + 1, '\0');
+		buf.assign(value.data(), value.data() + std::min(max_digits, value.size()));
+		
+		size_t ind = 0;
+		ret = std::stod(buf, &ind);
+		//buf.clear();
+#endif
 	}
 
 	inline void from_string(std::string& ret, std::string_view value)
@@ -71,7 +83,7 @@ namespace conv
 			ret = true;
 		else
 		{
-			throw std::logic_error(__FUNCTION__ " err!");
+			throw std::logic_error("in "s + __FUNCTION__ + " err!");
 		}
 	}
 

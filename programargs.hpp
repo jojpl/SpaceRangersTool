@@ -7,6 +7,7 @@
 
 namespace options
 {
+	using namespace std::string_literals;
 	enum class SortDirection
 	{
 		unknown,

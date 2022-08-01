@@ -227,8 +227,8 @@ namespace filters
 		{
 			const TradeInfo& ti;
 
-			template<typename ... Args>
-			bool operator()(std::shared_ptr<Args>& ... args)
+			template<typename ... Args2>
+			bool operator()(std::shared_ptr<Args2>& ... args)
 			{
 				// unfold to call for each (arg1(pr) && ... && argN(pr)), stop if false
 				bool res = ((*args)(ti) && ...);

@@ -4,7 +4,10 @@
 #include "programargs.hpp"
 
 #include <iostream>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 void on_new_file_found(std::string file)
 {
@@ -30,9 +33,9 @@ int main(int argc, char *argv[])
 	//extern void Db_test();
 	//Db_test();
 	//return 0;
-
+#ifdef _WIN32
 	::SetConsoleOutputCP(1251);
-
+#endif
 	if(!options::parse_args(argc, argv))
 		return 0;
 

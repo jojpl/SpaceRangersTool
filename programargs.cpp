@@ -96,7 +96,7 @@ namespace options
 		else if (boost::iequals(sw, "distance"))
 			f = SortField::distance;
 		else
-			throw std::logic_error("can't convert "  __FUNCTION__);
+			throw std::logic_error("can't convert "s +  __FUNCTION__);
 	}
 
 	void from_string(SortOpt& f, std::string_view sw)

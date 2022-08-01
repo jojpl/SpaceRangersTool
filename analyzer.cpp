@@ -1,7 +1,3 @@
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 #include "analyzer.hpp"
 #include "performance_tracker.hpp"
 #include "programargs.hpp"
