@@ -24,6 +24,7 @@ private:
 	void calc_profits(filter_ptr filt, sorter_ptr sorter);
 	filter_ptr createPathFilter();
 	filter_ptr createGoodsFilter();
+	filter_ptr createRadiusFilter();
 	filter_ptr createFilter();
 	sorter_ptr createSort();
 

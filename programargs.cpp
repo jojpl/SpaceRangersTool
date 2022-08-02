@@ -42,6 +42,7 @@ namespace options
 						"goods exclude list")
 				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
 				("radius,r", po::value<int>(), "search radius around player")
+				("storage", po::value<int>(), "recalc result using aviable storage")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -67,7 +68,8 @@ namespace options
 			SAVE_OPTION_AS_IS("count", Options::count)
 			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
 			SAVE_OPTION_AS_IS("dir", Options::dir)
-			SAVE_OPTION_AS_IS("radius", Options::radius)
+			SAVE_OPTION_AS_IS("radius", Options::search_radius)
+			SAVE_OPTION_AS_IS("storage", Options::aviable_storage)
 			#undef SAVE_OPTION_AS_IS
 		}
 		catch (std::exception& e) {

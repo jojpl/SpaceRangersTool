@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& os, TradeInfo& ti)
 	std::string p_from_name       = cut_to<15>(ti.path.p1->PlanetName);
 	std::string p_to_name         = cut_to<15>(ti.path.p2->PlanetName);
 
-	int qty                       = ti.profit.aviable_qty;
+	int qty                       = ti.profit.aviable_qty; // make diff is opt set
 	int sale                      = ti.profit.sale;
 	int buy                       = ti.profit.buy;
 	int purchase                  = qty*sale;
@@ -100,6 +100,7 @@ void fill_profits(TradeInfos& profits,
 	Planet* p1,
 	Planet* p2)
 {
+	auto& opt = options::get_opt();
 	int distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
 
 	for (size_t item = 0; item < profits.size(); item++)
@@ -107,7 +108,10 @@ void fill_profits(TradeInfos& profits,
 		auto& p = profits[item];
 
 		auto bd_good = (GoodsEnum)item;
-		int aviable_qty = p1->ShopGoods.packed[item];
+		int qty = p1->ShopGoods.packed[item];
+		int aviable_qty = opt.aviable_storage ?	
+			std::min(qty, opt.aviable_storage.value()) :
+			qty;
 		int sale = p1->ShopGoodsSale.packed[item]; // from
 
 		int buy = p2->ShopGoodsBuy.packed[item]; // to
@@ -120,6 +124,7 @@ void fill_profits(TradeInfos& profits,
 		p.path.distance = distance;
 		
 		p.profit.good = bd_good;
+		p.profit.qty = qty;
 		p.profit.aviable_qty = aviable_qty;
 		p.profit.buy = buy;
 		p.profit.sale = sale;
@@ -268,6 +273,27 @@ filter_ptr analyzer::createPathFilter()
 		);
 }
 
+filter_ptr analyzer::createRadiusFilter()
+{
+	const auto& opt = options::get_opt();
+	if(opt.search_radius){
+		int radius = opt.search_radius.value();
+		Star& curstar = *(data->Player->location.star);
+		auto& stars = storage::get<Star>();
+
+		std::vector<int> vi;
+		for (auto& star: stars)
+		{
+			if((int) std::hypot(curstar.X - star.X, curstar.Y - star.Y) <= radius)
+				vi.push_back(star.Id);
+		}
+		
+		return filter_ptr(new filters::FilterByRadius(vi));
+	}
+
+	return filter_ptr(new filters::Nul_Opt());
+}
+
 filter_ptr analyzer::createGoodsFilter()
 {
 	auto opt = options::get_opt();
@@ -319,7 +345,8 @@ filter_ptr analyzer::createFilter()
 	auto f2 = filter_ptr(new filters::FilterByMinProfit( opt ));
 	auto f3 = createPathFilter();
 	auto f4 = createGoodsFilter();
-	filter_ptr common_f (new filters::AND_opt(f1, f2, f3, f4));
+	auto f5 = createRadiusFilter();
+	filter_ptr common_f (new filters::AND_opt(f1, f2, f3, f4, f5));
 	return common_f;
 }
 

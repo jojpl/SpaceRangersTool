@@ -128,6 +128,27 @@ namespace filters
 		}
 	};
 
+	struct Nul_Opt : IFilter
+	{
+		Nul_Opt() = default;
+		bool operator()(const TradeInfo& ti) { return true; }
+	};
+
+	struct FilterByRadius : IFilter
+	{
+		FilterByRadius(std::vector<int> s1_ids)
+			: s1_ids_(s1_ids)
+		{	}
+
+		std::vector<int> s1_ids_;
+		// true - accept, false - decline
+		bool operator()(const TradeInfo& ti) {
+			if (std::find(cbegin(s1_ids_), cend(s1_ids_), ti.path.s1->Id) != cend(s1_ids_))
+				return true;
+			return false;
+		}
+	};
+
 	struct FilterByPath : IFilter
 	{
 		FilterByPath(

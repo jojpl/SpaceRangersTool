@@ -23,6 +23,7 @@ struct Path
 struct Profit
 {
 	GoodsEnum good   = {};
+	int qty          = 0;
 	int aviable_qty  = 0;
 	int sale         = 0;
 	int buy          = 0;
