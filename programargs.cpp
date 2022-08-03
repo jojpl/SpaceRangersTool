@@ -61,19 +61,19 @@ namespace options
 				return false;
 			}
 
-			#define SAVE_OPTION_AS_IS(name, alias) \
+			#define SAVE_TO_OPTIONAL(name, alias) \
 			if (vm.count(name)) get_opt().alias = vm[name].as<typename decltype(alias)::value_type>();
-
-			SAVE_OPTION_AS_IS("max-dist", Options::max_dist)
-			SAVE_OPTION_AS_IS("min-profit", Options::min_profit)
+			#define SAVE_AS_IS(name, alias) \
+			if (vm.count(name)) get_opt().alias = vm[name].as<decltype(alias)>();
+			
+			SAVE_TO_OPTIONAL("max-dist", Options::max_dist)
+			SAVE_AS_IS("min-profit", Options::min_profit)
 			//SAVE_OPTION_AS_IS("count", Options::count)
-			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
-			SAVE_OPTION_AS_IS("dir", Options::dir)
-			SAVE_OPTION_AS_IS("radius", Options::search_radius)
-			SAVE_OPTION_AS_IS("storage", Options::aviable_storage)
-			//SAVE_OPTION_AS_IS("price-mod", Options::price_mod)
-			if (vm.count("price-mod")) get_opt().price_mod = vm["price-mod"].as<bool>();
-			#undef SAVE_OPTION_AS_IS
+			SAVE_TO_OPTIONAL("sort-by", Options::sort_by)
+			SAVE_TO_OPTIONAL("dir", Options::dir)
+			SAVE_TO_OPTIONAL("radius", Options::search_radius)
+			SAVE_TO_OPTIONAL("storage", Options::aviable_storage)
+			SAVE_AS_IS("price-mod", Options::price_mod)
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";
@@ -92,8 +92,10 @@ namespace options
 	{
 		if (boost::istarts_with(sw, "ASC"))
 			d = SortDirection::ASC;
-		else
+		else if (boost::istarts_with(sw, "DESC"))
 			d = SortDirection::DESC;
+		else
+			throw std::logic_error("can't convert "s + __FUNCTION__);
 	}
 
 	void from_string(SortField& f, std::string_view sw)
@@ -123,7 +125,10 @@ namespace options
 			boost::trim(param);
 
 			if (cnt == 0)
+			{
 				from_string(f.first, param);
+				f.second = SortDirection::DESC; //default
+			}
 			else if (cnt == 1)
 				from_string(f.second, param);
 			cnt++;

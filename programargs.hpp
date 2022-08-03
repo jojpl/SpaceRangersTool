@@ -33,7 +33,7 @@ namespace options
 	struct Options
 	{
 		std::optional<int>         max_dist;
-		std::optional<int>         min_profit;
+		int                        min_profit;
 		std::optional<std::string> star_from;
 		bool star_from_use_current = false;
 		std::optional<std::string> star_to;
