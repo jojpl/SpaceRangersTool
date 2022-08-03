@@ -1,5 +1,4 @@
 #include "programargs.hpp"
-#include "common_algo.h"
 
 #include <string>
 #include <iostream>
@@ -29,12 +28,13 @@ namespace options
 				("planet-from", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
 				("planet-to", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
 				("max-dist,d", po::value<int>()->default_value(40), "max-dist descr")
-				("count,c", po::value<int>()->default_value(10), "top's count descr")
+				("count,c", po::value<std::string>()->default_value("10")->notifier(handle_count), "top's count also aviable \"all\" value")
 				("min-profit,p", po::value<int>()->default_value(1000), "min-profit descr")
 				("sort-by,s", po::value<std::string>()->default_value("profit")
 					->notifier(handle_sort_options),
-						"sort \"1[,2 .. ]\"\n"
-						"profit, distance:desc, star-from ...\n"
+						"sort \"1[,2:[asc:desc] .. ]\"\n"
+						"aviable fields:\n"
+						"profit, distance,star, planet, good\n"
 						"use quotes!")
 				("goods,g", po::value<std::vector<std::string>>()->composing()->notifier(handle_goods),
 						"goods include list")
@@ -65,7 +65,7 @@ namespace options
 
 			SAVE_OPTION_AS_IS("max-dist", Options::max_dist)
 			SAVE_OPTION_AS_IS("min-profit", Options::min_profit)
-			SAVE_OPTION_AS_IS("count", Options::count)
+			//SAVE_OPTION_AS_IS("count", Options::count)
 			SAVE_OPTION_AS_IS("sort-by", Options::sort_by)
 			SAVE_OPTION_AS_IS("dir", Options::dir)
 			SAVE_OPTION_AS_IS("radius", Options::search_radius)
@@ -95,10 +95,16 @@ namespace options
 
 	void from_string(SortField& f, std::string_view sw)
 	{
-		if (boost::iequals(sw, "profit"))
+		if      (boost::iequals(sw, "profit"))
 			f = SortField::profit;
 		else if (boost::iequals(sw, "distance"))
 			f = SortField::distance;
+		else if (boost::iequals(sw, "star"))
+			f = SortField::star;
+		else if (boost::iequals(sw, "planet"))
+			f = SortField::planet;
+		else if (boost::iequals(sw, "good"))
+			f = SortField::good;
 		else
 			throw std::logic_error("can't convert "s +  __FUNCTION__);
 	}
@@ -182,6 +188,24 @@ namespace options
 		}
 		else
 			opt.planet_to = val;
+	}
+
+	void handle_count(const std::string& val)
+	{
+		auto& opt = get_opt();
+		if (boost::iequals(val, "all"))
+			opt.count = INT_MAX;
+		else
+		{
+			try
+			{
+				opt.count = std::stoi(val);
+			}
+			catch(...)
+			{
+				boost::throw_exception(po::invalid_option_value(val));
+			}
+		}
 	}
 
 	void handle_goods(const std::vector<std::string>& vals)

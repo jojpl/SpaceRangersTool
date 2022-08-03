@@ -20,13 +20,40 @@ namespace sorters
 	struct MaxProfitSorter : ISort
 	{
 		MaxProfitSorter() = default;
-		virtual ~MaxProfitSorter() = default;
 
 		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
 		{
 			return pr1.profit.delta_profit < pr2.profit.delta_profit;
 		}
 	};
+
+	// any field of any struct less than other
+	template<typename T, typename Ret, typename TS, typename RetS>
+	struct CommonSorter : ISort
+	{
+		CommonSorter(RetS TS::* struc, Ret T::* field)
+			: struct_(struc)
+			, field_ (field)
+		{	}
+
+		Ret T::* field_;
+		RetS TS::* struct_;
+
+		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+		{
+			return (pr1.*struct_).*field_ < (pr2.*struct_).*field_;
+		}
+	};
+
+	//struct DistanceSorter : ISort
+	//{
+	//	DistanceSorter() = default;
+
+	//	bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+	//	{
+	//		return pr1.path.distance < pr2.path.distance;
+	//	}
+	//};
 
 	struct ASC_Wrapper : ISort
 	{
@@ -41,23 +68,12 @@ namespace sorters
 		}
 	};
 
-	struct DistanceSorter : ISort
-	{
-		DistanceSorter() = default;
-		virtual ~DistanceSorter() = default;
-
-		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
-		{
-			return pr1.path.distance < pr2.path.distance;
-		}
-	};
 
 	struct AndSorter : ISort
 	{
 		AndSorter(sorter_ptr p1, sorter_ptr p2)
 			: p1_(p1), p2_(p2)
 		{	}
-		virtual ~AndSorter() = default;
 
 		sorter_ptr p1_;
 		sorter_ptr p2_;

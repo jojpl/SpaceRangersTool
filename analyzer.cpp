@@ -356,6 +356,7 @@ filter_ptr analyzer::createFilter()
 	return common_f;
 }
 
+// mb move to ::sorters
 sorter_ptr analyzer::createSort()
 {
 	sorter_ptr common;
@@ -366,9 +367,17 @@ sorter_ptr analyzer::createSort()
 	{
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
-			s = std::make_shared<sorters::DistanceSorter>();
+			//s = std::make_shared<sorters::DistanceSorter>();
+			s = sorter_ptr(new sorters::CommonSorter(&TradeInfo::path, &Path::distance));
 		else if (p.first == options::SortField::profit)
-			s = std::make_shared<sorters::MaxProfitSorter>();
+			//s = std::make_shared<sorters::MaxProfitSorter>();
+			s = sorter_ptr(new sorters::CommonSorter(&TradeInfo::profit, &Profit::delta_profit));
+		else if (p.first == options::SortField::star)
+			s = sorter_ptr(new sorters::CommonSorter(&TradeInfo::path, &Path::s1)); //by raw pointer
+		else if (p.first == options::SortField::planet)
+			s = sorter_ptr(new sorters::CommonSorter(&TradeInfo::path, &Path::p1)); //by raw pointer
+		else if (p.first == options::SortField::good)
+			s = sorter_ptr(new sorters::CommonSorter(&TradeInfo::profit, &Profit::good)); //by raw pointer
 		else
 			s = std::make_shared<sorters::DefaultSorter>();
 			
