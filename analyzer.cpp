@@ -26,6 +26,9 @@
 #include <boost/tokenizer.hpp>
 #include <boost/move/iterator.hpp>
 
+#include <fmt/core.h>
+#include <fmt/color.h>
+
 using namespace std::string_literals;
 
 namespace analyzer
@@ -94,14 +97,19 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 	std::cout << "show: " << cnt << " from total: " << vti.size() << std::endl;
 }
 
-void fill_profits(TradeInfos& profits,
+int get_distance(const Star* s1, const Star* s2)
+{
+	return (int)std::hypot(s1->X - s2->X, s1->Y - s2->Y);
+}
+
+void fill_tradeInfo(TradeInfos& profits,
 	Star*   s1,
 	Star*   s2,
 	Planet* p1,
 	Planet* p2)
 {
 	auto& opt = options::get_opt();
-	int distance = (int)std::hypot(std::abs(s1->X - s2->X), std::abs(s1->Y - s2->Y));
+	int distance = get_distance(s1, s2);
 
 	for (size_t item = 0; item < profits.size(); item++)
 	{
@@ -138,7 +146,7 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 	
 	// some inverted filter logic for remove_if context
 	boost::remove_erase_if(vti,
-		[&callable](TradeInfo& ti){
+		[&callable](TradeInfo& ti) {
 			return !(*callable)(ti);
 		}
 	);
@@ -148,8 +156,6 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<TradeInfo> vti; 
 	vti.reserve(1'000'000); // 8 * planets_qty^2
-
-	auto& opt = options::get_opt();
 
 	{
 		performance_tracker tr("iter");
@@ -169,7 +175,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 					continue;
 
 				TradeInfos profits;
-				fill_profits(profits, s1, s2, p1, p2);
+				fill_tradeInfo(profits, s1, s2, p1, p2);
 
 
 				//std::copy_if(begin(profits), end(profits), back_inserter(vti),
@@ -184,7 +190,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	// optimization - filter cut >90% of vp values usually.
 	auto f = filters::FilterByMinProfit(options::get_opt());
 	auto v1 = boost::remove_erase_if(vti, 
-		[&f](TradeInfo& pr1)	{
+		[&f](TradeInfo& pr1) {
 			return !f(pr1);
 		}
 	);
@@ -278,13 +284,13 @@ filter_ptr analyzer::createRadiusFilter()
 	const auto& opt = options::get_opt();
 	if(opt.search_radius){
 		int radius = opt.search_radius.value();
-		Star& curstar = *(data->Player->location.star);
+		Star* curstar = data->Player->location.star;
 		auto& stars = storage::get<Star>();
 
 		std::vector<int> vi;
 		for (auto& star: stars)
 		{
-			if((int) std::hypot(curstar.X - star.X, curstar.Y - star.Y) <= radius)
+			if((int) get_distance(curstar, &star) <= radius)
 				vi.push_back(star.Id);
 		}
 		
@@ -389,6 +395,50 @@ void analyzer::analyze_profit()
 {
 	performance_tracker tr(__FUNCTION__);
 	calc_profits();
+}
+
+std::ostream& dump_Item_info(std::ostream& os, Item* item)
+{
+	// TODO - meditate about game model objects getter
+	auto& player = storage::get<Player>();
+	if(player.size()!=1) throw std::logic_error("Find player err!");
+
+	auto* cur_s = player[0].location.star;
+
+	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners}"
+		, fmt::arg("id", item->Id)
+		, fmt::arg("name", item->IName)
+		, fmt::arg("type", conv::to_string(item->IType))
+		, fmt::arg("star", item->location.star->StarName)
+		, fmt::arg("planet", item->location.planet->PlanetName)
+		, fmt::arg("dist", get_distance(cur_s, item->location.star))
+		, fmt::arg("star_owners", item->Owner )
+		);
+
+	return os << res;
+}
+
+std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
+{
+	dump_Item_info(os, hitem->item);
+	auto res = fmt::format(
+	"{landType},{depth}", 
+		fmt::arg("landType", hitem->LandType),
+		fmt::arg("depth", hitem->Depth)
+	);
+	return os << res;
+}
+
+void analyzer::dump_treasures()
+{
+	auto& items = storage::get<HiddenItem>();
+	//std::vector<HiddenItem_info> vhi;
+	std::ostream& os =  std::cout;
+	for (auto& item : items)
+	{
+		dump_HiddenItem_info(os, &item);
+		std::cout << '\n';
+	}
 }
 
 }//namespace analyzer

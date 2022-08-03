@@ -24,8 +24,8 @@ namespace options
 			desc.add_options()
 				("help,h", "produce help message")
 
-				("star-from", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
-				("star-to", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
+				("from", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
+				("to", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
 				("planet-from", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
 				("planet-to", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
 				("max-dist,d", po::value<int>()->default_value(40), "max-dist descr")

@@ -26,13 +26,13 @@ namespace conv
 	void from_string(Entities::GoodsPack& packed, std::string_view sw)
 	{
 		std::vector<boost::iterator_range<std::string_view::iterator>> splitVec;
-		boost::split(splitVec, sw, [](char ch){ return ch==','; });//boost::is_any_of(","));
+		boost::split(splitVec, sw, std::bind(std::equal_to<char>(), _1, ','));
 
-		using namespace Entities;
-		int iter_enum = (int) GoodsEnum {};
+
+		int iter_enum = (int)Entities::GoodsEnum {};
 		auto iter_range = splitVec.cbegin();
 		
-		for (;  iter_enum != ENUM_COUNT(GoodsEnum) && iter_range!= splitVec.cend();
+		for (;  iter_enum != ENUM_COUNT(Entities::GoodsEnum) && iter_range!= splitVec.cend();
 				iter_enum++, iter_range++)
 		{
 			auto rng = *iter_range;

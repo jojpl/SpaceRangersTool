@@ -17,10 +17,11 @@ public:
 		:data(data_)
 	{}
 
-	void calc_profits();
 	void analyze_profit();
+	void dump_treasures();
 
 private:
+	void calc_profits();
 	void calc_profits(filter_ptr filt, sorter_ptr sorter);
 	filter_ptr createPathFilter();
 	filter_ptr createGoodsFilter();

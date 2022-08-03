@@ -10,6 +10,7 @@
 namespace conv
 {
 	using namespace std::string_literals;
+	using namespace std::placeholders;
 
 	int extractId(std::string_view sw);
 	
@@ -34,7 +35,7 @@ namespace conv
 			std::from_chars(value.data(), value.data() + value.size(), ret);
 
 		if (err.ec != std::errc{})
-			throw std::logic_error("in "s + __FUNCTION__ + " err!");
+			throw std::logic_error(__FUNCTION__);
 	}
 
 	inline void from_string(double& ret, std::string_view value)
@@ -44,7 +45,7 @@ namespace conv
 			std::from_chars(value.data(), value.data() + value.size(), ret);
 
 		if (err.ec != std::errc{})
-			throw std::logic_error("in "s + __FUNCTION__ + " err!");
+			throw std::logic_error(__FUNCTION__);
 #else
 		constexpr size_t max_digits = std::numeric_limits<double>::max_digits10;
 		static std::string buf (max_digits + 1, '\0');
@@ -83,7 +84,7 @@ namespace conv
 			ret = true;
 		else
 		{
-			throw std::logic_error("in "s + __FUNCTION__ + " err!");
+			throw std::logic_error(__FUNCTION__);
 		}
 	}
 
@@ -122,7 +123,7 @@ namespace conv
 	
 	/* to_string section begin */
 
-	inline std::string_view to_string(Entities::GoodsEnum& t)
+	inline std::string_view to_string(const Entities::GoodsEnum& t)
 	{
 		const auto& map = model::get_map<Entities::GoodsEnum>();
 		for (auto&[key, value] : map)
@@ -130,7 +131,18 @@ namespace conv
 			if (value == t)
 				return key;
 		}
-		return {};
+		throw std::logic_error(__FUNCTION__);
+	}
+
+	inline std::string_view to_string(const Entities::Type& t)
+	{
+		const auto& map = model::get_map<Entities::Type>();
+		for (auto&[key, value] : map)
+		{
+			if (value == t)
+				return key;
+		}
+		throw std::logic_error(__FUNCTION__);
 	}
 	/* to_string section end */
 }

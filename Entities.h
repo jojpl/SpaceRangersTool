@@ -64,6 +64,7 @@ namespace Entities
 		Radar,
 		Ranger,
 		RepairRobot,
+		Satellite,
 		SB,
 		Scaner,
 		Technics,
@@ -232,7 +233,7 @@ namespace Entities
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
 
 		EqShop     EqShop;
-		GoodsQty   ShopGoods;
+		GoodsQty   ShopGoods; // base ship dublicate
 		GoodsPrice ShopGoodsSale;
 		GoodsPrice ShopGoodsBuy;
 	};

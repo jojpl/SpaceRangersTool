@@ -131,7 +131,7 @@ namespace filters
 	struct Nul_Opt : IFilter
 	{
 		Nul_Opt() = default;
-		bool operator()(const TradeInfo& ti) { return true; }
+		bool operator()(const TradeInfo&) { return true; }
 	};
 
 	struct FilterByRadius : IFilter

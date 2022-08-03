@@ -20,6 +20,7 @@ void on_new_file_found(std::string file)
 		mem.clear();
 
 		analyzer::analyzer(out).analyze_profit();
+		//analyzer::analyzer(out).dump_treasures();
 	}
 	catch (const std::exception& e)
 	{
@@ -30,12 +31,10 @@ void on_new_file_found(std::string file)
 
 int main(int argc, char *argv[])
 {
-	//extern void Db_test();
-	//Db_test();
-	//return 0;
 #ifdef _WIN32
 	::SetConsoleOutputCP(1251);
 #endif
+
 	if(!options::parse_args(argc, argv))
 		return 0;
 
