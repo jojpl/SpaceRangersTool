@@ -50,6 +50,7 @@ namespace options
 		std::optional<std::string> dir;
 		std::optional<int>         search_radius;
 		std::optional<int>         aviable_storage;
+		bool price_mod = false;
 	};
 
 	inline Options& get_opt()

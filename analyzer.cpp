@@ -37,7 +37,7 @@ namespace analyzer
 template<size_t Cnt>
 std::string cut_to(std::string_view s)
 {
-	return { s.data(), Cnt };
+	return { s.data(), std::min(Cnt, s.size()) };
 }
 
 template<typename ... Args>
@@ -70,7 +70,7 @@ std::ostream& operator<<(std::ostream& os, TradeInfo& ti)
 	int distance                  = ti.path.distance;
 
 	const std::string templ = 
-	"%-15s => %-15s distance: %-2d\n"
+	"%-15s => %-15s distance: %-3d\n"
 	"%-15s -- %-15s %-9s p: %6d q: %-5d (%4d - %-4d) profit: %d";
 
 	auto res = string_format(templ.data(),
@@ -305,12 +305,10 @@ filter_ptr analyzer::createGoodsFilter()
 	auto opt = options::get_opt();
 
 	std::set<GoodsEnum> sg;
-	std::vector<std::string> gn;
-	const auto& m = model::get_map<GoodsEnum>();
-	for (const auto& [k, v]: m) // Food, ... , NUM
+	std::vector<std::string> gn = model::enums::get_strings<GoodsEnum>();
+	for (const auto& e: model::enums::get_enums<GoodsEnum>()) // Food, ... , NUM
 	{
-		sg.insert(v);
-		gn.push_back({k.data(), k.size()});
+		sg.insert(e);
 	}
 
 	if(!opt.goods.empty()) 
@@ -409,10 +407,8 @@ void analyzer::analyze_profit()
 std::ostream& dump_Item_info(std::ostream& os, Item* item)
 {
 	// TODO - meditate about game model objects getter
-	auto& player = storage::get<Player>();
-	if(player.size()!=1) throw std::logic_error("Find player err!");
-
-	auto* cur_s = player[0].location.star;
+	auto* cur_s = storage::find_player_cur_star();
+	if(!cur_s) throw std::logic_error("Find player err!");
 
 	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners}"
 		, fmt::arg("id", item->Id)
@@ -447,6 +443,91 @@ void analyzer::dump_treasures()
 	{
 		dump_HiddenItem_info(os, &item);
 		std::cout << '\n';
+	}
+}
+
+void analyzer::show_price()
+{
+	auto& opt = options::get_opt();
+	if(opt.goods.empty())
+		throw std::logic_error("Good for find not set!");
+	if (opt.goods.size()>1)
+		throw std::logic_error("Too many goods for find!");
+
+	std::string good_name_raw = opt.goods[0];
+
+	//goods name list
+	std::vector<std::string> gn = model::enums::get_strings<GoodsEnum>();
+
+	auto pos = common_algo::soft_search(good_name_raw, gn);
+	if (pos == good_name_raw.npos)
+		throw std::logic_error("Good named as \""s + good_name_raw + "\" not set");
+	auto good_name = gn[pos];
+
+	GoodsEnum g;
+	conv::from_string(g, good_name);
+
+	struct Price
+	{
+		Entities::Location location;
+		int distance_to_player;
+		//GoodsEnum good;
+		int sale;
+		int buy;
+		int qty;
+	};
+
+	std::vector<Price> vp;
+
+	auto* cur_s = storage::find_player_cur_star();
+	auto& planets = storage::get<Planet>();
+	for (auto& p_from : planets)
+	{
+		Star*   s1 = p_from.location.star;
+		Planet* p1 = &p_from;
+
+		Price p;
+		p.distance_to_player = get_distance(s1, cur_s);
+		p.location = p_from.location;
+
+		//p.good = g;
+		p.buy = p1->ShopGoodsBuy.packed[(int)g];
+		p.sale = p1->ShopGoodsSale.packed[(int)g];
+		p.qty = p1->ShopGoods.packed[(int)g];
+
+		vp.push_back(p);
+	}
+
+	const int max_dist = opt.max_dist.value();
+	boost::remove_erase_if(vp, 
+		[max_dist](const Price& pr1){
+			 return pr1.distance_to_player > max_dist;
+		}	
+	);
+
+	std::sort(vp.rbegin(), vp.rend(),
+		[](const Price& pr1, const Price& pr2) {
+			return pr1.buy < pr2.buy;
+		}
+	);
+	
+	const std::string templ =
+		"%-15s / %-15s distance: %-3d %-9s q: %-5d %4d/%-4d";
+
+	int cnt = opt.count.value();
+	for (const Price& pr : vp)
+	{
+		if(!cnt--) break;
+
+		auto sn = cut_to<15>(pr.location.star->StarName);
+		auto pn = cut_to<15>(pr.location.planet->PlanetName);
+
+		auto res = string_format(templ.data(),
+			sn.data(), pn.data(), pr.distance_to_player,
+			good_name.data(), pr.qty, pr.sale, pr.buy
+		);
+
+		std::cout << res << std::endl;
 	}
 }
 

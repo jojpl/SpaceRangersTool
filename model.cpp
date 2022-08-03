@@ -7,6 +7,8 @@
 
 namespace model
 {
+namespace enums
+{
 	void init_converter_impl()
 	{
 		#define BEGIN_FOR(struct_name) { using t = struct_name; auto& m = get_map<t>(); m = {
@@ -106,125 +108,127 @@ namespace model
 		#undef END_FOR
 	}
 
-	namespace kv
+} // namespace enums
+
+namespace kv
+{
+	void init_storage_impl()
 	{
-		void init_storage_impl()
-		{
-			#define BEGIN_DEF_FOR(struct_name) { using t = struct_name;
-			#define ADD_DEF(field) add_definition(&t::field, #field);
-			#define ADD_DEF_SPECIFIC(field, key) add_definition(&t::field, #key);
-			#define END_DEF() }
+		#define BEGIN_DEF_FOR(struct_name) { using t = struct_name;
+		#define ADD_DEF(field) add_definition(&t::field, #field);
+		#define ADD_DEF_SPECIFIC(field, key) add_definition(&t::field, #key);
+		#define END_DEF() }
 
-			using namespace Entities;
+		using namespace Entities;
 
-			BEGIN_DEF_FOR(Global)
-				ADD_DEF(IDay)
-			END_DEF()
+		BEGIN_DEF_FOR(Global)
+			ADD_DEF(IDay)
+		END_DEF()
 
-			BEGIN_DEF_FOR(Player)
-				ADD_DEF(ICurStarId)
-				ADD_DEF(Debt)
-			END_DEF()
+		BEGIN_DEF_FOR(Player)
+			ADD_DEF(ICurStarId)
+			ADD_DEF(Debt)
+		END_DEF()
 
-			BEGIN_DEF_FOR(Ship)
-				ADD_DEF(IFullName)
-				ADD_DEF(IType)
-				ADD_DEF(Name)
-				ADD_DEF(IPlanet)
-				ADD_DEF(Goods)
-				ADD_DEF(Money)
-			END_DEF()
+		BEGIN_DEF_FOR(Ship)
+			ADD_DEF(IFullName)
+			ADD_DEF(IType)
+			ADD_DEF(Name)
+			ADD_DEF(IPlanet)
+			ADD_DEF(Goods)
+			ADD_DEF(Money)
+		END_DEF()
 
-			BEGIN_DEF_FOR(ShipBases)
-				ADD_DEF(ShopGoods)
-				ADD_DEF(ShopGoodsSale)
-				ADD_DEF(ShopGoodsBuy)
-			END_DEF()
+		BEGIN_DEF_FOR(ShipBases)
+			ADD_DEF(ShopGoods)
+			ADD_DEF(ShopGoodsSale)
+			ADD_DEF(ShopGoodsBuy)
+		END_DEF()
 
-			BEGIN_DEF_FOR(Item)
-				ADD_DEF(IName)
-				ADD_DEF(IType)
-				ADD_DEF(Size)
+		BEGIN_DEF_FOR(Item)
+			ADD_DEF(IName)
+			ADD_DEF(IType)
+			ADD_DEF(Size)
 
-				ADD_DEF(Ammo)
-				ADD_DEF(Armor)
-				ADD_DEF(Bonus)
-				ADD_DEF(Broken)
-				ADD_DEF(BuiltByPirate)
-				ADD_DEF(Capacity)
-				ADD_DEF(Cost)
-				ADD_DEF(DomSeries)
-				ADD_DEF(Durability)
-				ADD_DEF(Fuel)
-				ADD_DEF(IBonusName)
-				ADD_DEF(ISeriesName)
-				ADD_DEF(ISpecialName)
-				ADD_DEF(Jump)
-				ADD_DEF(MaxAmmo)
-				ADD_DEF(MaxDamage)
-				ADD_DEF(MinDamage)
-				ADD_DEF(NoDrop)
-				ADD_DEF(Owner)
-				ADD_DEF(Power)
-				ADD_DEF(Radius)
-				ADD_DEF(Repair)
-				ADD_DEF(Series)
-				ADD_DEF(ShipType)
-				ADD_DEF(Special)
-				ADD_DEF(Speed)
-				ADD_DEF(SpeedMax)
-				ADD_DEF(SpeedMin)
-				ADD_DEF(SysName)
-				ADD_DEF(TechLevel)
-				ADD_DEF(X)
-				ADD_DEF(Y)
-			END_DEF()
+			ADD_DEF(Ammo)
+			ADD_DEF(Armor)
+			ADD_DEF(Bonus)
+			ADD_DEF(Broken)
+			ADD_DEF(BuiltByPirate)
+			ADD_DEF(Capacity)
+			ADD_DEF(Cost)
+			ADD_DEF(DomSeries)
+			ADD_DEF(Durability)
+			ADD_DEF(Fuel)
+			ADD_DEF(IBonusName)
+			ADD_DEF(ISeriesName)
+			ADD_DEF(ISpecialName)
+			ADD_DEF(Jump)
+			ADD_DEF(MaxAmmo)
+			ADD_DEF(MaxDamage)
+			ADD_DEF(MinDamage)
+			ADD_DEF(NoDrop)
+			ADD_DEF(Owner)
+			ADD_DEF(Power)
+			ADD_DEF(Radius)
+			ADD_DEF(Repair)
+			ADD_DEF(Series)
+			ADD_DEF(ShipType)
+			ADD_DEF(Special)
+			ADD_DEF(Speed)
+			ADD_DEF(SpeedMax)
+			ADD_DEF(SpeedMin)
+			ADD_DEF(SysName)
+			ADD_DEF(TechLevel)
+			ADD_DEF(X)
+			ADD_DEF(Y)
+		END_DEF()
 
-			BEGIN_DEF_FOR(HiddenItem)
-				ADD_DEF(LandType)
-				ADD_DEF(Depth)
-			END_DEF()
+		BEGIN_DEF_FOR(HiddenItem)
+			ADD_DEF(LandType)
+			ADD_DEF(Depth)
+		END_DEF()
 
-			BEGIN_DEF_FOR(Planet)
-				ADD_DEF(PlanetName)
-				ADD_DEF(Owner)
-				ADD_DEF(Race)
-				ADD_DEF(Economy)
-				ADD_DEF(Goverment)
-				ADD_DEF(ISize)
-				ADD_DEF(OrbitRadius)
-				ADD_DEF(OrbitAngle)
-				ADD_DEF(RelationToPlayer)
-				ADD_DEF(IMainTechLevel)
-				ADD_DEF(CurrentInvention)
-				ADD_DEF(CurrentInventionPoints)
-				ADD_DEF(ShopGoods)
-				ADD_DEF(ShopGoodsSale)
-				ADD_DEF(ShopGoodsBuy)
-			END_DEF()
+		BEGIN_DEF_FOR(Planet)
+			ADD_DEF(PlanetName)
+			ADD_DEF(Owner)
+			ADD_DEF(Race)
+			ADD_DEF(Economy)
+			ADD_DEF(Goverment)
+			ADD_DEF(ISize)
+			ADD_DEF(OrbitRadius)
+			ADD_DEF(OrbitAngle)
+			ADD_DEF(RelationToPlayer)
+			ADD_DEF(IMainTechLevel)
+			ADD_DEF(CurrentInvention)
+			ADD_DEF(CurrentInventionPoints)
+			ADD_DEF(ShopGoods)
+			ADD_DEF(ShopGoodsSale)
+			ADD_DEF(ShopGoodsBuy)
+		END_DEF()
 
-			BEGIN_DEF_FOR(Star)
-				ADD_DEF(StarName)
-				ADD_DEF(X)
-				ADD_DEF(Y)
-				ADD_DEF(Owners)
-			END_DEF()
+		BEGIN_DEF_FOR(Star)
+			ADD_DEF(StarName)
+			ADD_DEF(X)
+			ADD_DEF(Y)
+			ADD_DEF(Owners)
+		END_DEF()
 
-			#undef BEGIN_DEF_FOR
-			#undef ADD_DEF
-			#undef ADD_DEF_SPECIFIC
-			#undef END_DEF
-		}
+		#undef BEGIN_DEF_FOR
+		#undef ADD_DEF
+		#undef ADD_DEF_SPECIFIC
+		#undef END_DEF
 	}
+}
 
-	struct staticIniter
+struct staticIniter
+{
+	staticIniter()
 	{
-		staticIniter()
-		{
-			kv::init_storage_impl();
-			init_converter_impl();
-		}
-	};
+		kv::init_storage_impl();
+		enums::init_converter_impl();
+	}
+};
 
-	static staticIniter initer;
+static staticIniter initer;
 }

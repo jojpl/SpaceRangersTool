@@ -43,6 +43,7 @@ namespace options
 				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
 				("radius,r", po::value<int>(), "search radius around player")
 				("storage", po::value<int>(), "recalc result using aviable storage")
+				("price-mod", po::value<bool>()->implicit_value(true)->default_value(false), "show prices")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -70,6 +71,8 @@ namespace options
 			SAVE_OPTION_AS_IS("dir", Options::dir)
 			SAVE_OPTION_AS_IS("radius", Options::search_radius)
 			SAVE_OPTION_AS_IS("storage", Options::aviable_storage)
+			//SAVE_OPTION_AS_IS("price-mod", Options::price_mod)
+			if (vm.count("price-mod")) get_opt().price_mod = vm["price-mod"].as<bool>();
 			#undef SAVE_OPTION_AS_IS
 		}
 		catch (std::exception& e) {

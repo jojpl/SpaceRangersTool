@@ -103,4 +103,15 @@ find_planet_by_name(std::string_view sw)
 	);
 }
 
+inline Star*
+find_player_cur_star()
+{
+	auto* player = Factory<Player>::find(
+		[](const Player& s) {
+			return true;
+		}
+	);
+	return player->location.star;
+}
+
 } // namespace storage

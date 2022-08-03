@@ -4,12 +4,35 @@
 namespace model
 {
 	using namespace std::string_literals;
-
-	template<typename T>
-	auto& get_map()
+	
+	namespace enums
 	{
-		static std::map< std::string_view, T> map_for;
-		return map_for;
+		template<typename T>
+		auto& get_map()
+		{
+			static std::map< std::string_view, T> map_for;
+			return map_for;
+		}
+
+		template<typename T>
+		auto get_strings()
+		{
+			std::vector<std::string> vs;
+			const auto& map = get_map<T>();
+			for (auto& [k, v] : map)
+				vs.push_back( {k.data(), k.size()} );
+			return vs;
+		}
+
+		template<typename T>
+		auto get_enums()
+		{
+			std::vector<T> vs;
+			const auto& map = get_map<T>();
+			for (auto&[k, v] : map)
+				vs.push_back(v);
+			return vs;
+		}
 	}
 
 	namespace kv

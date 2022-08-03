@@ -65,14 +65,14 @@ namespace conv
 	inline void from_string(Entities::Type& ret, std::string_view value)
 	{
 		// fix it. has same functionality!
-		const auto& map = model::get_map<Entities::Type>();
+		const auto& map = model::enums::get_map<Entities::Type>();
 		ret = map.at(value);
 		//model::converter<Entities::Type>::from_string(ret, value);
 	}
 
 	inline void from_string(Entities::GoodsEnum& ret, std::string_view value)
 	{
-		const auto& map = model::get_map<Entities::GoodsEnum>();
+		const auto& map = model::enums::get_map<Entities::GoodsEnum>();
 		ret = map.at(value);
 	}
 	
@@ -125,7 +125,7 @@ namespace conv
 
 	inline std::string_view to_string(const Entities::GoodsEnum& t)
 	{
-		const auto& map = model::get_map<Entities::GoodsEnum>();
+		const auto& map = model::enums::get_map<Entities::GoodsEnum>();
 		for (auto&[key, value] : map)
 		{
 			if (value == t)
@@ -136,7 +136,7 @@ namespace conv
 
 	inline std::string_view to_string(const Entities::Type& t)
 	{
-		const auto& map = model::get_map<Entities::Type>();
+		const auto& map = model::enums::get_map<Entities::Type>();
 		for (auto&[key, value] : map)
 		{
 			if (value == t)

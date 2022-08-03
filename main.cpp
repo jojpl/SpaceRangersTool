@@ -11,6 +11,7 @@
 
 void on_new_file_found(std::string file)
 {
+	auto& opt = options::get_opt();
 	Entities::Global* out = nullptr;
 	try
 	{
@@ -18,8 +19,12 @@ void on_new_file_found(std::string file)
 		if(parser::read_file(mem, file))
 			out = parser::parse(mem);
 		mem.clear();
-
-		analyzer::analyzer(out).analyze_profit();
+		
+		analyzer::analyzer a(out);
+		if(opt.price_mod)
+			a.show_price();
+		else
+			a.analyze_profit();
 		//analyzer::analyzer(out).dump_treasures();
 	}
 	catch (const std::exception& e)
