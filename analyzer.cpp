@@ -156,7 +156,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<TradeInfo> vti; 
 	vti.reserve(1'000'000); // 8 * planets_qty^2
-
+	const auto& opt = options::get_opt();
 	{
 		performance_tracker tr("iter");
 
@@ -188,10 +188,10 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	}
 
 	// optimization - filter cut >90% of vp values usually.
-	auto f = filters::FilterByMinProfit(options::get_opt());
+	auto f = filters::FilterByMinProfit(opt.min_profit);
 	auto v1 = boost::remove_erase_if(vti, 
-		[&f](TradeInfo& pr1) {
-			return !f(pr1);
+		[&f](const TradeInfo& tri) {
+			return !f(tri.profit);
 		}
 	);
 
@@ -346,7 +346,7 @@ filter_ptr analyzer::createFilter()
 {
 	auto opt = options::get_opt();
 	auto f1 = filter_ptr(new filters::FilterByPathCommon());
-	auto f2 = filter_ptr(new filters::FilterByMinProfit( opt ));
+	auto f2 = filter_ptr(new filters::FilterByMinProfit( opt.min_profit ));
 	auto f3 = createPathFilter();
 	auto f4 = createGoodsFilter();
 	auto f5 = createRadiusFilter();

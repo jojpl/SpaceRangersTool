@@ -27,16 +27,6 @@ namespace sorters
 
 	using sorter_ptr = std::shared_ptr<ISort_v2<TradeInfo>>;
 
-	struct MaxProfitSorter : ISort_v2<TradeInfo>
-	{
-		MaxProfitSorter() = default;
-
-		bool operator()(const type_t& pr1, const type_t& pr2) const override
-		{
-			return pr1.profit.delta_profit < pr2.profit.delta_profit;
-		}
-	};
-
 	// any field of any struct less than other
 	template<typename TS, typename RetS, typename TS2, typename RetS2>
 	struct CommonSorter2 : ISort_v2<TS>
@@ -71,6 +61,16 @@ namespace sorters
 		bool operator()(const type_t& pr1, const type_t& pr2) const override
 		{
 			return pr1.*field_ < pr2.*field_;
+		}
+	};
+
+	struct MaxProfitSorter : ISort_v2<TradeInfo>
+	{
+		MaxProfitSorter() = default;
+
+		bool operator()(const type_t& pr1, const type_t& pr2) const override
+		{
+			return pr1.profit.delta_profit < pr2.profit.delta_profit;
 		}
 	};
 
