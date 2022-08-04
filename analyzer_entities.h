@@ -38,14 +38,4 @@ struct TradeInfo
 
 using TradeInfos = std::array<TradeInfo, ENUM_COUNT(GoodsEnum)>;
 
-// for calc profit for ShipBases
-struct FakePlanet : Planet
-{
-	FakePlanet(ShipBases* obj)
-		: Planet(-1, obj->location), 
-		obj_(obj)
-	{	}
-	ShipBases* obj_;
-};
-
 } //namespace analyzer

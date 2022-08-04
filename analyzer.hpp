@@ -33,4 +33,7 @@ private:
 	Global * data = nullptr;
 };
 
+int get_distance(const Star* s1, const Star* s2);
+int get_distance(const Location& loc1, const Location& loc2);
+
 } //namespace analyzer

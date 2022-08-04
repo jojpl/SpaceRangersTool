@@ -35,6 +35,16 @@ using namespace std::placeholders;
 namespace analyzer
 {
 
+int get_distance(const Star* s1, const Star* s2)
+{
+	return (int)std::hypot(s1->X - s2->X, s1->Y - s2->Y);
+}
+
+int get_distance(const Location& loc1, const Location& loc2)
+{
+	return (int)std::hypot(loc1.star->X - loc2.star->X, loc1.star->Y - loc2.star->Y);
+}
+
 template<size_t Cnt>
 std::string cut_to(std::string_view s)
 {
@@ -98,11 +108,6 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 	std::cout << "show: " << cnt << " from total: " << vti.size() << std::endl;
 }
 
-int get_distance(const Star* s1, const Star* s2)
-{
-	return (int)std::hypot(s1->X - s2->X, s1->Y - s2->Y);
-}
-
 void fill_tradeInfo(TradeInfos& profits,
 	Star*   s1,
 	Star*   s2,
@@ -132,6 +137,42 @@ void fill_tradeInfo(TradeInfos& profits,
 		p.path.s2 = s2;
 		p.path.distance = distance;
 		
+		p.profit.good = bd_good;
+		p.profit.qty = qty;
+		p.profit.aviable_qty = aviable_qty;
+		p.profit.buy = buy;
+		p.profit.sale = sale;
+		p.profit.delta_profit = delta_profit;
+	}
+}
+
+void fill_tradeInfo(TradeInfos& profits,
+	ObjPrices& p1,
+	ObjPrices& p2)
+{
+	auto& opt = options::get_opt();
+	int distance = get_distance(p1.location, p2.location);
+
+	for (size_t item = 0; item < profits.size(); item++)
+	{
+		auto& p = profits[item];
+
+		auto bd_good = (GoodsEnum)item;
+		int qty = p1.qty.packed[item];
+		int aviable_qty = opt.aviable_storage ?
+			std::min(qty, opt.aviable_storage.value()) :
+			qty;
+		int sale = p1.sale.packed[item]; // from
+
+		int buy = p2.buy.packed[item]; // to
+		int delta_profit = aviable_qty * (buy - sale);
+
+		p.path.p1 = p1.location.planet;
+		p.path.p2 = p2.location.planet;
+		p.path.s1 = p1.location.star;
+		p.path.s2 = p2.location.star;
+		p.path.distance = distance;
+
 		p.profit.good = bd_good;
 		p.profit.qty = qty;
 		p.profit.aviable_qty = aviable_qty;
@@ -282,7 +323,7 @@ filter_ptr analyzer::createRadiusFilter()
 	const auto& opt = options::get_opt();
 	if(opt.search_radius){
 		int radius = opt.search_radius.value();
-		Star* curstar = data->Player->location.star;
+		Star* curstar = storage::find_player_cur_star();
 		auto& stars = storage::get<Star>();
 
 		std::vector<int> vi;

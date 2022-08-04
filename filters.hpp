@@ -156,7 +156,7 @@ namespace filters
 	struct Nul_Opt : IFilter
 	{
 		Nul_Opt() = default;
-		bool operator()(const TradeInfo&) { return true; }
+		bool operator()(const TradeInfo&) override { return true; }
 	};
 
 	struct FilterByRadius : IPathFilter
