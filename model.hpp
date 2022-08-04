@@ -8,38 +8,75 @@ namespace model
 	namespace enums
 	{
 		template<typename T>
-		auto& get_map()
+		auto& get_storage()
 		{
-			static std::map< std::string_view, T> map_for;
+			static std::map<std::string_view, T> map_for;
 			return map_for;
 		}
 
 		template<typename T>
-		auto get_strings()
+		auto& get_strings()
 		{
-			std::vector<std::string> vs;
-			const auto& map = get_map<T>();
-			for (auto& [k, v] : map)
-				vs.push_back( {k.data(), k.size()} );
+			static std::vector<std::string> vs;
 			return vs;
 		}
 
 		template<typename T>
-		auto get_enums()
+		auto& get_enums()
 		{
-			std::vector<T> vs;
-			const auto& map = get_map<T>();
-			for (auto&[k, v] : map)
-				vs.push_back(v);
+			static std::vector<T> vs;
 			return vs;
+		}
+
+		template<typename T>
+		void add_definition(std::string_view key,
+			const T& value)
+		{
+			auto& storage = get_storage<T>();
+			storage.insert({ key, value });
+
+			auto& enums = get_enums<T>();
+			enums.push_back(value);
+
+			auto& strings = get_strings<T>();
+			strings.push_back({ key.data(), key.size() });
+		}
+
+		template<typename T>
+		void from_string(T& field, std::string_view value)
+		{
+			const auto& storage = get_storage<T>();
+			try
+			{
+				field = storage.at(value);
+			}
+			catch (const std::exception&)
+			{
+				throw std::logic_error(
+					"empty value for: "s + typeid(field).name()
+				);
+			}
+		}
+
+		template<typename T>
+		std::string_view to_string(const T& field)
+		{
+			const auto& storage = get_storage<T>();
+			for (const auto& item : storage)
+			{
+				if (item.second == field)
+					return item.first;
+			}
+
+			throw std::logic_error(
+				"empty value for: "s + typeid(field).name()
+			);
 		}
 	}
 
 	namespace kv
 	{
-		// restore key for specified struct field
-		//template<typename T, typename Ret>
-		//std::string_view get_value(const Ret T::* field);
+		// pointer to member don't have operator< and can't be key for map
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
@@ -59,7 +96,7 @@ namespace model
 		}
 
 		template<typename T, typename Ret>
-		std::string_view get_value(const Ret T::* field)
+		std::string_view to_string(const Ret T::* field)
 		{
 			const auto& storage = get_storage(field);
 			for (const auto& item : storage)

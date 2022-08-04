@@ -64,16 +64,12 @@ namespace conv
 
 	inline void from_string(Entities::Type& ret, std::string_view value)
 	{
-		// fix it. has same functionality!
-		const auto& map = model::enums::get_map<Entities::Type>();
-		ret = map.at(value);
-		//model::converter<Entities::Type>::from_string(ret, value);
+		model::enums::from_string(ret, value);
 	}
 
 	inline void from_string(Entities::GoodsEnum& ret, std::string_view value)
 	{
-		const auto& map = model::enums::get_map<Entities::GoodsEnum>();
-		ret = map.at(value);
+		model::enums::from_string(ret, value);
 	}
 	
 	inline void from_string(bool& ret, std::string_view value)
@@ -103,20 +99,6 @@ namespace conv
 		}
 	}
 
-	template<typename T, typename Ret, typename Base,
-		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
-		>
-	inline bool parse(Ret T::* field, Base* p,
-				std::string_view key,
-				std::string_view value)
-	{
-		const auto key_expected = model::kv::get_value(field);
-		if (key != key_expected)
-			return false;
-
-		from_string(p->*field, value);
-		return true;
-	}
 	/* from_string section end */
 
 	
@@ -125,24 +107,27 @@ namespace conv
 
 	inline std::string_view to_string(const Entities::GoodsEnum& t)
 	{
-		const auto& map = model::enums::get_map<Entities::GoodsEnum>();
-		for (auto&[key, value] : map)
-		{
-			if (value == t)
-				return key;
-		}
-		throw std::logic_error(__FUNCTION__);
+		return model::enums::to_string(t);
 	}
 
 	inline std::string_view to_string(const Entities::Type& t)
 	{
-		const auto& map = model::enums::get_map<Entities::Type>();
-		for (auto&[key, value] : map)
-		{
-			if (value == t)
-				return key;
-		}
-		throw std::logic_error(__FUNCTION__);
+		return model::enums::to_string(t);
 	}
 	/* to_string section end */
+
+	template<typename T, typename Ret, typename Base,
+		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
+		>
+	inline bool parse(Ret T::* field, Base* p,
+				std::string_view key,
+				std::string_view value)
+	{
+		const auto key_expected = model::kv::to_string(field);
+		if (key != key_expected)
+			return false;
+
+		from_string(p->*field, value);
+		return true;
+	}
 }

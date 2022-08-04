@@ -167,6 +167,7 @@ bool Parser::validate_parsed()
 
 void Parser::parse(const std::string& mem)
 {
+	auto g = model::enums::get_storage<GoodsEnum>() ;
 	init_ctx(mem);
 
 	while (ctx.getline())
