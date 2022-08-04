@@ -140,6 +140,16 @@ namespace Entities
 		GoodsPack packed;
 	};
 
+	//help struct
+	struct ObjPrices
+	{
+		GoodsQty   qty;
+		GoodsPrice buy;
+		GoodsPrice sale;
+
+		Location location;
+	};
+
 	struct EqList
 	{
 		vector<Item*> list;

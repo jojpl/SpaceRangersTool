@@ -167,7 +167,6 @@ bool Parser::validate_parsed()
 
 void Parser::parse(const std::string& mem)
 {
-	auto g = model::enums::get_storage<GoodsEnum>() ;
 	init_ctx(mem);
 
 	while (ctx.getline())
@@ -464,6 +463,15 @@ void Handler::on_kv(ShipBases * p, std::string_view key, std::string_view value)
 	END_PARSE()
 }
 
+void Handler::on_close_obj(ShipBases * p)
+{
+	auto* obj = storage::Factory<ObjPrices>::create();
+	obj->buy  = p->ShopGoodsBuy;
+	obj->sale = p->ShopGoodsSale;
+	obj->qty  = p->ShopGoods;
+	obj->location = p->location;
+}
+
 void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "PlanetId"))
@@ -515,6 +523,12 @@ void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 void Handler::on_close_obj(Planet * p)
 {
 	ctx.location_.planet = nullptr;
+
+	auto* obj = storage::Factory<ObjPrices>::create();
+	obj->buy  = p->ShopGoodsBuy;
+	obj->sale = p->ShopGoodsSale;
+	obj->qty  = p->ShopGoods;
+	obj->location = p->location;
 }
 
 void Handler::on_new_obj(Junk * p, std::string_view obj_name)

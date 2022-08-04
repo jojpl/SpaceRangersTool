@@ -166,6 +166,7 @@ private:
 	// ShipBases
 	void on_new_obj(ShipBases* p, std::string_view obj_name);
 	void on_kv(ShipBases*      p, std::string_view key, std::string_view value);
+	void on_close_obj(ShipBases* p);
 
 	// PlanetList
 	void on_new_obj(PlanetList* p, std::string_view obj_name);
