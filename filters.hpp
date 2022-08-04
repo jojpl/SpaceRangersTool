@@ -218,13 +218,13 @@ namespace filters
 
 	struct FilterByMinProfit : IProfitFilter
 	{
+		using IProfitFilter::operator(); //fix
 		FilterByMinProfit(int min_profit)
 			: min_profit_(min_profit)
 		{	}
 
 		int min_profit_;
-
-		bool operator()(const Profit& profit) {
+		bool operator()(const Profit& profit) override {
 			if (profit.delta_profit < min_profit_)
 				return false;
 
@@ -232,13 +232,14 @@ namespace filters
 		}
 	};
 
+	template<typename T>
 	struct NOT_opt : IFilter
 	{
-		NOT_opt(filter_ptr f)
+		NOT_opt(std::shared_ptr<T> f)
 			: f_(f)
 		{	}
+		std::shared_ptr<T> f_;
 
-		filter_ptr f_;
 		bool operator()(const TradeInfo& ti) override {
 			return !(*f_)(ti);
 		}
@@ -246,7 +247,7 @@ namespace filters
 
 	struct FilterGoods : IProfitFilter
 	{
-		FilterGoods(std::set<GoodsEnum> g)
+		FilterGoods(const std::set<GoodsEnum>& g)
 			: g_(g)
 		{	}
 

@@ -30,6 +30,7 @@
 #include <fmt/color.h>
 
 using namespace std::string_literals;
+using namespace std::placeholders;
 
 namespace analyzer
 {
@@ -188,11 +189,8 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	}
 
 	// optimization - filter cut >90% of vp values usually.
-	auto f = filters::FilterByMinProfit(opt.min_profit);
 	auto v1 = boost::remove_erase_if(vti, 
-		[&f](const TradeInfo& tri) {
-			return !f(tri.profit);
-		}
+		filters::NOT_opt(std::make_shared<filters::FilterByMinProfit>(opt.min_profit))
 	);
 
 	apply_filter(vti, filt);
