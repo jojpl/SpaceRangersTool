@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <set>
@@ -30,10 +31,17 @@ namespace options
 	using SortOpt     = std::pair<SortField, SortDirection>;
 	using SortOptions = std::vector<SortOpt>;
 
+	enum class Modes
+	{
+		profit,
+		price,
+		treasures
+	};
+
 	struct Options
 	{
 		std::optional<int>         max_dist;
-		int                        min_profit;
+		int                        min_profit = 0;
 		std::optional<std::string> star_from;
 		bool star_from_use_current = false;
 		std::optional<std::string> star_to;
@@ -50,7 +58,8 @@ namespace options
 		std::optional<std::string> dir;
 		std::optional<int>         search_radius;
 		std::optional<int>         aviable_storage;
-		bool price_mod = false;
+		bool                       price_mod = false;
+		Modes                      mod = Modes::profit;
 	};
 
 	inline Options& get_opt()
@@ -70,4 +79,7 @@ namespace options
 	static void handle_count(const std::string& val);
 	static void handle_no_goods(const std::vector<std::string>& val);
 	static void handle_dir(const std::string& val);
+
+	std::istream& operator>>(std::istream&, Modes&);
+	std::ostream& operator<<(std::ostream&, const Modes&);
 }

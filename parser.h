@@ -40,7 +40,7 @@ struct Parser_Ctx
 			Item*,
 			ShipList*,
 			Ship*,
-			ShipBases*,
+			Station*,
 			PlanetList*,
 			Planet*,
 			Junk*,
@@ -163,10 +163,10 @@ private:
 	void on_new_obj(Ship* p, std::string_view obj_name);
 	void on_kv(Ship*      p, std::string_view key, std::string_view value);
 
-	// ShipBases
-	void on_new_obj(ShipBases* p, std::string_view obj_name);
-	void on_kv(ShipBases*      p, std::string_view key, std::string_view value);
-	void on_close_obj(ShipBases* p);
+	// Station
+	void on_new_obj(Station* p, std::string_view obj_name);
+	void on_kv(Station*      p, std::string_view key, std::string_view value);
+	void on_close_obj(Station* p);
 
 	// PlanetList
 	void on_new_obj(PlanetList* p, std::string_view obj_name);

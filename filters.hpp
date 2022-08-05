@@ -206,10 +206,10 @@ namespace filters
 			if (s2_id_ && s2->Id != s2_id_)
 				return false;
 
-			if (p1_id_ && p1->Id != p1_id_)
+			if (p1_id_ && p1 && p1->Id != p1_id_)
 				return false;
 
-			if (p2_id_ && p2->Id != p2_id_)
+			if (p2_id_ && p2 && p2->Id != p2_id_)
 				return false;
 
 			return true;

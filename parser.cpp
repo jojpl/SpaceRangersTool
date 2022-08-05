@@ -397,11 +397,11 @@ void Handler::on_new_obj(ShipList * p, std::string_view obj_name)
 	{
 		int id = conv::extractId(obj_name);
 		auto IType = get_IType_use_lookup_ahead(ctx.tail_);
-		if (std::find(cbegin(ShipBases::allowedTypes),
-					cend(ShipBases::allowedTypes),
-					IType) != cend(ShipBases::allowedTypes))
+		if (std::find(cbegin(Station::allowedTypes),
+					cend(Station::allowedTypes),
+					IType) != cend(Station::allowedTypes))
 		{
-			auto* item = storage::Factory<ShipBases>::create(id, ctx.location_);
+			auto* item = storage::Factory<Station>::create(id, ctx.location_);
 			p->list.push_back(item);
 			ctx.stack.push({ item });
 		}
@@ -438,7 +438,7 @@ void Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 	END_PARSE()
 }
 
-void Handler::on_new_obj(ShipBases * p, std::string_view obj_name)
+void Handler::on_new_obj(Station * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
@@ -450,10 +450,10 @@ void Handler::on_new_obj(ShipBases * p, std::string_view obj_name)
 	}
 }
 
-void Handler::on_kv(ShipBases * p, std::string_view key, std::string_view value)
+void Handler::on_kv(Station * p, std::string_view key, std::string_view value)
 {
 	using namespace Entities;
-	BEGIN_PARSE_FOR(ShipBases)
+	BEGIN_PARSE_FOR(Station)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
 		PARSE_TO(Name)
@@ -463,7 +463,7 @@ void Handler::on_kv(ShipBases * p, std::string_view key, std::string_view value)
 	END_PARSE()
 }
 
-void Handler::on_close_obj(ShipBases * p)
+void Handler::on_close_obj(Station * p)
 {
 	auto* obj = storage::Factory<ObjPrices>::create();
 	obj->buy  = p->ShopGoodsBuy;

@@ -139,7 +139,7 @@ namespace kv
 			ADD_DEF(Money)
 		END_DEF()
 
-		BEGIN_DEF_FOR(ShipBases)
+		BEGIN_DEF_FOR(Station)
 			ADD_DEF(ShopGoods)
 			ADD_DEF(ShopGoodsSale)
 			ADD_DEF(ShopGoodsBuy)

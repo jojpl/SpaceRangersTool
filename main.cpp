@@ -21,11 +21,23 @@ void on_new_file_found(std::string file)
 		mem.clear();
 		
 		analyzer::analyzer a(out);
-		if(opt.price_mod)
-			a.show_price();
-		else
-			a.analyze_profit();
-		//analyzer::analyzer(out).dump_treasures();
+		switch (opt.mod)
+		{
+			case options::Modes::price:
+				a.show_price();
+				break;
+
+			case options::Modes::profit:
+				a.analyze_profit();
+				break;
+
+			case options::Modes::treasures:
+				a.dump_treasures();
+				break;
+
+			default:
+				break;
+		}
 	}
 	catch (const std::exception& e)
 	{

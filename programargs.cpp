@@ -1,7 +1,10 @@
 #include "programargs.hpp"
+#include "common_algo.h"
 
 #include <string>
 #include <iostream>
+#include <istream>
+#include <ostream>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -43,7 +46,8 @@ namespace options
 				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
 				("radius,r", po::value<int>(), "search radius around player")
 				("storage", po::value<int>(), "recalc result using aviable storage")
-				("price-mod", po::value<bool>()->implicit_value(true)->default_value(false), "show prices")
+				//("price-mod", po::value<bool>()->implicit_value(true)->default_value(""), "show prices")
+				("mod,m", po::value<Modes>()->default_value(Modes::profit), "show prices")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -73,7 +77,8 @@ namespace options
 			SAVE_TO_OPTIONAL("dir", Options::dir)
 			SAVE_TO_OPTIONAL("radius", Options::search_radius)
 			SAVE_TO_OPTIONAL("storage", Options::aviable_storage)
-			SAVE_AS_IS("price-mod", Options::price_mod)
+			//SAVE_AS_IS("price-mod", Options::price_mod)
+			SAVE_AS_IS("mod", Options::mod)
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";
@@ -256,4 +261,28 @@ namespace options
 		
 	}
 
+	std::istream& operator>>(std::istream& os, options::Modes & ms)
+	{
+		std::string s;
+		os >> s;
+
+		auto pos = common_algo::soft_search(s, 
+			{"profit", "price", "treasures"}
+		);
+
+		switch (pos)
+		{
+			case 0: ms = Modes::profit; break;
+			case 1: ms = Modes::price; break;
+			case 2: ms = Modes::treasures; break;
+
+			default: os.setstate(std::istream::badbit); break;
+		}
+		return os;
+	}
+	
+	std::ostream& operator<<(std::ostream& os, const options::Modes& ms)
+	{
+		return os;
+	}
 }

@@ -113,7 +113,7 @@ namespace Entities
 	struct Star;
 	struct Planet;
 	struct Ship;
-	struct ShipBases;
+	struct Station;
 	struct Player;
 
 
@@ -149,7 +149,7 @@ namespace Entities
 		GoodsPrice sale;
 
 		Location location;
-		ShipBases* shipshop = nullptr;
+		Station* shipshop = nullptr;
 	};
 
 	struct EqList
@@ -235,9 +235,9 @@ namespace Entities
 		{	}
 	};
 
-	struct ShipBases : Ship
+	struct Station : Ship
 	{
-		ShipBases(int Id_, Location location_)
+		Station(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
 
