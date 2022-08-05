@@ -111,7 +111,7 @@ namespace options
 		else if (boost::iequals(sw, "good"))
 			f = SortField::good;
 		else
-			throw std::logic_error("can't convert "s +  __FUNCTION__);
+			throw po::invalid_option_value(std::string{sw});
 	}
 
 	void from_string(SortOpt& f, std::string_view sw)

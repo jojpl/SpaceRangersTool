@@ -39,7 +39,7 @@ namespace model
 			enums.push_back(value);
 
 			auto& strings = get_strings<T>();
-			strings.push_back({ key.data(), key.size() });
+			strings.push_back(std::string{key});
 		}
 
 		template<typename T>

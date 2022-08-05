@@ -67,8 +67,12 @@ std::ostream& operator<<(std::ostream& os, TradeInfo& ti)
 	auto bd_profit                = ti.profit.delta_profit;
 	std::string_view good_name_sw = conv::to_string(bd_good);
 	std::string good_name         = cut_to<9>(good_name_sw);
-	std::string p_from_name       = cut_to<15>(ti.path.p1->PlanetName);
-	std::string p_to_name         = cut_to<15>(ti.path.p2->PlanetName);
+	std::string p_from_name       = ti.path.from.planet ?
+									cut_to<15>(ti.path.from.planet->PlanetName)
+								  : "#Ship-shop";
+	std::string p_to_name         = ti.path.to.planet ?
+									cut_to<15>(ti.path.to.planet->PlanetName)
+								  : "#Ship-shop";
 
 	int qty                       = ti.profit.aviable_qty; // make diff is opt set
 	int sale                      = ti.profit.sale;
@@ -76,8 +80,8 @@ std::ostream& operator<<(std::ostream& os, TradeInfo& ti)
 	int purchase                  = qty*sale;
 	
 	// stars add info
-	std::string s_from_name       = cut_to<15>(ti.path.s1->StarName);
-	std::string s_to_name         = cut_to<15>(ti.path.s2->StarName);
+	std::string s_from_name       = cut_to<15>(ti.path.from.star->StarName);
+	std::string s_to_name         = cut_to<15>(ti.path.to.star->StarName);
 	int distance                  = ti.path.distance;
 
 	const std::string templ = 
@@ -108,6 +112,7 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 	std::cout << "show: " << cnt << " from total: " << vti.size() << std::endl;
 }
 
+#if 0
 void fill_tradeInfo(TradeInfos& profits,
 	Star*   s1,
 	Star*   s2,
@@ -145,6 +150,7 @@ void fill_tradeInfo(TradeInfos& profits,
 		p.profit.delta_profit = delta_profit;
 	}
 }
+#endif
 
 void fill_tradeInfo(TradeInfos& profits,
 	ObjPrices& p1,
@@ -167,10 +173,9 @@ void fill_tradeInfo(TradeInfos& profits,
 		int buy = p2.buy.packed[item]; // to
 		int delta_profit = aviable_qty * (buy - sale);
 
-		p.path.p1 = p1.location.planet;
-		p.path.p2 = p2.location.planet;
-		p.path.s1 = p1.location.star;
-		p.path.s2 = p2.location.star;
+		p.path.from = p1.location;
+		p.path.to = p2.location;
+
 		p.path.distance = distance;
 
 		p.profit.good = bd_good;
@@ -202,22 +207,17 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	{
 		performance_tracker tr("iter");
 
-		auto& planets = storage::get<Planet>();
-		for (auto& p_from : planets)
+		auto& prices = storage::get<ObjPrices>();
+		for (auto& p_from : prices)
 		{
-			Star*   s1 = p_from.location.star;
-			Planet* p1 = &p_from;
-
-			for (auto& p_to : planets)
+			for (auto& p_to : prices)
 			{
-				Star*   s2 = p_to.location.star;
-				Planet* p2 = &p_to;
-
-				if (p1 == p2)
-					continue;
+				//if (p_from.location == p_to.location)
+				//	continue;
 
 				TradeInfos profits;
-				fill_tradeInfo(profits, s1, s2, p1, p2);
+				fill_tradeInfo(profits, p_from, p_to);
+				//fill_tradeInfo(profits, s1, s2, p1, p2);
 
 
 				//std::copy_if(begin(profits), end(profits), back_inserter(vti),
@@ -410,9 +410,9 @@ sorter_ptr analyzer::createSort()
 			//s = std::make_shared<sorters::MaxProfitSorter>();
 			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::profit, &Profit::delta_profit));
 		else if (p.first == options::SortField::star)
-			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::path, &Path::s1)); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter3(&TradeInfo::path, &Path::from, &Location::star)); //by raw pointer
 		else if (p.first == options::SortField::planet)
-			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::path, &Path::p1)); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter3(&TradeInfo::path, &Path::from, &Location::planet)); //by raw pointer
 		else if (p.first == options::SortField::good)
 			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::profit, &Profit::good)); //by raw pointer
 		else

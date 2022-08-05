@@ -28,6 +28,29 @@ namespace sorters
 	using sorter_ptr = std::shared_ptr<ISort_v2<TradeInfo>>;
 
 	// any field of any struct less than other
+	template<typename TS, typename RetS, 
+			typename TS2, typename RetS2, 
+			typename TS3, typename RetS3>
+	struct CommonSorter3 : ISort_v2<TS>
+	{
+		using ISort_v2<TS>::type_t;
+
+		CommonSorter3(RetS TS::* struc, RetS2 TS2::* field, RetS3 TS3::* field3)
+			: struct_(struc)
+			, field_(field)
+			, field3_(field3)
+		{	}
+
+		RetS TS::*   struct_;
+		RetS2 TS2::* field_;
+		RetS3 TS3::* field3_;
+
+		bool operator()(const type_t& pr1, const type_t& pr2) const override
+		{
+			return ((pr1.*struct_).*field_).*field3_ < ((pr2.*struct_).*field_).*field3_;
+		}
+	};
+
 	template<typename TS, typename RetS, typename TS2, typename RetS2>
 	struct CommonSorter2 : ISort_v2<TS>
 	{

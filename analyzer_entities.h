@@ -8,14 +8,8 @@ using namespace Entities;
 
 struct Path
 {
-	// from
-	Planet* p1 = nullptr;
-	// to
-	Planet* p2 = nullptr;
-	// from
-	Star* s1   = nullptr;
-	// to
-	Star* s2   = nullptr;
+	Location from;
+	Location to;
 
 	int distance = 0;
 };

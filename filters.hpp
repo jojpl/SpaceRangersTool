@@ -61,24 +61,24 @@ namespace filters
 		{ "None", "Kling" };
 
 		bool operator()(const Path& path) override {
-			auto s1 = path.s1;
-			auto s2 = path.s2;
-			auto p1 = path.p1;
-			auto p2 = path.p2;
+			auto* s1 = path.from.star;
+			auto* s2 = path.to.star;
+			auto* p1 = path.from.planet;
+			auto* p2 = path.from.planet;
 
-			if (skip_star_list_name.count(s1->StarName))
+			if (s1 && skip_star_list_name.count(s1->StarName))
 				return false;
-			if (skip_star_list_name.count(s2->StarName))
-				return false;
-
-			if (skip_star_list_owners.count(s1->Owners))
-				return false;
-			if (skip_star_list_owners.count(s2->Owners))
+			if (s2 && skip_star_list_name.count(s2->StarName))
 				return false;
 
-			if (skip_planet_list_owner.count(p1->Owner))
+			if (s1 && skip_star_list_owners.count(s1->Owners))
 				return false;
-			if (skip_planet_list_owner.count(p2->Owner))
+			if (s2 && skip_star_list_owners.count(s2->Owners))
+				return false;
+
+			if (p1 && skip_planet_list_owner.count(p1->Owner))
+				return false;
+			if (p2 && skip_planet_list_owner.count(p2->Owner))
 				return false;
 
 			return true;
@@ -94,7 +94,7 @@ namespace filters
 		int s_from_id;
 
 		bool operator()(const Path& path) override {
-			auto* s1 = path.s1;
+			auto* s1 = path.from.star;
 
 			if (s1->Id != s_from_id) // faster than name cmp
 				return false;
@@ -111,7 +111,7 @@ namespace filters
 		int s_to_id;
 
 		bool operator()(const Path& path) override {
-			auto* s2 = path.s2;
+			auto* s2 = path.to.star;
 
 			if (s2->Id != s_to_id) // faster than name cmp
 				return false;
@@ -128,7 +128,7 @@ namespace filters
 		int p_from_id;
 
 		bool operator()(const Path& path) override {
-			auto* p1 = path.p1;
+			auto* p1 = path.from.planet;
 
 			if (p1->Id != p_from_id) // faster than name cmp
 				return false;
@@ -145,7 +145,7 @@ namespace filters
 		int p_to_id;
 
 		bool operator()(const Path& path) override {
-			auto* p2 = path.p2;
+			auto* p2 = path.to.planet;
 
 			if (p2->Id != p_to_id) // faster than name cmp
 				return false;
@@ -168,7 +168,7 @@ namespace filters
 		const std::vector<int> s1_ids_;
 
 		bool operator()(const Path& path) override {
-			if (std::find(cbegin(s1_ids_), cend(s1_ids_), path.s1->Id) != cend(s1_ids_))
+			if (std::find(cbegin(s1_ids_), cend(s1_ids_), path.from.star->Id) != cend(s1_ids_))
 				return true;
 			return false;
 		}
@@ -192,10 +192,10 @@ namespace filters
 		int p2_id_;
 
 		bool operator()(const Path& path) override {
-			auto s1 = path.s1;
-			auto s2 = path.s2;
-			auto p1 = path.p1;
-			auto p2 = path.p2;
+			auto* s1 = path.from.star;
+			auto* s2 = path.to.star;
+			auto* p1 = path.from.planet;
+			auto* p2 = path.to.planet;
 
 			if (path.distance > max_dist_)
 				return false;

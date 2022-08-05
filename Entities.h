@@ -113,6 +113,7 @@ namespace Entities
 	struct Star;
 	struct Planet;
 	struct Ship;
+	struct ShipBases;
 	struct Player;
 
 
@@ -148,6 +149,7 @@ namespace Entities
 		GoodsPrice sale;
 
 		Location location;
+		ShipBases* shipshop = nullptr;
 	};
 
 	struct EqList

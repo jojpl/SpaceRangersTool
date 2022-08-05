@@ -59,7 +59,7 @@ namespace conv
 
 	inline void from_string(std::string& ret, std::string_view value)
 	{
-		ret = {value.data(), value.data() + value.size()};
+		ret = std::string{value};
 	}
 
 	inline void from_string(Entities::Type& ret, std::string_view value)

@@ -470,6 +470,7 @@ void Handler::on_close_obj(ShipBases * p)
 	obj->sale = p->ShopGoodsSale;
 	obj->qty  = p->ShopGoods;
 	obj->location = p->location;
+	obj->shipshop = p;
 }
 
 void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
