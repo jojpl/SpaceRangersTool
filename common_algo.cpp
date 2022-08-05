@@ -4,48 +4,43 @@
 
 namespace common_algo
 {
-	size_t soft_search(std::string_view in, std::vector<std::string>& list)
+
+size_t soft_search(std::string_view test, const std::vector<std::string>& list)
+{
+	boost::is_iequal ieq;
+	for (size_t i = 0; i < list.size(); i++)
 	{
-		std::vector<int> mask(list.size(), 0);
-		const size_t mask_size = list.size();
-		const size_t test_size = in.size();
-		boost::is_iequal ieq;
+		if (boost::equals(list[i], test, ieq))
+			return i;
+	}
 
-		bool bOnce = true;
-		for (size_t i = 0; i < test_size; i++)
+	std::vector<char> mask(list.size(), 1);
+
+	size_t cnt = 0, saved_pos = 0;
+	for (size_t i = 0; i < test.size(); i++)
+	{
+		cnt = 0;
+		saved_pos = 0;
+		for (size_t j = 0; j < mask.size(); j++)
 		{
-			size_t cnt = 0;
-			size_t saved_pos = 0;
-			for (size_t j = 0; j < mask_size; j++)
+			if (!mask[j])
+				continue;
+
+			const auto& s = list[j];
+			if (i < s.size())
 			{
-				if (!bOnce && !mask[j])
-					continue;
-
-				const auto& s = list[j];
-				if ((i < s.size()) && ieq(s[i], in[i]))
+				if (ieq(s[i], test[i]))
 				{
-					mask[j] = 1;
-
 					cnt++;
 					saved_pos = j;
+					continue;
 				}
-				else
-					mask[j] = 0;
 			}
-
-			bOnce = false;
-
-			if (cnt == 1)
-			{
-				auto res = list[saved_pos];
-				if (boost::istarts_with(res, in))
-					return saved_pos;
-
-				return size_t(-1);
-			}
-			else if (cnt == 0)
-				return size_t(-1);
+			mask[j] = 0;
 		}
-		return size_t(-1);
 	}
+	if (cnt == 1) return saved_pos;
+	return size_t(-1);
 }
+
+} //namespace common_algo
