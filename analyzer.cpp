@@ -416,7 +416,7 @@ sorter_ptr analyzer::createSort()
 		else if (p.first == options::SortField::good)
 			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::profit, &Profit::good)); //by raw pointer
 		else
-			s = std::make_shared<sorters::DefaultSorter>();
+			s = sorter_ptr(new sorters::MaxProfitSorter());
 			
 		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);

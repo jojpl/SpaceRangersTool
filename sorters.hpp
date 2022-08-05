@@ -1,13 +1,13 @@
 #pragma once
 #include "analyzer_entities.h"
 #include <memory>
+#include <functional>
 
 namespace sorters
 {
 	using namespace analyzer;
 	struct ISort;
-	struct MaxProfitSorter;
-	using DefaultSorter = MaxProfitSorter;
+	//struct MaxProfitSorter;
 
 	struct ISort
 	{
@@ -80,15 +80,22 @@ namespace sorters
 		}
 	};
 
-	struct MaxProfitSorter : ISort_v2<TradeInfo>
+	struct MaxProfitSorter : CommonSorter2<TradeInfo, Path, Path, int>
 	{
-		MaxProfitSorter() = default;
-
-		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
-		{
-			return pr1.profit.delta_profit < pr2.profit.delta_profit;
-		}
+		MaxProfitSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
 	};
+
+	//using DefaultSorter = MaxProfitSorter;
+
+	//struct MaxProfitSorter : ISort_v2<TradeInfo>
+	//{
+	//	MaxProfitSorter() = default;
+
+	//	bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+	//	{
+	//		return pr1.profit.delta_profit < pr2.profit.delta_profit;
+	//	}
+	//};
 
 	//template<typename TS, typename RetS>
 	//struct CommonSorter : ISort_v2<TS>
