@@ -317,7 +317,7 @@ filter_ptr analyzer::createRadiusFilter()
 				vi.push_back(star.Id);
 		}
 		
-		return filter_ptr(new filters::FilterByRadius(vi));
+		return filter_ptr(new filters::FilterByStarFromIdArr(vi));
 	}
 
 	return filter_ptr(new filters::Nul_Opt());

@@ -11,8 +11,8 @@ namespace model
 		auto& get_storage()
 		{
 			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
-			static std::map<std::string_view, T> map_for;
-			return map_for;
+			static std::vector<std::pair<T, std::string_view>> storage;
+			return storage;
 		}
 
 		template<typename T>
@@ -30,11 +30,11 @@ namespace model
 		}
 
 		template<typename T>
-		void add_definition(std::string_view key,
-			const T& value)
+		void add_definition(const T& value,
+			std::string_view key)
 		{
 			auto& storage = get_storage<T>();
-			storage.insert({ key, value });
+			storage.push_back({ value, key });
 
 			auto& enums = get_enums<T>();
 			enums.push_back(value);
@@ -47,16 +47,18 @@ namespace model
 		void from_string(T& field, std::string_view value)
 		{
 			const auto& storage = get_storage<T>();
-			try
+			for (const auto& item : storage)
 			{
-				field = storage.at(value);
+				if (item.second == value)
+				{
+					field = item.first;
+					return;
+				}
 			}
-			catch (const std::exception&)
-			{
-				throw std::logic_error(
-					"empty value for: "s + typeid(field).name()
-				);
-			}
+
+			throw std::logic_error(
+				"empty value for: "s + typeid(field).name()
+			);
 		}
 
 		template<typename T>
@@ -65,8 +67,8 @@ namespace model
 			const auto& storage = get_storage<T>();
 			for (const auto& item : storage)
 			{
-				if (item.second == field)
-					return item.first;
+				if (item.first == field)
+					return item.second;
 			}
 
 			throw std::logic_error(
@@ -81,7 +83,7 @@ namespace model
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
-		auto& get_storage(const Ret T::* field)
+		auto& get_storage()
 		{
 			// contain definitions for parse Entities::T fields -> string
 			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
@@ -94,14 +96,14 @@ namespace model
 		void add_definition(const Ret T::* field,
 			std::string_view key)
 		{
-			auto& storage = get_storage(field);
+			auto& storage = get_storage<T, Ret>();
 			storage.push_back({ field, key });
 		}
 
 		template<typename T, typename Ret>
 		std::string_view to_string(const Ret T::* field)
 		{
-			const auto& storage = get_storage(field);
+			const auto& storage = get_storage<T, Ret>();
 			for (const auto& item : storage)
 			{
 				if (item.first == field)

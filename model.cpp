@@ -12,7 +12,7 @@ namespace enums
 	void init_converter_impl()
 	{
 		#define BEGIN_FOR(struct_name) { using t = struct_name;
-		#define NAME2TYPE_ELEMENT(name) add_definition(#name, t::name);
+		#define NAME2TYPE_ELEMENT(name) add_definition(t::name, #name);
 		#define END_FOR() }
 
 		using namespace Entities;

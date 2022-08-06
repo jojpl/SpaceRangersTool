@@ -159,9 +159,9 @@ namespace filters
 		bool operator()(const TradeInfo&) override { return true; }
 	};
 
-	struct FilterByRadius : IPathFilter
+	struct FilterByStarFromIdArr : IPathFilter
 	{
-		FilterByRadius(const std::vector<int>& s1_ids)
+		FilterByStarFromIdArr(const std::vector<int>& s1_ids)
 			: s1_ids_(s1_ids)
 		{	}
 
