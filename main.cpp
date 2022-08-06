@@ -18,7 +18,7 @@ void on_new_file_found(std::string file)
 		std::string mem;
 		if(parser::read_file(mem, file))
 			out = parser::parse(mem);
-		mem.clear();
+		mem.resize(0);
 		
 		analyzer::analyzer a(out);
 		switch (opt.mod)

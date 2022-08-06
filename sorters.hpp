@@ -6,15 +6,6 @@
 namespace sorters
 {
 	using namespace analyzer;
-	struct ISort;
-	//struct MaxProfitSorter;
-
-	struct ISort
-	{
-		// less operator
-		virtual bool operator()(const TradeInfo&, const TradeInfo&) const = 0;
-		virtual ~ISort() = default;
-	};
 
 	template<typename T>
 	struct ISort_v2
@@ -65,6 +56,13 @@ namespace sorters
 		}
 	};
 
+	template<typename T, typename R>
+	struct mem_ptr
+	{
+		using Type = T ;
+		using Ret  = R;
+	};
+
 	template<typename TS, typename RetS>
 	struct CommonSorter1 : ISort_v2<TS>
 	{
@@ -84,33 +82,6 @@ namespace sorters
 	{
 		MaxProfitSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
 	};
-
-	//using DefaultSorter = MaxProfitSorter;
-
-	//struct MaxProfitSorter : ISort_v2<TradeInfo>
-	//{
-	//	MaxProfitSorter() = default;
-
-	//	bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
-	//	{
-	//		return pr1.profit.delta_profit < pr2.profit.delta_profit;
-	//	}
-	//};
-
-	//template<typename TS, typename RetS>
-	//struct CommonSorter : ISort_v2<TS>
-	//{
-	//	CommonSorter(RetS TS::* struc)
-	//		: struct_(struc)
-	//	{	}
-
-	//	RetS TS::*   struct_;
-
-	//	bool operator()(const TS& pr1, const TS& pr2) const override
-	//	{
-	//		return pr1.*struct_ < pr2.*struct_;
-	//	}
-	//};
 
 	struct ASC_Wrapper : ISort_v2<TradeInfo>
 	{

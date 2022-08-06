@@ -10,6 +10,7 @@ namespace model
 		template<typename T>
 		auto& get_storage()
 		{
+			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
 			static std::map<std::string_view, T> map_for;
 			return map_for;
 		}
@@ -17,7 +18,7 @@ namespace model
 		template<typename T>
 		auto& get_strings()
 		{
-			static std::vector<std::string> vs;
+			static std::vector<std::string_view> vs;
 			return vs;
 		}
 
@@ -39,7 +40,7 @@ namespace model
 			enums.push_back(value);
 
 			auto& strings = get_strings<T>();
-			strings.push_back(std::string{key});
+			strings.push_back(key);
 		}
 
 		template<typename T>
@@ -80,10 +81,12 @@ namespace model
 
 		// store keys for struct fields
 		template<typename T, typename Ret>
-		auto& get_storage(Ret T::* field)
+		auto& get_storage(const Ret T::* field)
 		{
 			// contain definitions for parse Entities::T fields -> string
-			static std::vector<std::pair<Ret T::*, std::string_view>> storage{};
+			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
+			static_assert(!std::is_const_v<Ret>, "incorrect to create consts obj!");
+			static std::vector<std::pair<const Ret T::*, std::string_view>> storage{};
 			return storage;
 		}
 

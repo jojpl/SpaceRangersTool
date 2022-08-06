@@ -5,9 +5,14 @@
 namespace common_algo
 {
 
-size_t soft_search(std::string_view test, const std::vector<std::string>& list)
+size_t soft_search(std::string_view test, const std::vector<std::string_view>& list)
 {
-	boost::is_iequal ieq;
+#ifdef _WIN32
+	std::locale cp1251_locale("rus_rus.1251"); //win
+#else
+	std::locale cp1251_locale("ru_RU.CP1251");
+#endif
+	boost::is_iequal ieq(cp1251_locale);
 	for (size_t i = 0; i < list.size(); i++)
 	{
 		if (boost::equals(list[i], test, ieq))

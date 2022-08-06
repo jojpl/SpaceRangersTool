@@ -35,6 +35,28 @@ using namespace std::placeholders;
 namespace analyzer
 {
 
+struct star_names_list
+{
+	star_names_list()
+	{
+		const auto& stars = storage::get<Star>();
+		std::transform(std::cbegin(stars), std::cend(stars), std::back_inserter(list),
+			[](const Star& s){
+				return std::string_view{s.StarName};
+			}
+		);
+	}
+	std::vector<std::string_view> list;
+};
+
+Star* find_star_by_name_soft(std::string_view sw)
+{
+	static star_names_list star_names;
+	auto pos = common_algo::soft_search(sw, star_names.list);
+	if(pos == sw.npos) return nullptr;
+	return storage::find_star_by_name(star_names.list[pos]);
+}
+
 int get_distance(const Star* s1, const Star* s2)
 {
 	return (int)std::hypot(s1->X - s2->X, s1->Y - s2->Y);
@@ -111,46 +133,6 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 	}
 	std::cout << "show: " << cnt << " from total: " << vti.size() << std::endl;
 }
-
-#if 0
-void fill_tradeInfo(TradeInfos& profits,
-	Star*   s1,
-	Star*   s2,
-	Planet* p1,
-	Planet* p2)
-{
-	auto& opt = options::get_opt();
-	int distance = get_distance(s1, s2);
-
-	for (size_t item = 0; item < profits.size(); item++)
-	{
-		auto& p = profits[item];
-
-		auto bd_good = (GoodsEnum)item;
-		int qty = p1->ShopGoods.packed[item];
-		int aviable_qty = opt.aviable_storage ?	
-			std::min(qty, opt.aviable_storage.value()) :
-			qty;
-		int sale = p1->ShopGoodsSale.packed[item]; // from
-
-		int buy = p2->ShopGoodsBuy.packed[item]; // to
-		int delta_profit = aviable_qty * (buy - sale);
-
-		p.path.p1 = p1;
-		p.path.p2 = p2;
-		p.path.s1 = s1;
-		p.path.s2 = s2;
-		p.path.distance = distance;
-		
-		p.profit.good = bd_good;
-		p.profit.qty = qty;
-		p.profit.aviable_qty = aviable_qty;
-		p.profit.buy = buy;
-		p.profit.sale = sale;
-		p.profit.delta_profit = delta_profit;
-	}
-}
-#endif
 
 void fill_tradeInfo(TradeInfos& profits,
 	ObjPrices& p1,
@@ -231,7 +213,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 
 	// optimization - filter cut >90% of vp values usually.
 	auto v1 = boost::remove_erase_if(vti, 
-		filters::NOT_opt(std::make_shared<filters::FilterByMinProfit>(opt.min_profit))
+		std::not_fn(filters::FilterByMinProfit(opt.min_profit))
 	);
 
 	apply_filter(vti, filt);
@@ -266,7 +248,8 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.star_from)
 	{
 		auto name = opt.star_from.value();
-		auto* s = storage::find_star_by_name(name);
+		//auto* s = storage::find_star_by_name(name);
+		auto* s = find_star_by_name_soft(name);
 		if (!s) throw std::logic_error(name + " star not found!");
 		s1_id = s->Id;
 	}
@@ -279,7 +262,8 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.star_to)
 	{
 		auto name = opt.star_to.value();
-		auto* s = storage::find_star_by_name(name);
+		//auto* s = storage::find_star_by_name(name);
+		auto* s = find_star_by_name_soft(name);
 		if (!s) throw std::logic_error(name + " star not found!");
 		s2_id = s->Id;
 	}
@@ -344,7 +328,7 @@ filter_ptr analyzer::createGoodsFilter()
 	auto opt = options::get_opt();
 
 	std::set<GoodsEnum> sg;
-	std::vector<std::string> gn = model::enums::get_strings<GoodsEnum>();
+	auto gn = model::enums::get_strings<GoodsEnum>();
 	for (const auto& e: model::enums::get_enums<GoodsEnum>()) // Food, ... , NUM
 	{
 		sg.insert(e);
@@ -496,7 +480,7 @@ void analyzer::show_price()
 	std::string good_name_raw = opt.goods[0];
 
 	//goods name list
-	std::vector<std::string> gn = model::enums::get_strings<GoodsEnum>();
+	auto gn = model::enums::get_strings<GoodsEnum>();
 
 	auto pos = common_algo::soft_search(good_name_raw, gn);
 	if (pos == good_name_raw.npos)
@@ -508,7 +492,7 @@ void analyzer::show_price()
 
 	struct Price
 	{
-		Entities::Location location;
+		Location location;
 		int distance_to_player;
 		//GoodsEnum good;
 		int sale;

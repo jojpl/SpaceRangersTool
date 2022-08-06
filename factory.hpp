@@ -42,6 +42,7 @@ struct storageRegistrator : Registrator
 template <typename T>
 inline auto& get()
 {
+	static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
 	static boost::container::stable_vector<T> storage{};
 	static storageRegistrator registrator(storage);
 	return storage;
