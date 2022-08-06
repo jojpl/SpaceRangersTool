@@ -474,7 +474,7 @@ std::ostream& dump_Item_info(std::ostream& os, Item* item)
 		, fmt::arg("star", item->location.star->StarName)
 		, fmt::arg("planet", item->location.planet->PlanetName)
 		, fmt::arg("dist", get_distance(cur_s, item->location.star))
-		, fmt::arg("star_owners", item->Owner )
+		, fmt::arg("star_owners", conv::to_string(item->Owner) )
 		);
 
 	return os << res;
@@ -484,7 +484,7 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 {
 	dump_Item_info(os, hitem->item);
 	auto res = fmt::format(
-	"{landType},{depth}", 
+	",{landType},{depth}", 
 		fmt::arg("landType", hitem->LandType),
 		fmt::arg("depth", hitem->Depth)
 	);

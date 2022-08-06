@@ -106,6 +106,28 @@ namespace Entities
 
 		NUM
 	};
+
+	enum class OwnersGroup
+	{
+		Klings,
+		Normals,
+		Pirates
+	};
+
+	enum class Owner
+	{
+		None,
+
+		Kling,
+
+		Fei,
+		Gaal,
+		Maloc,
+		Peleng,
+		People,
+
+		PirateClan
+	};
 	
 
 	struct Item;
@@ -286,7 +308,7 @@ namespace Entities
 		optional<int> MaxDamage;
 		optional<int> MinDamage;
 		bool NoDrop = false;
-		string Owner;
+		Owner Owner;
 		optional<int> Power;
 		optional<int> Radius;
 		optional<int> Repair;
@@ -319,7 +341,7 @@ namespace Entities
 
 		int Id = 0;
 		string PlanetName;
-		string Owner;
+		Owner Owner;
 		string Race;
 		string Economy;
 		string Goverment;
@@ -351,7 +373,7 @@ namespace Entities
 		string StarName;
 		double X = 0.0;
 		double Y = 0.0;
-		string Owners;
+		OwnersGroup Owners;
 		ShipList ShipList;
 		PlanetList PlanetList;
 		Junk Junk;

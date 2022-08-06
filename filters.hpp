@@ -54,11 +54,11 @@ namespace filters
 		const std::set<std::string> skip_star_list_name
 		{ "Тортугац", "Нифигац" };
 
-		const std::set<std::string> skip_star_list_owners
-		{ "Klings" };
+		const std::set<OwnersGroup> skip_star_list_owners
+		{ OwnersGroup::Klings };
 
-		const std::set<std::string> skip_planet_list_owner
-		{ "None", "Kling" };
+		const std::set<Owner> skip_planet_list_owner
+		{ Owner::None, Owner::Kling };
 
 		bool operator()(const Path& path) override {
 			auto* s1 = path.from.star;
