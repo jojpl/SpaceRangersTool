@@ -48,6 +48,7 @@ namespace options
 				("storage", po::value<int>(), "recalc result using aviable storage")
 				//("price-mod", po::value<bool>()->implicit_value(true)->default_value(""), "show prices")
 				("mod,m", po::value<Modes>()->default_value(Modes::profit), "show prices")
+				("tops", po::value<bool>()->implicit_value(true), "show top deal for from each planet for each good")
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -79,6 +80,7 @@ namespace options
 			SAVE_TO_OPTIONAL("storage", Options::aviable_storage)
 			//SAVE_AS_IS("price-mod", Options::price_mod)
 			SAVE_AS_IS("mod", Options::mod)
+			SAVE_AS_IS("tops", Options::tops)
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";

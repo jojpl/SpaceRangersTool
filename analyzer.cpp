@@ -181,36 +181,34 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 	);
 }
 
+void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
+{
+	performance_tracker tr("iter");
+
+	auto& prices = storage::get<ObjPrices>();
+	for (auto& p_from : prices)
+	{
+		for (auto& p_to : prices)
+		{
+			if (p_from.location.planet == p_to.location.planet)
+				continue;
+
+			TradeInfos profits;
+			fill_tradeInfo(profits, p_from, p_to);
+
+			std::move(profits.begin(), profits.end(),
+				std::back_inserter(vti));
+		}
+	}
+}
+
 void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<TradeInfo> vti; 
 	vti.reserve(1'000'000); // 8 * planets_qty^2
+	calc_all_trade_paths_info(vti);
+
 	const auto& opt = options::get_opt();
-	{
-		performance_tracker tr("iter");
-
-		auto& prices = storage::get<ObjPrices>();
-		for (auto& p_from : prices)
-		{
-			for (auto& p_to : prices)
-			{
-				//if (p_from.location == p_to.location)
-				//	continue;
-
-				TradeInfos profits;
-				fill_tradeInfo(profits, p_from, p_to);
-				//fill_tradeInfo(profits, s1, s2, p1, p2);
-
-
-				//std::copy_if(begin(profits), end(profits), back_inserter(vti),
-				//	filters::FilterByMinProfit(opt)
-				//	);
-				std::move(profits.begin(), profits.end(),
-					std::back_inserter(vti));
-			}
-		}
-	}
-
 	// optimization - filter cut >90% of vp values usually.
 	auto v1 = boost::remove_erase_if(vti, 
 		std::not_fn(filters::FilterByMinProfit(opt.min_profit))
@@ -223,6 +221,24 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 			return (*sorter)(ti1, ti2);
 		}
 	);
+
+	if (opt.tops)
+	{
+		auto v1 = std::unique(vti.begin(), vti.end(),
+			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
+				bool le = (*tops_cmp_)(ti1, ti2);
+				bool ge = (*tops_cmp_)(ti2, ti1);
+				bool eq = (!le && !ge); //eq
+				return eq;
+			}
+		);
+
+		vti.erase(v1, vti.end());
+
+		std::sort(vti.rbegin(), vti.rend(),
+			sorters::MaxProfitSorter()
+		);
+	}
 
 	dump_top(std::cout, vti, options::get_opt());
 
@@ -377,22 +393,19 @@ filter_ptr analyzer::createFilter()
 	return common_f;
 }
 
-// mb move to ::sorters
-sorter_ptr analyzer::createSort()
+sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 {
 	sorter_ptr common;
-	auto opt = options::get_opt();
-	options::SortOptions& sort_options = opt.sort_options;
 
 	for( auto p : sort_options)
 	{
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
 			//s = std::make_shared<sorters::DistanceSorter>();
-			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::path, &Path::distance));
+			s = sorter_ptr(new sorters::MaxDistanceSorter());
 		else if (p.first == options::SortField::profit)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
-			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::profit, &Profit::delta_profit));
+			s = sorter_ptr(new sorters::MaxProfitSorter());
 		else if (p.first == options::SortField::star)
 			s = sorter_ptr(new sorters::CommonSorter3(&TradeInfo::path, &Path::from, &Location::star)); //by raw pointer
 		else if (p.first == options::SortField::planet)
@@ -412,6 +425,27 @@ sorter_ptr analyzer::createSort()
 	}
 
 	return common;
+}
+
+// mb move to ::sorters
+sorter_ptr analyzer::createSort()
+{
+	auto opt = options::get_opt();
+	if (opt.tops)
+	{
+		//"pr, st, pl, g, pr"
+		//g, st, pl, pr
+		options::SortOptions sort_options;
+		sort_options.push_back({ options::SortField::good,   {} });
+		sort_options.push_back({ options::SortField::star,   {} });
+		sort_options.push_back({ options::SortField::planet, {} });
+		tops_cmp_ = createSortfromOpt(sort_options); //dirty hack
+		sort_options.push_back({ options::SortField::profit, {} });
+		return createSortfromOpt(sort_options);
+	}
+
+	options::SortOptions& sort_options = opt.sort_options;
+	return createSortfromOpt(sort_options);
 }
 
 void analyzer::calc_profits()

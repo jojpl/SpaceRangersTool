@@ -78,9 +78,14 @@ namespace sorters
 		}
 	};
 
-	struct MaxProfitSorter : CommonSorter2<TradeInfo, Path, Path, int>
+	struct MaxProfitSorter : CommonSorter2<TradeInfo, Profit, Profit, int>
 	{
-		MaxProfitSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
+		MaxProfitSorter() : CommonSorter2(&TradeInfo::profit, &Profit::delta_profit) {}
+	};
+
+	struct MaxDistanceSorter : CommonSorter2<TradeInfo, Path, Path, int>
+	{
+		MaxDistanceSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
 	};
 
 	struct ASC_Wrapper : ISort_v2<TradeInfo>

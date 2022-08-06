@@ -57,6 +57,7 @@ namespace options
 		std::optional<int>         aviable_storage;
 		bool                       price_mod = false;
 		Modes                      mod = Modes::profit;
+		bool                       tops = false;
 	};
 
 	inline Options& get_opt()

@@ -24,6 +24,7 @@ public:
 
 private:
 	void calc_profits();
+	void calc_all_trade_paths_info(std::vector<TradeInfo>&);
 	void calc_profits(filter_ptr filt, sorter_ptr sorter);
 	filter_ptr createPathFilter();
 	filter_ptr createGoodsFilter();
@@ -32,6 +33,7 @@ private:
 	sorter_ptr createSort();
 
 	Global * data = nullptr;
+	sorter_ptr tops_cmp_{};
 };
 
 int get_distance(const Star* s1, const Star* s2);
