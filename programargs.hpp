@@ -11,16 +11,12 @@ namespace options
 	using namespace std::string_literals;
 	enum class SortDirection
 	{
-		unknown,
-
 		DESC,
 		ASC,
 	};
 
 	enum class SortField
 	{
-		unknown,
-
 		profit,
 		distance,
 		star,
@@ -35,7 +31,8 @@ namespace options
 	{
 		profit,
 		price,
-		treasures
+		treasures,
+		holes,
 	};
 
 	struct Options

@@ -115,6 +115,7 @@ namespace Entities
 	struct Ship;
 	struct Station;
 	struct Player;
+	struct Hole;
 
 
 	struct Unknown
@@ -192,11 +193,17 @@ namespace Entities
 		vector<Ship*> list;
 	};
 
+	struct HoleList
+	{
+		vector<Hole*> list;
+	};
+
 	struct Global
 	{
 		int IDay = 0;
 		Player* Player = nullptr;
 		StarList StarList;
+		HoleList HoleList;
 	};
 
 	struct Ship
@@ -348,5 +355,20 @@ namespace Entities
 		ShipList ShipList;
 		PlanetList PlanetList;
 		Junk Junk;
+	};
+
+	struct Hole
+	{
+		Hole(int Id_)
+			: Id(Id_)
+		{	}
+
+		int Id           = 0;
+		int Star1Id      = 0;
+		int Star2Id      = 0;
+		int TurnsToClose = 0;
+
+		Location from;
+		Location to;
 	};
 }

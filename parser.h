@@ -46,7 +46,9 @@ struct Parser_Ctx
 			Junk*,
 			EqShop*,
 			Treasure*,
-			HiddenItem*
+			HiddenItem*,
+			HoleList*,
+			Hole*
 		>;
 
 	bool getline();
@@ -191,6 +193,11 @@ private:
 
 	// Item
 	void on_kv(Item*      p, std::string_view key, std::string_view value);
+
+	// HoleList
+	void on_new_obj(HoleList* p, std::string_view obj_name);
+	// Hole
+	void on_kv(Hole*      p, std::string_view key, std::string_view value);
 
 	//defaults
 	template <typename T>

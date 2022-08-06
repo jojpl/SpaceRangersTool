@@ -192,6 +192,12 @@ void Parser::init_ctx(std::string_view mem)
 
 void Parser::fix_skiped_look_forwarded_options()
 {
+	for(auto& i : out_->HoleList.list) 
+	{
+		i->from.star = storage::find_star_by_id(i->Star1Id);
+		i->to.star = storage::find_star_by_id(i->Star2Id);
+	}
+
 	auto* player = out_->Player;
 	
 	player->location.star =
@@ -264,6 +270,10 @@ void Handler::on_new_obj(Global* p, std::string_view obj_name)
 	else if (obj_name == "StarList")
 	{
 		ctx.stack.push({ &p->StarList });
+	}
+	else if (obj_name == "HoleList")
+	{
+		ctx.stack.push({ &p->HoleList });
 	}
 }
 
@@ -625,6 +635,26 @@ void Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 		PARSE_TO(TechLevel)
 		PARSE_TO(X)
 		PARSE_TO(Y)
+	END_PARSE()
+}
+
+void Handler::on_new_obj(HoleList * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "HoleId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto* item = storage::Factory<Hole>::create(id);
+		p->list.push_back( item );
+		ctx.stack.push({ item });
+	}
+}
+
+void Handler::on_kv(Hole * p, std::string_view key, std::string_view value)
+{
+	BEGIN_PARSE_FOR(Hole)
+		PARSE_TO(Star1Id)
+		PARSE_TO(Star2Id)
+		PARSE_TO(TurnsToClose)
 	END_PARSE()
 }
 

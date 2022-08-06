@@ -571,4 +571,23 @@ void analyzer::show_price()
 	}
 }
 
+void analyzer::dump_holelist()
+{
+	auto& holes = storage::get<Hole>();
+	for (auto& h : holes)
+	{
+		const std::string templ =
+			"%-15s <==> %-15s TurnsToClose: %-3d";
+
+		auto s_from = cut_to<15>(h.from.star->StarName);
+		auto s_to   = cut_to<15>(h.to.star->StarName);
+
+		auto res = string_format(templ.data(),
+			s_from.data(), s_to.data(), h.TurnsToClose
+		);
+
+		std::cout << res << std::endl;
+	}
+}
+
 }//namespace analyzer

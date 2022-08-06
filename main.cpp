@@ -33,6 +33,10 @@ void on_new_file_found(std::string file)
 
 			case options::Modes::treasures:
 				a.dump_treasures();
+				break;			
+			
+			case options::Modes::holes:
+				a.dump_holelist();
 				break;
 
 			default:

@@ -95,28 +95,42 @@ namespace options
 
 	void from_string(SortDirection& d, std::string_view sw)
 	{
-		if (boost::istarts_with(sw, "ASC"))
-			d = SortDirection::ASC;
-		else if (boost::istarts_with(sw, "DESC"))
-			d = SortDirection::DESC;
-		else
-			throw std::logic_error("can't convert "s + __FUNCTION__);
+		auto pos = common_algo::soft_search(sw,
+			{
+				"DESC",
+				"ASC"
+			});
+
+		switch (pos)
+		{
+			case 0: d = SortDirection::DESC; break;
+			case 1: d = SortDirection::ASC; break;
+
+			default: throw po::invalid_option_value(std::string{ sw });
+		}
 	}
 
 	void from_string(SortField& f, std::string_view sw)
 	{
-		if      (boost::iequals(sw, "profit"))
-			f = SortField::profit;
-		else if (boost::iequals(sw, "distance"))
-			f = SortField::distance;
-		else if (boost::iequals(sw, "star"))
-			f = SortField::star;
-		else if (boost::iequals(sw, "planet"))
-			f = SortField::planet;
-		else if (boost::iequals(sw, "good"))
-			f = SortField::good;
-		else
-			throw po::invalid_option_value(std::string{sw});
+		auto pos = common_algo::soft_search(sw, 
+			{
+				"profit",
+				"distance",
+				"star",
+				"planet",
+				"good"
+			});
+
+		switch (pos)
+		{
+			case 0: f = SortField::profit; break;
+			case 1: f = SortField::distance; break;
+			case 2: f = SortField::star; break;
+			case 3: f = SortField::planet; break;
+			case 4: f = SortField::good; break;
+
+			default: throw po::invalid_option_value(std::string{sw});
+		}
 	}
 
 	void from_string(SortOpt& f, std::string_view sw)
@@ -158,8 +172,9 @@ namespace options
 	void handle_star_from(const std::string& val)
 	{
 		auto& opt = get_opt();
-		if ((	boost::iequals(val, "current")
-			||  boost::iequals(val, "cur")))
+		if (    boost::iequals(val, "current")
+			||  boost::iequals(val, "cur")
+			||  boost::iequals(val, "c") )
 		{
 			opt.star_from_use_current = true;
 		}
@@ -170,8 +185,9 @@ namespace options
 	void handle_star_to(const std::string& val)
 	{
 		auto& opt = get_opt();
-		if ((	boost::iequals(val, "current")
-			||  boost::iequals(val, "cur")))
+		if (    boost::iequals(val, "current")
+			||  boost::iequals(val, "cur")
+			||  boost::iequals(val, "c") )
 		{
 			opt.star_to_use_current = true;
 		}
@@ -182,8 +198,9 @@ namespace options
 	void handle_planet_from(const std::string& val)
 	{
 		auto& opt = get_opt();
-		if ((	boost::iequals(val, "current")
-			||  boost::iequals(val, "cur")))
+		if (    boost::iequals(val, "current")
+			||  boost::iequals(val, "cur")
+			||  boost::iequals(val, "c") )
 		{
 			opt.planet_from_use_current = true;
 		}
@@ -194,8 +211,9 @@ namespace options
 	void handle_planet_to(const std::string& val)
 	{
 		auto& opt = get_opt();
-		if ((	boost::iequals(val, "current")
-			||  boost::iequals(val, "cur")))
+		if (    boost::iequals(val, "current")
+			||  boost::iequals(val, "cur")
+			||  boost::iequals(val, "c") )
 		{
 			opt.planet_to_use_current = true;
 		}
@@ -261,13 +279,14 @@ namespace options
 		
 	}
 
+	// Option "mod,m"
 	std::istream& operator>>(std::istream& os, options::Modes & ms)
 	{
 		std::string s;
 		os >> s;
 
 		auto pos = common_algo::soft_search(s, 
-			{"profit", "price", "treasures"}
+			{"profit", "price", "treasures", "holes"}
 		);
 
 		switch (pos)
@@ -275,6 +294,7 @@ namespace options
 			case 0: ms = Modes::profit; break;
 			case 1: ms = Modes::price; break;
 			case 2: ms = Modes::treasures; break;
+			case 3: ms = Modes::holes; break;
 
 			default: os.setstate(std::istream::badbit); break;
 		}

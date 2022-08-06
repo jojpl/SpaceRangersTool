@@ -20,6 +20,7 @@ public:
 	void analyze_profit();
 	void dump_treasures();
 	void show_price();
+	void dump_holelist();
 
 private:
 	void calc_profits();

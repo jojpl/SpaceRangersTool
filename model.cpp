@@ -214,6 +214,12 @@ namespace kv
 			ADD_DEF(Owners)
 		END_DEF()
 
+		BEGIN_DEF_FOR(Hole)
+			ADD_DEF(Star1Id)
+			ADD_DEF(Star2Id)
+			ADD_DEF(TurnsToClose)
+		END_DEF()
+
 		#undef BEGIN_DEF_FOR
 		#undef ADD_DEF
 		#undef ADD_DEF_SPECIFIC
