@@ -2,25 +2,26 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <array>
+#include <functional>
+#include <cctype>
+#include <limits>
 
 namespace conv
 {
 	int extractId(std::string_view sw)
 	{
-		// ItemId256
-		auto pos = std::find_if_not(sw.crbegin(), sw.crend(), 
-			[](char ch){ return ::isdigit(ch); });
+		std::string_view tmp = sw;
 
-		if (pos != sw.crend() && pos != sw.crbegin())
-		{
-			size_t offset = std::distance(sw.cbegin(), pos.base());
+		size_t pos = 0;
+		for (; !tmp.empty() && std::isdigit(tmp.back()); pos++)
+			tmp.remove_suffix(1);
 
-			int i = 0;
-			from_string(i, sw.substr(offset));
-			return i;
-		}
+		if(!pos) throw std::logic_error(__FUNCTION__);
+		tmp = sw.substr(sw.size() - pos);
 
-		throw std::logic_error("in "s + __FUNCTION__ + " err!");
+		int i = 0;
+		from_string(i, tmp);
+		return i;
 	}
 
 	void from_string(Entities::GoodsPack& packed, std::string_view sw)
