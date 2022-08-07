@@ -156,12 +156,12 @@ namespace Entities
 
 	struct GoodsQty
 	{
-		GoodsPack packed;
+		GoodsPack packed {};
 	};
 
 	struct GoodsPrice
 	{
-		GoodsPack packed;
+		GoodsPack packed {};
 	};
 
 	//help struct

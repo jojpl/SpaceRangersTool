@@ -528,11 +528,11 @@ void analyzer::show_price()
 	struct Price
 	{
 		Location location;
-		int distance_to_player;
+		int distance_to_player = 0;
 		//GoodsEnum good;
-		int sale;
-		int buy;
-		int qty;
+		int sale = 0;
+		int buy = 0;
+		int qty = 0;
 	};
 
 	std::vector<Price> vp;
@@ -543,6 +543,12 @@ void analyzer::show_price()
 	{
 		Star*   s1 = p_from.location.star;
 		Planet* p1 = &p_from;
+
+		if(s1->Owners == OwnersGroup::Klings)
+			continue;
+		if(p1 && ( p1->Owner == Owner::Kling 
+				|| p1->Owner == Owner::None ))
+			continue;
 
 		Price p;
 		p.distance_to_player = get_distance(s1, cur_s);
