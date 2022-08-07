@@ -111,12 +111,7 @@ public:
 		if (ctx.is_object_open())
 		{
 			auto obj_name = ctx.get_object_name();
-
-			const auto sz = ctx.stack.size();
-			on_new_obj(t, obj_name);
-			const auto new_sz = ctx.stack.size();
-
-			if (sz == new_sz)
+			if (!on_new_obj(t, obj_name))
 			{
 				//std::string nn = { obj_name.data(), obj_name.size()};
 				//auto c = nn.c_str();
@@ -138,78 +133,80 @@ public:
 
 private:
 	// Global
-	void on_new_obj(Global* p, std::string_view obj_name);
-	void on_kv     (Global* p, std::string_view key, std::string_view value);
+	bool on_new_obj(Global* p, std::string_view obj_name);
+	bool on_kv     (Global* p, std::string_view key, std::string_view value);
 
 	// Player
-	void on_new_obj(Player* p, std::string_view obj_name);
-	void on_kv(Player*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(Player* p, std::string_view obj_name);
+	bool on_kv(Player*      p, std::string_view key, std::string_view value);
 
 	// StarList
-	void on_new_obj(StarList* p, std::string_view obj_name);
+	bool on_new_obj(StarList* p, std::string_view obj_name);
 
 	// Star
-	void on_new_obj(Star* p, std::string_view obj_name);
-	void on_kv(Star*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(Star* p, std::string_view obj_name);
+	bool on_kv(Star*      p, std::string_view key, std::string_view value);
 	void on_close_obj(Star* p);
 
 	// EqList
-	void on_new_obj(EqList* p, std::string_view obj_name);
+	bool on_new_obj(EqList* p, std::string_view obj_name);
 
 	// ArtList
-	void on_new_obj(ArtsList* p, std::string_view obj_name);
+	bool on_new_obj(ArtsList* p, std::string_view obj_name);
 
 	// ShipList
-	void on_new_obj(ShipList* p, std::string_view obj_name);
+	bool on_new_obj(ShipList* p, std::string_view obj_name);
 
 	// Ship
-	void on_new_obj(Ship* p, std::string_view obj_name);
-	void on_kv(Ship*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(Ship* p, std::string_view obj_name);
+	bool on_kv(Ship*      p, std::string_view key, std::string_view value);
 
 	// Station
-	void on_new_obj(Station* p, std::string_view obj_name);
-	void on_kv(Station*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(Station* p, std::string_view obj_name);
+	bool on_kv(Station*      p, std::string_view key, std::string_view value);
 	void on_close_obj(Station* p);
 
 	// PlanetList
-	void on_new_obj(PlanetList* p, std::string_view obj_name);
+	bool on_new_obj(PlanetList* p, std::string_view obj_name);
 
 	// Planet
-	void on_new_obj(Planet* p, std::string_view obj_name);
-	void on_kv(Planet*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(Planet* p, std::string_view obj_name);
+	bool on_kv(Planet*      p, std::string_view key, std::string_view value);
 	void on_close_obj(Planet* p);
 
 	// Junk
-	void on_new_obj(Junk* p, std::string_view obj_name);
+	bool on_new_obj(Junk* p, std::string_view obj_name);
 
 	// EqShop
-	void on_new_obj(EqShop* p, std::string_view obj_name);
+	bool on_new_obj(EqShop* p, std::string_view obj_name);
 
 	// Treasure
-	void on_new_obj(Treasure* p, std::string_view obj_name);
+	bool on_new_obj(Treasure* p, std::string_view obj_name);
 
 	// HiddenItem
-	void on_new_obj(HiddenItem* p, std::string_view obj_name);
-	void on_kv(HiddenItem*      p, std::string_view key, std::string_view value);
+	bool on_new_obj(HiddenItem* p, std::string_view obj_name);
+	bool on_kv(HiddenItem*      p, std::string_view key, std::string_view value);
 
 	// Item
-	void on_kv(Item*      p, std::string_view key, std::string_view value);
+	bool on_kv(Item*      p, std::string_view key, std::string_view value);
 
 	// HoleList
-	void on_new_obj(HoleList* p, std::string_view obj_name);
+	bool on_new_obj(HoleList* p, std::string_view obj_name);
 	// Hole
-	void on_kv(Hole*      p, std::string_view key, std::string_view value);
+	bool on_kv(Hole*      p, std::string_view key, std::string_view value);
 
 	//defaults
 	template <typename T>
-	void on_kv(T* p, std::string_view key, std::string_view value)
+	bool on_kv(T* p, std::string_view key, std::string_view value)
 	{
+		return false;
 	}
 
 	//defaults
 	template <typename T>
-	void on_new_obj(T* p, std::string_view obj_name)
+	bool on_new_obj(T* p, std::string_view obj_name)
 	{
+		return false;
 	}
 
 	//defaults

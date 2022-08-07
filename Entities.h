@@ -269,6 +269,7 @@ namespace Entities
 		Station(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 
 		inline static std::array<Type, 7> allowedTypes
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };

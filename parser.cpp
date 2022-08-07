@@ -22,7 +22,7 @@ static const std::string crlf_tag = "\r\n";
 #define Starts_with(sw, example) (boost::starts_with(sw, example))
 
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
-#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
+#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) res = true;
 #define END_PARSE() }while(false);}
 
 bool read_file_as_mem(std::string& out, const std::string& path)
@@ -257,44 +257,54 @@ Parser_Ctx::get_kv() const
 	return split_to_kv(line_);
 }
 
-void Handler::on_new_obj(Global* p, std::string_view obj_name)
+bool Handler::on_new_obj(Global* p, std::string_view obj_name)
 {
 	if (obj_name == "Player")
 	{
 		p->Player = storage::Factory<Player>::create(0, ctx.location_);
 		ctx.stack.push({ p->Player });
+		return true;
 	}
 	else if (obj_name == "StarList")
 	{
 		ctx.stack.push({ &p->StarList });
+		return true;
 	}
 	else if (obj_name == "HoleList")
 	{
 		ctx.stack.push({ &p->HoleList });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Global* p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Global* p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Global)
 		PARSE_TO(IDay)
 	END_PARSE()
+	return res;
 }
 
-void Handler::on_new_obj(Player * p, std::string_view obj_name)
+bool Handler::on_new_obj(Player * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
 		ctx.stack.push({ &p->EqList });
+		return true;
 	}
 	else if (obj_name == "ArtsList")
 	{
 		ctx.stack.push({ &p->ArtsList });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Player * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Player * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Player)
 		PARSE_TO(ICurStarId)
 		PARSE_TO(IFullName)
@@ -306,9 +316,10 @@ void Handler::on_kv(Player * p, std::string_view key, std::string_view value)
 
 		PARSE_TO(Debt)
 	END_PARSE()
+	return res;
 }
 
-void Handler::on_new_obj(StarList * p, std::string_view obj_name)
+bool Handler::on_new_obj(StarList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "StarId"))
 	{
@@ -317,33 +328,41 @@ void Handler::on_new_obj(StarList * p, std::string_view obj_name)
 		p->list.push_back(star);
 		ctx.location_.star = star;
 		ctx.stack.push({ star });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(Star * p, std::string_view obj_name)
+bool Handler::on_new_obj(Star * p, std::string_view obj_name)
 {
 	if (obj_name == "ShipList")
 	{
 		ctx.stack.push({ &p->ShipList });
+		return true;
 	}
 	else if (obj_name == "PlanetList")
 	{
 		ctx.stack.push({ &p->PlanetList });
+		return true;
 	}
 	else if (obj_name == "Junk")
 	{
 		ctx.stack.push({ &p->Junk });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Star * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Star * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Star)
 		PARSE_TO(StarName)
 		PARSE_TO(X)
 		PARSE_TO(Y)
 		PARSE_TO(Owners)
 	END_PARSE()
+	return res;
 }
 
 void Handler::on_close_obj(Star * p)
@@ -371,7 +390,7 @@ Type get_IType_use_lookup_ahead(std::string_view tail)
 	return t;
 }
 
-void Handler::on_new_obj(EqList * p, std::string_view obj_name)
+bool Handler::on_new_obj(EqList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
@@ -380,10 +399,12 @@ void Handler::on_new_obj(EqList * p, std::string_view obj_name)
 		auto* item = storage::Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(ArtsList * p, std::string_view obj_name)
+bool Handler::on_new_obj(ArtsList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
@@ -392,10 +413,12 @@ void Handler::on_new_obj(ArtsList * p, std::string_view obj_name)
 		auto* item = storage::Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(ShipList * p, std::string_view obj_name)
+bool Handler::on_new_obj(ShipList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ShipId"))
 	{
@@ -408,29 +431,36 @@ void Handler::on_new_obj(ShipList * p, std::string_view obj_name)
 			auto* item = storage::Factory<Station>::create(id, ctx.location_);
 			p->list.push_back(item);
 			ctx.stack.push({ item });
+			return true;
 		}
 		else {
 			auto* item = storage::Factory<Ship>::create(id, ctx.location_);
 			p->list.push_back(item);
 			ctx.stack.push({ item });
+			return true;
 		}
 	}
+	return false;
 }
 
-void Handler::on_new_obj(Ship * p, std::string_view obj_name)
+bool Handler::on_new_obj(Ship * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
 		ctx.stack.push({ &p->EqList });
+		return true;
 	}
 	else if (obj_name == "ArtsList")
 	{
 		ctx.stack.push({ &p->ArtsList });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Ship)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
@@ -439,22 +469,27 @@ void Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 		PARSE_TO(Goods)
 		PARSE_TO(Money)
 	END_PARSE()
+	return res;
 }
 
-void Handler::on_new_obj(Station * p, std::string_view obj_name)
+bool Handler::on_new_obj(Station * p, std::string_view obj_name)
 {
 	if (obj_name == "EqList")
 	{
 		ctx.stack.push({ &p->EqList });
+		return true;
 	}
 	else if (obj_name == "EqShop")
 	{
 		ctx.stack.push({ &p->EqShop });
+		return true;
 	}
+	return on_new_obj((Station::Inherit*)p, obj_name);
 }
 
-void Handler::on_kv(Station * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Station * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Station)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
@@ -463,6 +498,7 @@ void Handler::on_kv(Station * p, std::string_view key, std::string_view value)
 		PARSE_TO(ShopGoodsSale)
 		PARSE_TO(ShopGoodsBuy)
 	END_PARSE()
+	return res;
 }
 
 void Handler::on_close_obj(Station * p)
@@ -475,7 +511,7 @@ void Handler::on_close_obj(Station * p)
 	obj->shipshop = p;
 }
 
-void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
+bool Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "PlanetId"))
 	{
@@ -486,23 +522,29 @@ void Handler::on_new_obj(PlanetList * p, std::string_view obj_name)
 		planet->location.planet = planet; //fix it
 		ctx.location_.planet = planet;
 		ctx.stack.push({ planet });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(Planet * p, std::string_view obj_name)
+bool Handler::on_new_obj(Planet * p, std::string_view obj_name)
 {
 	if (obj_name == "EqShop")
 	{
 		ctx.stack.push({ &p->EqShop });
+		return true;
 	}
 	else if (obj_name == "Treasure")
 	{
 		ctx.stack.push({ &p->Treasure });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Planet)
 		PARSE_TO(PlanetName)
 		PARSE_TO(Owner)
@@ -520,6 +562,7 @@ void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 		PARSE_TO(ShopGoodsSale)
 		PARSE_TO(ShopGoodsBuy)
 	END_PARSE()
+	return res;
 }
 
 void Handler::on_close_obj(Planet * p)
@@ -533,7 +576,7 @@ void Handler::on_close_obj(Planet * p)
 	obj->location = p->location;
 }
 
-void Handler::on_new_obj(Junk * p, std::string_view obj_name)
+bool Handler::on_new_obj(Junk * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
@@ -542,10 +585,12 @@ void Handler::on_new_obj(Junk * p, std::string_view obj_name)
 		auto* item = storage::Factory<Item>::create(id, ctx.location_);
 		p->list.push_back(item);
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(EqShop * p, std::string_view obj_name)
+bool Handler::on_new_obj(EqShop * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
@@ -554,20 +599,24 @@ void Handler::on_new_obj(EqShop * p, std::string_view obj_name)
 		auto* item = storage::Factory<Item>::create(id, ctx.location_);;
 		p->list.push_back(item);
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(Treasure * p, std::string_view obj_name)
+bool Handler::on_new_obj(Treasure * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "HiddenItem"))
 	{
 		auto* item = storage::Factory<HiddenItem>::create();
 		p->list.push_back(item);
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
+bool Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "ItemId"))
 	{
@@ -575,19 +624,24 @@ void Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
 		auto* item = storage::Factory<Item>::create(id, ctx.location_);
 		p->item = item;
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(HiddenItem)
 		PARSE_TO(LandType)
 		PARSE_TO(Depth)
 	END_PARSE()
+	return res;
 }
 
-void Handler::on_kv(Item * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Item)
 		PARSE_TO(IName)
 		PARSE_TO(IType)
@@ -625,9 +679,10 @@ void Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 		PARSE_TO(X)
 		PARSE_TO(Y)
 	END_PARSE()
+	return res;
 }
 
-void Handler::on_new_obj(HoleList * p, std::string_view obj_name)
+bool Handler::on_new_obj(HoleList * p, std::string_view obj_name)
 {
 	if (Starts_with(obj_name, "HoleId"))
 	{
@@ -635,16 +690,20 @@ void Handler::on_new_obj(HoleList * p, std::string_view obj_name)
 		auto* item = storage::Factory<Hole>::create(id);
 		p->list.push_back( item );
 		ctx.stack.push({ item });
+		return true;
 	}
+	return false;
 }
 
-void Handler::on_kv(Hole * p, std::string_view key, std::string_view value)
+bool Handler::on_kv(Hole * p, std::string_view key, std::string_view value)
 {
+	bool res = false;
 	BEGIN_PARSE_FOR(Hole)
 		PARSE_TO(Star1Id)
 		PARSE_TO(Star2Id)
 		PARSE_TO(TurnsToClose)
 	END_PARSE()
+	return res;
 }
 
 } // namespace parser
