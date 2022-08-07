@@ -17,18 +17,12 @@
 #include <cmath>
 #include <sstream>
 #include <set>
-#include <tuple>
 #include <optional>
 
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/move/iterator.hpp>
 
 #include <fmt/core.h>
-#include <fmt/color.h>
 
 using namespace std::string_literals;
 using namespace std::placeholders;
@@ -619,6 +613,28 @@ void analyzer::print_game_date()
 {
 	auto str = datetime::get_cur_game_date_str(data->IDay);
 	std::cout << str <<std::endl;
+}
+
+void analyzer::show_ritches()
+{
+	const auto& sh = storage::get<Ship>();
+	for (const auto& s: sh)
+	{
+		if (s.IType != Type::Transport)
+			continue;
+		
+		const std::string templ =
+			"%-15s %20s %d";
+
+		auto n = cut_to<15>(s.Name);
+		auto sn = cut_to<15>(s.location.star->StarName);
+		
+		auto res = string_format(templ.data(),
+			sn.data(), n.data(), s.Money
+		);
+
+		std::cout << res << std::endl;
+	}
 }
 
 }//namespace analyzer

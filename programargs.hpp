@@ -33,6 +33,7 @@ namespace options
 		price,
 		treasures,
 		holes,
+		ritch,
 	};
 
 	struct Options

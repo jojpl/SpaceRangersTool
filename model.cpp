@@ -1,9 +1,4 @@
 #include "model.hpp"
-#include "convert.h"
-
-#include <algorithm>
-#include <map>
-#include <string_view>
 
 namespace model
 {
@@ -15,7 +10,6 @@ namespace enums
 		#define NAME2TYPE_ELEMENT(name) add_definition(t::name, #name);
 		#define END_FOR() }
 
-		using namespace Entities;
 		BEGIN_FOR(Type)
 			NAME2TYPE_ELEMENT(Alcohol)
 			NAME2TYPE_ELEMENT(Arms)
@@ -135,8 +129,6 @@ namespace kv
 		#define ADD_DEF(field) add_definition(&t::field, #field);
 		#define ADD_DEF_SPECIFIC(field, key) add_definition(&t::field, #key);
 		#define END_DEF() }
-
-		using namespace Entities;
 
 		BEGIN_DEF_FOR(Global)
 			ADD_DEF(IDay)

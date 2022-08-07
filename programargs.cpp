@@ -288,7 +288,7 @@ namespace options
 		os >> s;
 
 		auto pos = common_algo::soft_search(s, 
-			{"profit", "price", "treasures", "holes"}
+			{"profit", "price", "treasures", "holes", "ritch"}
 		);
 
 		switch (pos)
@@ -297,6 +297,7 @@ namespace options
 			case 1: ms = Modes::price; break;
 			case 2: ms = Modes::treasures; break;
 			case 3: ms = Modes::holes; break;
+			case 4: ms = Modes::ritch; break;
 
 			default: os.setstate(std::istream::badbit); break;
 		}

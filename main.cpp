@@ -9,18 +9,21 @@
 #include <windows.h>
 #endif
 
+using namespace std::string_literals;
+
 void on_new_file_found(std::string file)
 {
-	auto& opt = options::get_opt();
-	Entities::Global* out = nullptr;
 	try
 	{
 		std::string mem;
-		if(parser::read_file(mem, file))
-			out = parser::parse(mem);
+		if(!parser::read_file_as_mem(mem, file))
+		throw std::logic_error("Can't read file : "s + file);
+
+		Entities::Global* out = parser::parse(mem);
 		mem.resize(0);
 		
 		analyzer::analyzer a(out);
+		const auto& opt = options::get_opt();
 		switch (opt.mod)
 		{
 			case options::Modes::price:
@@ -37,6 +40,10 @@ void on_new_file_found(std::string file)
 			
 			case options::Modes::holes:
 				a.dump_holelist();
+				break;			
+				
+			case options::Modes::ritch:
+				a.show_ritches();
 				break;
 
 			default:

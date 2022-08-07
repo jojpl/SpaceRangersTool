@@ -7,9 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <sstream>
 #include <string_view>
-#include <type_traits>
 
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -27,7 +25,7 @@ static const std::string crlf_tag = "\r\n";
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) break;
 #define END_PARSE() }while(false);}
 
-bool read_file(std::string& out, const std::string& path)
+bool read_file_as_mem(std::string& out, const std::string& path)
 {
 	std::ifstream f(path, std::ifstream::binary);
 	if(!f) return false;
@@ -259,7 +257,6 @@ Parser_Ctx::get_kv() const
 	return split_to_kv(line_);
 }
 
-
 void Handler::on_new_obj(Global* p, std::string_view obj_name)
 {
 	if (obj_name == "Player")
@@ -279,7 +276,6 @@ void Handler::on_new_obj(Global* p, std::string_view obj_name)
 
 void Handler::on_kv(Global* p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Global)
 		PARSE_TO(IDay)
 	END_PARSE()
@@ -299,7 +295,6 @@ void Handler::on_new_obj(Player * p, std::string_view obj_name)
 
 void Handler::on_kv(Player * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Player)
 		PARSE_TO(ICurStarId)
 		PARSE_TO(IFullName)
@@ -343,7 +338,6 @@ void Handler::on_new_obj(Star * p, std::string_view obj_name)
 
 void Handler::on_kv(Star * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Star)
 		PARSE_TO(StarName)
 		PARSE_TO(X)
@@ -437,7 +431,6 @@ void Handler::on_new_obj(Ship * p, std::string_view obj_name)
 
 void Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Ship)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
@@ -462,7 +455,6 @@ void Handler::on_new_obj(Station * p, std::string_view obj_name)
 
 void Handler::on_kv(Station * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Station)
 		PARSE_TO(IFullName)
 		PARSE_TO(IType)
@@ -511,7 +503,6 @@ void Handler::on_new_obj(Planet * p, std::string_view obj_name)
 
 void Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Planet)
 		PARSE_TO(PlanetName)
 		PARSE_TO(Owner)
@@ -589,7 +580,6 @@ void Handler::on_new_obj(HiddenItem * p, std::string_view obj_name)
 
 void Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(HiddenItem)
 		PARSE_TO(LandType)
 		PARSE_TO(Depth)
@@ -598,7 +588,6 @@ void Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value
 
 void Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 {
-	using namespace Entities;
 	BEGIN_PARSE_FOR(Item)
 		PARSE_TO(IName)
 		PARSE_TO(IType)

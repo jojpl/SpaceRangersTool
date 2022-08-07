@@ -3,6 +3,7 @@
 
 namespace model
 {
+	using namespace Entities;
 	using namespace std::string_literals;
 	
 	namespace enums
@@ -47,11 +48,11 @@ namespace model
 		void from_string(T& field, std::string_view value)
 		{
 			const auto& storage = get_storage<T>();
-			for (const auto& item : storage)
+			for (const auto& [key, val ]: storage)
 			{
-				if (item.second == value)
+				if (val == value)
 				{
-					field = item.first;
+					field = key;
 					return;
 				}
 			}
@@ -65,10 +66,10 @@ namespace model
 		std::string_view to_string(const T& field)
 		{
 			const auto& storage = get_storage<T>();
-			for (const auto& item : storage)
+			for (const auto& [key, val] : storage)
 			{
-				if (item.first == field)
-					return item.second;
+				if (key == field)
+					return val;
 			}
 
 			throw std::logic_error(
@@ -79,8 +80,6 @@ namespace model
 
 	namespace kv
 	{
-		// pointer to member don't have operator< and can't be key for map
-
 		// store keys for struct fields
 		template<typename T, typename Ret>
 		auto& get_storage()
@@ -104,10 +103,10 @@ namespace model
 		std::string_view to_string(const Ret T::* field)
 		{
 			const auto& storage = get_storage<T, Ret>();
-			for (const auto& item : storage)
+			for (const auto& [key, val] : storage)
 			{
-				if (item.first == field)
-					return item.second;
+				if (key == field)
+					return val;
 			}
 
 			throw std::logic_error(

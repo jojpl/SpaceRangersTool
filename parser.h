@@ -10,9 +10,10 @@
 #include <variant>
 namespace parser
 {
+
 using namespace Entities;
 
-bool read_file(std::string& out, const std::string& path);
+bool read_file_as_mem(std::string& out, const std::string& path);
 
 Global* parse(const std::string& mem);
 

@@ -24,6 +24,7 @@ public:
 	void show_price();
 	void dump_holelist();
 	void print_game_date();
+	void show_ritches();
 
 private:
 	void calc_profits();
