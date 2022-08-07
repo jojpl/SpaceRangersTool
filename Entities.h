@@ -252,6 +252,7 @@ namespace Entities
 		Player(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 
 		int ICurStarId = 0;
 		int Debt = 0;
@@ -262,6 +263,7 @@ namespace Entities
 		Warrior(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 	};
 
 	struct Station : Ship

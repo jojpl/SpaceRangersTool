@@ -113,10 +113,8 @@ namespace conv
 
 	/* to_string section end */
 
-	template<typename T, typename Ret, typename Base,
-		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
-		>
-	inline bool parse(Ret T::* field, Base* p,
+	template<typename T, typename Ret>
+	inline bool parse(Ret T::* field, T* p,
 				std::string_view key,
 				std::string_view value)
 	{

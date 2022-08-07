@@ -87,8 +87,6 @@ public:
 private:
 	void init_ctx(std::string_view mem);
 
-	bool validate_parsed();
-	
 	void fix_skiped_look_forwarded_options();
 
 	void parse_line();
