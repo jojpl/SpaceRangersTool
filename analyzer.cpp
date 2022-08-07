@@ -5,6 +5,7 @@
 #include "model.hpp"
 #include "convert.h"
 #include "common_algo.h"
+#include "datetime.h"
 
 #include <algorithm>
 #include <array>
@@ -606,6 +607,12 @@ void analyzer::dump_holelist()
 
 		std::cout << res << std::endl;
 	}
+}
+
+void analyzer::print_game_date()
+{
+	auto str = datetime::get_cur_game_date_str(data->IDay);
+	std::cout << str <<std::endl;
 }
 
 }//namespace analyzer

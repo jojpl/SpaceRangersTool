@@ -15,12 +15,15 @@ class analyzer
 public:
 	analyzer(Global * data_)
 		:data(data_)
-	{}
+	{
+		print_game_date();
+	}
 
 	void analyze_profit();
 	void dump_treasures();
 	void show_price();
 	void dump_holelist();
+	void print_game_date();
 
 private:
 	void calc_profits();
