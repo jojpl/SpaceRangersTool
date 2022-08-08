@@ -2,6 +2,7 @@ add_executable(SpaceRangersTool
         analyzer.cpp
         common_algo.cpp
         convert.cpp
+        datetime.cpp
         #db.cpp
         factory.cpp
         filefinder.cpp
@@ -16,6 +17,7 @@ add_executable(SpaceRangersTool
         analyzer_entities.h
         common_algo.h
         convert.h
+        datetime.h
         Entities.h
         factory.hpp
         filefinder.hpp
