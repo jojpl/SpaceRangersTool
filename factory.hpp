@@ -1,6 +1,6 @@
 #pragma once
 #include "Entities.h"
-
+#include <algorithm>
 #include <boost/container/stable_vector.hpp>
 namespace storage
 {

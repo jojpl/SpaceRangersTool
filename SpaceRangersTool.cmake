@@ -30,7 +30,8 @@ add_executable(SpaceRangersTool
 )
 
 target_link_libraries(SpaceRangersTool PRIVATE 
-        Boost::program_options 
+        Boost::program_options
+        Boost::filesystem
         )
 
 set_target_properties(SpaceRangersTool

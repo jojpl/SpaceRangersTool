@@ -1,4 +1,4 @@
-#pragma once
+  #pragma once
 #include "analyzer_entities.h"
 #include "programargs.hpp"
 
@@ -270,7 +270,7 @@ namespace filters
 
 		std::tuple<std::shared_ptr<Args> ...> filters;
 
-		bool operator()(const any& ti) {
+		bool operator()(const any& ti) override {
 			return std::apply
 			(
 				[&ti](std::shared_ptr<Args>& ... args){

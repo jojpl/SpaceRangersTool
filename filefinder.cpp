@@ -1,15 +1,15 @@
 #include "filefinder.hpp"
 #include "programargs.hpp"
 
-#include <filesystem>
 #include <set>
 #include <map>
 #include <iostream>
-#include <system_error>
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
 
 void filefinder::find()
 {
-	using namespace std::filesystem;
+	using namespace boost::filesystem;
 	std::string file;
 
 	try
@@ -31,22 +31,23 @@ void filefinder::find()
 			}
 #endif
 		}
+		boost::system::error_code ec;
 	
-		std::error_code ec;
-		directory_entry d(p, ec);
-		if (ec)	d.assign(std::filesystem::current_path(), ec);
+		directory_entry d(p);//, ec);
+		d.status(ec);
+		if (ec)	d.assign(current_path());//, ec);
 
 		directory_iterator di(d, ec);
 		if (ec) throw filesystem_error("Message", p, ec);
 
-		std::map<file_time_type, directory_entry> m;
-		std::set<file_time_type> for_sort_ft;
+		std::map<std::time_t, directory_entry> m;
+		std::set<std::time_t> for_sort_ft;
 	
 		for (auto f: di)
 		{
 			path fp(f);
 			auto ext = fp.extension();
-			if(ext == L".txt")
+			if(ext.generic_string() == ".txt")
 			{
 				auto ftime = last_write_time(f);
 				m.emplace(ftime, f);
