@@ -128,8 +128,16 @@ namespace Entities
 
 		PirateClan
 	};
-	
 
+	enum class Goverment
+	{
+		Anarchy,
+		Democracy,
+		Dictatorship,
+		Monarchy,
+		Republic,
+	};
+	
 	struct Item;
 	struct HiddenItem;
 	struct Star;
@@ -347,7 +355,7 @@ namespace Entities
 		Owner Owner;
 		string Race;
 		string Economy;
-		string Goverment;
+		Goverment Goverment;
 		int	ISize = 0;
 		double OrbitRadius = 0.0;
 		double	OrbitAngle = 0.0;

@@ -114,6 +114,14 @@ namespace enums
 			NAME2TYPE_ELEMENT(PirateClan)
 		END_FOR()
 
+		BEGIN_FOR(Goverment)
+			NAME2TYPE_ELEMENT(Anarchy)
+			NAME2TYPE_ELEMENT(Democracy)
+			NAME2TYPE_ELEMENT(Dictatorship)
+			NAME2TYPE_ELEMENT(Monarchy)
+			NAME2TYPE_ELEMENT(Republic)
+		END_FOR()
+
 		#undef BEGIN_FOR
 		#undef NAME2TYPE_ELEMENT
 		#undef END_FOR

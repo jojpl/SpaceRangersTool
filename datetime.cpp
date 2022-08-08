@@ -25,7 +25,7 @@ std::string get_cur_game_date_str(int days_left)
 	else
 		d = date{};
 
-	ss << "Game date is:" << d;
+	ss << "Game date is: " << d;
 
 	return ss.str();
 }

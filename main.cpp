@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
 {
 #ifdef _WIN32
 	::SetConsoleOutputCP(1251);
+	//::SetConsoleTextAttribute()
+	//_get_osfhandle
 #endif
 
 	if(!options::parse_args(argc, argv))

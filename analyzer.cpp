@@ -618,19 +618,36 @@ void analyzer::print_game_date()
 void analyzer::show_ritches()
 {
 	const auto& sh = storage::get<Ship>();
+	struct Info 
+	{
+		string Name;
+		string StarName;
+		int Money;
+	};
+
+	vector<Info> vi;
 	for (const auto& s: sh)
 	{
 		if (s.IType != Type::Transport)
 			continue;
-		
-		const std::string templ =
-			"%-15s %20s %d";
 
-		auto n = cut_to<15>(s.Name);
-		auto sn = cut_to<15>(s.location.star->StarName);
+		vi.push_back({s.Name, s.location.star->StarName, s.Money});
+	}
+
+	std::sort(begin(vi), end(vi), 
+		sorters::CommonSorter1(&Info::Name)
+	);
+
+	for (const auto& i : vi)
+	{
+		const std::string templ =
+			"%-15s %-20s %d";
+
+		auto n = cut_to<15>(i.Name);
+		auto sn = cut_to<15>(i.StarName);
 		
 		auto res = string_format(templ.data(),
-			sn.data(), n.data(), s.Money
+			sn.data(), n.data(), i.Money
 		);
 
 		std::cout << res << std::endl;
