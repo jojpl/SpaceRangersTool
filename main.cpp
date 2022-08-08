@@ -9,23 +9,46 @@
 #include <windows.h>
 #endif
 
+using namespace std::string_literals;
+
 void on_new_file_found(std::string file)
 {
-	auto& opt = options::get_opt();
-	Entities::Global* out = nullptr;
 	try
 	{
 		std::string mem;
-		if(parser::read_file(mem, file))
-			out = parser::parse(mem);
-		mem.clear();
+		if(!parser::read_file_as_mem(mem, file))
+		throw std::logic_error("Can't read file : "s + file);
+
+		Entities::Global* out = parser::parse(mem);
+		mem.resize(0);
 		
 		analyzer::analyzer a(out);
-		if(opt.price_mod)
-			a.show_price();
-		else
-			a.analyze_profit();
-		//analyzer::analyzer(out).dump_treasures();
+		const auto& opt = options::get_opt();
+		switch (opt.mod)
+		{
+			case options::Modes::price:
+				a.show_price();
+				break;
+
+			case options::Modes::profit:
+				a.analyze_profit();
+				break;
+
+			case options::Modes::treasures:
+				a.dump_treasures();
+				break;			
+			
+			case options::Modes::holes:
+				a.dump_holelist();
+				break;			
+				
+			case options::Modes::ritch:
+				a.show_ritches();
+				break;
+
+			default:
+				break;
+		}
 	}
 	catch (const std::exception& e)
 	{
@@ -38,6 +61,8 @@ int main(int argc, char *argv[])
 {
 #ifdef _WIN32
 	::SetConsoleOutputCP(1251);
+	//::SetConsoleTextAttribute()
+	//_get_osfhandle
 #endif
 
 	if(!options::parse_args(argc, argv))

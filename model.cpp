@@ -1,9 +1,4 @@
 #include "model.hpp"
-#include "convert.h"
-
-#include <algorithm>
-#include <map>
-#include <string_view>
 
 namespace model
 {
@@ -12,10 +7,9 @@ namespace enums
 	void init_converter_impl()
 	{
 		#define BEGIN_FOR(struct_name) { using t = struct_name;
-		#define NAME2TYPE_ELEMENT(name) add_definition(#name, t::name);
+		#define NAME2TYPE_ELEMENT(name) add_definition(t::name, #name);
 		#define END_FOR() }
 
-		using namespace Entities;
 		BEGIN_FOR(Type)
 			NAME2TYPE_ELEMENT(Alcohol)
 			NAME2TYPE_ELEMENT(Arms)
@@ -102,6 +96,31 @@ namespace enums
 			NAME2TYPE_ELEMENT(Arms)
 			NAME2TYPE_ELEMENT(Narcotics)
 		END_FOR()
+		
+		BEGIN_FOR(OwnersGroup)
+			NAME2TYPE_ELEMENT(Klings)
+			NAME2TYPE_ELEMENT(Normals)
+			NAME2TYPE_ELEMENT(Pirates)
+		END_FOR()
+
+		BEGIN_FOR(Owner)
+			NAME2TYPE_ELEMENT(None)
+			NAME2TYPE_ELEMENT(Kling)
+			NAME2TYPE_ELEMENT(Fei)
+			NAME2TYPE_ELEMENT(Gaal)
+			NAME2TYPE_ELEMENT(Maloc)
+			NAME2TYPE_ELEMENT(Peleng)
+			NAME2TYPE_ELEMENT(People)
+			NAME2TYPE_ELEMENT(PirateClan)
+		END_FOR()
+
+		BEGIN_FOR(Goverment)
+			NAME2TYPE_ELEMENT(Anarchy)
+			NAME2TYPE_ELEMENT(Democracy)
+			NAME2TYPE_ELEMENT(Dictatorship)
+			NAME2TYPE_ELEMENT(Monarchy)
+			NAME2TYPE_ELEMENT(Republic)
+		END_FOR()
 
 		#undef BEGIN_FOR
 		#undef NAME2TYPE_ELEMENT
@@ -118,8 +137,6 @@ namespace kv
 		#define ADD_DEF(field) add_definition(&t::field, #field);
 		#define ADD_DEF_SPECIFIC(field, key) add_definition(&t::field, #key);
 		#define END_DEF() }
-
-		using namespace Entities;
 
 		BEGIN_DEF_FOR(Global)
 			ADD_DEF(IDay)
@@ -139,7 +156,7 @@ namespace kv
 			ADD_DEF(Money)
 		END_DEF()
 
-		BEGIN_DEF_FOR(ShipBases)
+		BEGIN_DEF_FOR(Station)
 			ADD_DEF(ShopGoods)
 			ADD_DEF(ShopGoodsSale)
 			ADD_DEF(ShopGoodsBuy)
@@ -212,6 +229,12 @@ namespace kv
 			ADD_DEF(X)
 			ADD_DEF(Y)
 			ADD_DEF(Owners)
+		END_DEF()
+
+		BEGIN_DEF_FOR(Hole)
+			ADD_DEF(Star1Id)
+			ADD_DEF(Star2Id)
+			ADD_DEF(TurnsToClose)
 		END_DEF()
 
 		#undef BEGIN_DEF_FOR

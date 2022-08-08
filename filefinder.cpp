@@ -11,22 +11,25 @@ void filefinder::find()
 {
 	using namespace std::filesystem;
 	std::string file;
-	auto& opt = options::get_opt();
 
 	try
 	{
-		// TODO load from config!
 		path p;
+		const auto& opt = options::get_opt();
 		if(opt.dir)
 			p = opt.dir.value();
 		else
 		{
-			// win
-			std::string home_drive = std::getenv("HOMEDRIVE");
-			std::string home_patch = std::getenv("HOMEPATH");
-			std::string save_game = "\\Documents\\spacerangershd\\save\\";
-			std::string real_dir = home_drive + home_patch + save_game;
-			p = real_dir;
+#ifdef _WIN32
+			const char* home_drive = std::getenv("HOMEDRIVE");
+			const char* home_patch = std::getenv("HOMEPATH");
+			if(home_drive && home_patch)
+			{
+				p/= home_drive;
+				p/= home_patch;
+				p/= "Documents\\spacerangershd\\save\\";
+			}
+#endif
 		}
 	
 		std::error_code ec;

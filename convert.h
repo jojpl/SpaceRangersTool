@@ -59,19 +59,17 @@ namespace conv
 
 	inline void from_string(std::string& ret, std::string_view value)
 	{
-		ret = {value.data(), value.data() + value.size()};
+		ret = std::string{value};
 	}
 
-	inline void from_string(Entities::Type& ret, std::string_view value)
+	template<typename T,
+		typename SFINAE = std::enable_if_t<std::is_enum_v<T>>
+	>
+	void from_string(T& ret, std::string_view value)
 	{
 		model::enums::from_string(ret, value);
 	}
 
-	inline void from_string(Entities::GoodsEnum& ret, std::string_view value)
-	{
-		model::enums::from_string(ret, value);
-	}
-	
 	inline void from_string(bool& ret, std::string_view value)
 	{
 		if(value == "False")
@@ -105,21 +103,18 @@ namespace conv
 	
 	/* to_string section begin */
 
-	inline std::string_view to_string(const Entities::GoodsEnum& t)
+	template<typename T, 
+		typename SFINAE = std::enable_if_t<std::is_enum_v<T>>
+		>
+	std::string_view to_string(const T& t)
 	{
 		return model::enums::to_string(t);
 	}
 
-	inline std::string_view to_string(const Entities::Type& t)
-	{
-		return model::enums::to_string(t);
-	}
 	/* to_string section end */
 
-	template<typename T, typename Ret, typename Base,
-		typename SFINAE = std::enable_if_t<std::is_base_of_v<T, Base>>
-		>
-	inline bool parse(Ret T::* field, Base* p,
+	template<typename T, typename Ret>
+	inline bool parse(Ret T::* field, T* p,
 				std::string_view key,
 				std::string_view value)
 	{

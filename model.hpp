@@ -3,6 +3,7 @@
 
 namespace model
 {
+	using namespace Entities;
 	using namespace std::string_literals;
 	
 	namespace enums
@@ -10,14 +11,15 @@ namespace model
 		template<typename T>
 		auto& get_storage()
 		{
-			static std::map<std::string_view, T> map_for;
-			return map_for;
+			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
+			static std::vector<std::pair<T, std::string_view>> storage;
+			return storage;
 		}
 
 		template<typename T>
 		auto& get_strings()
 		{
-			static std::vector<std::string> vs;
+			static std::vector<std::string_view> vs;
 			return vs;
 		}
 
@@ -29,43 +31,45 @@ namespace model
 		}
 
 		template<typename T>
-		void add_definition(std::string_view key,
-			const T& value)
+		void add_definition(const T& value,
+			std::string_view key)
 		{
 			auto& storage = get_storage<T>();
-			storage.insert({ key, value });
+			storage.push_back({ value, key });
 
 			auto& enums = get_enums<T>();
 			enums.push_back(value);
 
 			auto& strings = get_strings<T>();
-			strings.push_back({ key.data(), key.size() });
+			strings.push_back(key);
 		}
 
 		template<typename T>
 		void from_string(T& field, std::string_view value)
 		{
 			const auto& storage = get_storage<T>();
-			try
+			for (const auto& [key, val ]: storage)
 			{
-				field = storage.at(value);
+				if (val == value)
+				{
+					field = key;
+					return;
+				}
 			}
-			catch (const std::exception&)
-			{
-				throw std::logic_error(
-					"empty value for: "s + typeid(field).name()
-				);
-			}
+
+			throw std::logic_error(
+				"empty value for: "s + typeid(field).name()
+			);
 		}
 
 		template<typename T>
 		std::string_view to_string(const T& field)
 		{
 			const auto& storage = get_storage<T>();
-			for (const auto& item : storage)
+			for (const auto& [key, val] : storage)
 			{
-				if (item.second == field)
-					return item.first;
+				if (key == field)
+					return val;
 			}
 
 			throw std::logic_error(
@@ -76,14 +80,14 @@ namespace model
 
 	namespace kv
 	{
-		// pointer to member don't have operator< and can't be key for map
-
 		// store keys for struct fields
 		template<typename T, typename Ret>
-		auto& get_storage(Ret T::* field)
+		auto& get_storage()
 		{
 			// contain definitions for parse Entities::T fields -> string
-			static std::vector<std::pair<Ret T::*, std::string_view>> storage{};
+			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
+			static_assert(!std::is_const_v<Ret>, "incorrect to create consts obj!");
+			static std::vector<std::pair<const Ret T::*, std::string_view>> storage{};
 			return storage;
 		}
 
@@ -91,18 +95,18 @@ namespace model
 		void add_definition(const Ret T::* field,
 			std::string_view key)
 		{
-			auto& storage = get_storage(field);
+			auto& storage = get_storage<T, Ret>();
 			storage.push_back({ field, key });
 		}
 
 		template<typename T, typename Ret>
 		std::string_view to_string(const Ret T::* field)
 		{
-			const auto& storage = get_storage(field);
-			for (const auto& item : storage)
+			const auto& storage = get_storage<T, Ret>();
+			for (const auto& [key, val] : storage)
 			{
-				if (item.first == field)
-					return item.second;
+				if (key == field)
+					return val;
 			}
 
 			throw std::logic_error(

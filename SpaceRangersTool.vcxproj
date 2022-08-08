@@ -95,6 +95,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\src\boost_1_73_0;C:\lib\SOCI_SQLITE\include;C:\lib\fmt\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,6 +164,8 @@
     <ClCompile Include="analyzer.cpp" />
     <ClCompile Include="common_algo.cpp" />
     <ClCompile Include="convert.cpp" />
+    <ClCompile Include="con_text_coloring.cpp" />
+    <ClCompile Include="datetime.cpp" />
     <ClCompile Include="db.cpp" />
     <ClCompile Include="factory.cpp" />
     <ClCompile Include="filefinder.cpp" />
@@ -178,6 +181,8 @@
     <ClInclude Include="analyzer_entities.h" />
     <ClInclude Include="common_algo.h" />
     <ClInclude Include="convert.h" />
+    <ClInclude Include="con_text_coloring.h" />
+    <ClInclude Include="datetime.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="factory.hpp" />
     <ClInclude Include="filefinder.hpp" />

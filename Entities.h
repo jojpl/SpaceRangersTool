@@ -106,14 +106,46 @@ namespace Entities
 
 		NUM
 	};
-	
 
+	enum class OwnersGroup
+	{
+		Klings,
+		Normals,
+		Pirates
+	};
+
+	enum class Owner
+	{
+		None,
+
+		Kling,
+
+		Fei,
+		Gaal,
+		Maloc,
+		Peleng,
+		People,
+
+		PirateClan
+	};
+
+	enum class Goverment
+	{
+		Anarchy,
+		Democracy,
+		Dictatorship,
+		Monarchy,
+		Republic,
+	};
+	
 	struct Item;
 	struct HiddenItem;
 	struct Star;
 	struct Planet;
 	struct Ship;
+	struct Station;
 	struct Player;
+	struct Hole;
 
 
 	struct Unknown
@@ -132,12 +164,12 @@ namespace Entities
 
 	struct GoodsQty
 	{
-		GoodsPack packed;
+		GoodsPack packed {};
 	};
 
 	struct GoodsPrice
 	{
-		GoodsPack packed;
+		GoodsPack packed {};
 	};
 
 	//help struct
@@ -148,6 +180,7 @@ namespace Entities
 		GoodsPrice sale;
 
 		Location location;
+		Station* shipshop = nullptr;
 	};
 
 	struct EqList
@@ -190,11 +223,17 @@ namespace Entities
 		vector<Ship*> list;
 	};
 
+	struct HoleList
+	{
+		vector<Hole*> list;
+	};
+
 	struct Global
 	{
 		int IDay = 0;
 		Player* Player = nullptr;
 		StarList StarList;
+		HoleList HoleList;
 	};
 
 	struct Ship
@@ -221,6 +260,7 @@ namespace Entities
 		Player(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 
 		int ICurStarId = 0;
 		int Debt = 0;
@@ -231,13 +271,15 @@ namespace Entities
 		Warrior(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 	};
 
-	struct ShipBases : Ship
+	struct Station : Ship
 	{
-		ShipBases(int Id_, Location location_)
+		Station(int Id_, Location location_)
 			: Ship(Id_, location_)
 		{	}
+		using Inherit = Ship;
 
 		inline static std::array<Type, 7> allowedTypes
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
@@ -277,7 +319,7 @@ namespace Entities
 		optional<int> MaxDamage;
 		optional<int> MinDamage;
 		bool NoDrop = false;
-		string Owner;
+		Owner Owner;
 		optional<int> Power;
 		optional<int> Radius;
 		optional<int> Repair;
@@ -310,10 +352,10 @@ namespace Entities
 
 		int Id = 0;
 		string PlanetName;
-		string Owner;
+		Owner Owner;
 		string Race;
 		string Economy;
-		string Goverment;
+		Goverment Goverment;
 		int	ISize = 0;
 		double OrbitRadius = 0.0;
 		double	OrbitAngle = 0.0;
@@ -342,9 +384,24 @@ namespace Entities
 		string StarName;
 		double X = 0.0;
 		double Y = 0.0;
-		string Owners;
+		OwnersGroup Owners;
 		ShipList ShipList;
 		PlanetList PlanetList;
 		Junk Junk;
+	};
+
+	struct Hole
+	{
+		Hole(int Id_)
+			: Id(Id_)
+		{	}
+
+		int Id           = 0;
+		int Star1Id      = 0;
+		int Star2Id      = 0;
+		int TurnsToClose = 0;
+
+		Location from;
+		Location to;
 	};
 }
