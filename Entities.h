@@ -87,6 +87,14 @@ namespace Entities
 		W15,
 		W16,
 		W17,
+		W18,
+		W19,
+		W20,
+		W21,
+		W22,
+		W23, 
+		// terrible enum vals W.. to think about fix
+
 		WB,
 		Warrior,
 
@@ -137,7 +145,7 @@ namespace Entities
 		Monarchy,
 		Republic,
 	};
-	
+
 	struct Item;
 	struct HiddenItem;
 	struct Star;

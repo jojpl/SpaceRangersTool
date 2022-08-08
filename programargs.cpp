@@ -26,12 +26,12 @@ namespace options
 			desc.add_options()
 				("help,h", "produce help message")
 
-				("from", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
-				("to", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
-				("planet-from", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
-				("planet-to", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
+				("from,f", po::value<std::string>()->notifier(handle_star_from), "star-from descr")
+				("to,t", po::value<std::string>()->notifier(handle_star_to), "star-to descr")
+				("from-planet", po::value<std::string>()->notifier(handle_planet_from), "planet-from descr")
+				("to-planet", po::value<std::string>()->notifier(handle_planet_to), "planet-to descr")
 				("max-dist,d", po::value<int>()->default_value(40), "max-dist descr")
-				("count,c", po::value<std::string>()->default_value("10")->notifier(handle_count), "top's count also aviable \"all\" value")
+				("count", po::value<std::string>()->default_value("10")->notifier(handle_count), "top's count also aviable \"all\" value")
 				("min-profit,p", po::value<int>()->default_value(1000), "min-profit descr")
 				("sort-by,s", po::value<std::string>()->default_value("profit")
 					->notifier(handle_sort_options),
