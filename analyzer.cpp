@@ -44,12 +44,34 @@ struct star_names_list
 	std::vector<std::string_view> list;
 };
 
+struct planet_names_list
+{
+	planet_names_list()
+	{
+		const auto& planets = storage::get<Planet>();
+		std::transform(std::cbegin(planets), std::cend(planets), std::back_inserter(list),
+			[](const Planet& p) {
+				return std::string_view{ p.PlanetName };
+			}
+		);
+	}
+	std::vector<std::string_view> list;
+};
+
 Star* find_star_by_name_soft(std::string_view sw)
 {
-	static star_names_list star_names;
-	auto pos = common_algo::soft_search(sw, star_names.list);
+	static star_names_list names;
+	auto pos = common_algo::soft_search(sw, names.list);
 	if(pos == sw.npos) return nullptr;
-	return storage::find_star_by_name(star_names.list[pos]);
+	return storage::find_star_by_name(names.list[pos]);
+}
+
+Planet* find_planet_by_name_soft(std::string_view sw)
+{
+	static planet_names_list names;
+	auto pos = common_algo::soft_search(sw, names.list);
+	if (pos == sw.npos) return nullptr;
+	return storage::find_planet_by_name(names.list[pos]);
 }
 
 int get_distance(const Star* s1, const Star* s2)
@@ -240,15 +262,16 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	return;
 }
 
-filter_ptr analyzer::createPathFilter()
+void find_path_ids_from_opt(int& s1_id, int& s2_id,
+	int& p1_id, int& p2_id)
 {
 	auto opt = options::get_opt();
-	int max_dist = opt.max_dist.value();
-	auto* cur_s = data->Player->location.star;
-	auto* cur_p = data->Player->location.planet;
+	auto loc = storage::find_player_cur_location();
+	auto* cur_s = loc.star;
+	auto* cur_p = loc.planet;
 	
 	// reslove id's using options
-	int s1_id = 0, s2_id = 0,
+	s1_id = 0, s2_id = 0,
 		p1_id = 0, p2_id = 0;
 
 	if (opt.star_from_use_current)
@@ -287,7 +310,7 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.planet_from)
 	{
 		auto name = opt.planet_from.value();
-		auto* p = storage::find_planet_by_name(name);
+		auto* p = find_planet_by_name_soft(name);
 		if (!p) throw std::logic_error(name + " planet not found!");
 		p1_id = p->Id;
 	}
@@ -300,11 +323,19 @@ filter_ptr analyzer::createPathFilter()
 	else if (opt.planet_to)
 	{
 		auto name = opt.planet_to.value();
-		auto* p = storage::find_planet_by_name(name);
+		auto* p = find_planet_by_name_soft(name);
 		if (!p) throw std::logic_error(name + " planet not found!");
 		p2_id = p->Id;
 	}
+}
 
+filter_ptr analyzer::createPathFilter()
+{
+	int s1_id = 0, s2_id = 0, p1_id = 0, p2_id = 0;
+	find_path_ids_from_opt(s1_id, s2_id, p1_id, p2_id);
+
+	auto opt = options::get_opt();
+	int max_dist = opt.max_dist.value();
 	// create filter
 	return filter_ptr(new filters::FilterByPath(
 		max_dist,
@@ -456,43 +487,54 @@ void analyzer::analyze_profit()
 	calc_profits();
 }
 
-std::ostream& dump_Item_info(std::ostream& os, Item* item)
+std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 {
-	// TODO - meditate about game model objects getter
 	auto* cur_s = storage::find_player_cur_star();
-	if(!cur_s) throw std::logic_error("Find player err!");
+	if (!cur_s) throw std::logic_error("Find player err!");
+	auto* item = hitem->item;
+	int lt = hitem->LandType;
+	std::string_view lt_s = hitem->LandType == 0 ? "Water" :
+							hitem->LandType == 1 ? "Land" :
+							hitem->LandType == 2 ? "Mount" :
+							"???";
 
-	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners}"
+	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners},{landType:<5},{depth}"
 		, fmt::arg("id", item->Id)
 		, fmt::arg("name", item->IName)
 		, fmt::arg("type", conv::to_string(item->IType))
 		, fmt::arg("star", item->location.star->StarName)
 		, fmt::arg("planet", item->location.planet->PlanetName)
 		, fmt::arg("dist", get_distance(cur_s, item->location.star))
-		, fmt::arg("star_owners", conv::to_string(item->Owner) )
-		);
-
-	return os << res;
-}
-
-std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
-{
-	dump_Item_info(os, hitem->item);
-	auto res = fmt::format(
-	",{landType},{depth}", 
-		fmt::arg("landType", hitem->LandType),
-		fmt::arg("depth", hitem->Depth)
+		, fmt::arg("star_owners", conv::to_string(item->Owner))
+		, fmt::arg("landType", lt_s)
+		, fmt::arg("depth", hitem->Depth)
 	);
+
 	return os << res;
 }
 
 void analyzer::dump_treasures()
 {
 	auto& items = storage::get<HiddenItem>();
-	//std::vector<HiddenItem_info> vhi;
+	//auto& opt = options::get_opt();
+	//if(opt)
+	int s1_id = 0, s2_id = 0, p1_id = 0, p2_id = 0;
+	find_path_ids_from_opt(s1_id, s2_id, p1_id, p2_id);
+
 	std::ostream& os =  std::cout;
+	auto head = "id,name,type,star,planet,dist, star_owners,landType,depth";
+	os << head << "\n";
 	for (auto& item : items)
 	{
+		if (s1_id 
+		&& item.item->location.star->Id != s1_id)
+			continue;
+
+		if (p1_id 
+		&& item.item->location.planet 
+		&& item.item->location.planet->Id != p1_id)
+			continue;
+
 		dump_HiddenItem_info(os, &item);
 		std::cout << '\n';
 	}
