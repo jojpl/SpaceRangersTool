@@ -49,6 +49,8 @@ namespace options
 				//("price-mod", po::value<bool>()->implicit_value(true)->default_value(""), "show prices")
 				("mod,m", po::value<Modes>()->default_value(Modes::profit), "show prices")
 				("tops", po::value<bool>()->implicit_value(true), "show top deal for from each planet for each good")
+				("perf", po::value<bool>()->implicit_value(true)->default_value(false), "enable performance tracker")
+				// TODO fix to hidden opt
 			;
 			po::positional_options_description pd;
 			pd.add("count", 1);
@@ -81,6 +83,7 @@ namespace options
 			//SAVE_AS_IS("price-mod", Options::price_mod)
 			SAVE_AS_IS("mod", Options::mod)
 			SAVE_AS_IS("tops", Options::tops)
+			SAVE_AS_IS("perf", Options::perf)
 		}
 		catch (std::exception& e) {
 			std::cerr << "error: " << e.what() << "\n";

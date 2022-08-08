@@ -4,6 +4,7 @@
 
 class performance_tracker
 {
+	bool enabled_ = false;
 	std::ostream& os_;
 	std::string mes_;
 	long long start_  = 0;

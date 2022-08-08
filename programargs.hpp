@@ -59,6 +59,7 @@ namespace options
 		bool                       price_mod = false;
 		Modes                      mod = Modes::profit;
 		bool                       tops = false;
+		bool                       perf = false;
 	};
 
 	inline Options& get_opt()
