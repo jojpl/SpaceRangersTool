@@ -8,17 +8,20 @@
 #include <string_view>
 #include <iostream>
 #include <optional>
+#include <any>
 
 namespace filters
 {
 	using namespace analyzer;
 	struct IFilter;
 	using filter_ptr = std::shared_ptr<IFilter>;
+	using std::any;
+	using std::any_cast;
 
 	struct IFilter
 	{
 		// true - accept, false - decline
-		virtual bool operator()(const TradeInfo&) = 0;
+		virtual bool operator()(const std::any&) = 0;
 		virtual ~IFilter() = default;
 	};
 
@@ -28,11 +31,10 @@ namespace filters
 		virtual ~IPathFilter() = default;
 
 		//private:
-		virtual bool operator()(const TradeInfo& ti) override
+		virtual bool operator()(const any& ti) override
 		{
-			return operator()(ti.path);
+			return operator()(any_cast<TradeInfo>(ti).path);
 		}
-
 	};
 
 	struct IProfitFilter : IFilter
@@ -41,9 +43,9 @@ namespace filters
 		virtual ~IProfitFilter() = default;
 
 		//private:
-		virtual bool operator()(const TradeInfo& ti) override
+		virtual bool operator()(const any& ti) override
 		{
-			return operator()(ti.profit);
+			return operator()(any_cast<TradeInfo>(ti).profit);
 		}
 	};
 
@@ -156,7 +158,7 @@ namespace filters
 	struct Nul_Opt : IFilter
 	{
 		Nul_Opt() = default;
-		bool operator()(const TradeInfo&) override { return true; }
+		bool operator()(const any&) override { return true; }
 	};
 
 	struct FilterByStarFromIdArr : IPathFilter
@@ -268,7 +270,7 @@ namespace filters
 
 		std::tuple<std::shared_ptr<Args> ...> filters;
 
-		bool operator()(const TradeInfo& ti) {
+		bool operator()(const any& ti) {
 			return std::apply
 			(
 				[&ti](std::shared_ptr<Args>& ... args){
