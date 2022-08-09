@@ -203,6 +203,7 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 {
 	performance_tracker tr("iter");
+	vti.reserve(1'500'000); // 8 * ObjPrices_qty^2
 
 	auto& prices = storage::get<ObjPrices>();
 	for (auto& p_from : prices)
@@ -224,29 +225,28 @@ void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<TradeInfo> vti; 
-	vti.reserve(1'000'000); // 8 * planets_qty^2
 	calc_all_trade_paths_info(vti);
 
 	const auto& opt = options::get_opt();
 	// optimization - filter cut >90% of vp values usually.
-	auto v1 = boost::remove_erase_if(vti, 
+	boost::remove_erase_if(vti,
 		std::not_fn(filters::FilterByMinProfit(opt.min_profit))
 	);
 
 	apply_filter(vti, filt);
 
-	std::sort(vti.rbegin(), vti.rend(),
-		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
-			return (*sorter)(ti1, ti2);
-		}
-	);
-
 	if (opt.tops)
 	{
+		std::sort(vti.rbegin(), vti.rend(),
+			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
+				return (*tops_cmp_2)(ti1, ti2);
+			}
+		);
+
 		auto v1 = std::unique(vti.begin(), vti.end(),
 			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
-				bool le = (*tops_cmp_)(ti1, ti2);
-				bool ge = (*tops_cmp_)(ti2, ti1);
+				bool le = (*tops_cmp_1)(ti1, ti2);
+				bool ge = (*tops_cmp_1)(ti2, ti1);
 				bool eq = (!le && !ge); //eq
 				return eq;
 			}
@@ -258,6 +258,12 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 			sorters::MaxProfitSorter()
 		);
 	}
+
+	std::sort(vti.rbegin(), vti.rend(),
+		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
+			return (*sorter)(ti1, ti2);
+		}
+	);
 
 	dump_top(std::cout, vti, options::get_opt());
 
@@ -467,9 +473,9 @@ sorter_ptr analyzer::createSort()
 		sort_options.push_back({ options::SortField::good,   {} });
 		sort_options.push_back({ options::SortField::star,   {} });
 		sort_options.push_back({ options::SortField::planet, {} });
-		tops_cmp_ = createSortfromOpt(sort_options); //dirty hack
+		tops_cmp_1 = createSortfromOpt(sort_options);
 		sort_options.push_back({ options::SortField::profit, {} });
-		return createSortfromOpt(sort_options);
+		tops_cmp_2 = createSortfromOpt(sort_options);
 	}
 
 	options::SortOptions& sort_options = opt.sort_options;

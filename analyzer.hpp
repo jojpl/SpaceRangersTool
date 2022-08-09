@@ -37,7 +37,8 @@ private:
 	sorter_ptr createSort();
 
 	Global * data = nullptr;
-	sorter_ptr tops_cmp_{};
+	sorter_ptr tops_cmp_1{};
+	sorter_ptr tops_cmp_2{};
 };
 
 int get_distance(const Star* s1, const Star* s2);
