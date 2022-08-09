@@ -1,107 +1,95 @@
 #pragma once
-#include "analyzer_entities.h"
+//#include "analyzer_entities.h"
 #include <memory>
 #include <functional>
+#include <any>
 
 namespace sorters
 {
-	using namespace analyzer;
+	//using namespace analyzer;
+	struct ISort;
+	using std::any;
+	using std::any_cast;
 
-	template<typename T>
-	struct ISort_v2
+	using sorter_ptr = std::shared_ptr<ISort>;
+
+	// common interface
+	struct ISort
 	{
 		// less operator
-		virtual bool operator()(const T&, const T&) const = 0;
-		virtual ~ISort_v2() = default;
+		virtual bool operator()(const any&, const any&) const = 0;
+		virtual ~ISort() = default;
 	};
 
-	using sorter_ptr = std::shared_ptr<ISort_v2<TradeInfo>>;
 
-	// any field of any struct less than other
-	template<typename TS, typename RetS, 
-			typename TS2, typename RetS2, 
-			typename TS3, typename RetS3>
-	struct CommonSorter3 : ISort_v2<TS>
-	{
-		CommonSorter3(RetS TS::* struc, RetS2 TS2::* field, RetS3 TS3::* field3)
-			: struct_(struc)
-			, field_(field)
-			, field3_(field3)
-		{	}
-
-		RetS TS::*   struct_;
-		RetS2 TS2::* field_;
-		RetS3 TS3::* field3_;
-
-		bool operator()(const TS& pr1, const TS& pr2) const override
-		{
-			return ((pr1.*struct_).*field_).*field3_ < ((pr2.*struct_).*field_).*field3_;
-		}
-	};
-
-	template<typename TS, typename RetS, typename TS2, typename RetS2>
-	struct CommonSorter2 : ISort_v2<TS>
-	{
-		CommonSorter2(RetS TS::* struc, RetS2 TS2::* field)
-			: struct_(struc)
-			, field_ (field)
-		{	}
-
-		RetS TS::*   struct_;
-		RetS2 TS2::* field_;
-
-		bool operator()(const TS& pr1, const TS& pr2) const override
-		{
-			return (pr1.*struct_).*field_ < (pr2.*struct_).*field_;
-		}
-	};
+	// help struct
+	template<typename T>
+	struct member_ptr;
 
 	template<typename T, typename R>
-	struct mem_ptr
+	struct member_ptr<R T::*>
 	{
-		using Type = T ;
-		using Ret  = R;
+		using type = T;
+		using ret = R;
 	};
 
-	template<typename TS, typename RetS>
-	struct CommonSorter1 : ISort_v2<TS>
+	// any field of any struct less than other
+	template<typename ... Args>
+	struct CommonSorter : ISort
 	{
-		CommonSorter1(RetS TS::* field)
-			: field_(field)
-		{	}
-
-		RetS TS::*   field_;
-
-		bool operator()(const TS& pr1, const TS& pr2) const override
+		CommonSorter(Args ... others)
+			: others_(others ...)
 		{
-			return pr1.*field_ < pr2.*field_;
+			static_assert(std::conjunction_v< std::is_member_object_pointer<Args> ... >,
+					"Use member_ptr's as Args");
+		}
+
+		using First     = typename std::tuple_element_t<0, std::tuple<Args ...>>;
+		using First_Ret = typename member_ptr<First>::ret;
+		using First_T   = typename member_ptr<First>::type;
+		using Last      = typename std::tuple_element_t<sizeof ... (Args) - 1, std::tuple<Args ...>>;
+		
+		std::tuple<Args ...> others_; // member_ptr's
+
+		bool operator()(const First_T& pr1, const First_T& pr2) const
+		{
+			return std::apply(
+				[&pr1, &pr2](const Args& ... args){
+					// unfold args for call chain of
+					// ((pr1.*f1).*f2).*fn < ((pr2.*f1).*f2).*fn;
+					return (pr1 .* ... .* args) < (pr2 .* ... .* args);
+				}
+			, others_); // unfold tuple to args ...
+		}
+
+		// for storaging
+		virtual bool operator()(const any& a1, const any& a2) const override
+		{
+			return operator()(any_cast<First_T>(a1), any_cast<First_T>(a2));
 		}
 	};
 
-	struct MaxProfitSorter : CommonSorter2<TradeInfo, Profit, Profit, int>
+	template<typename ... Args>
+	inline auto make_sorter(Args ... args)
 	{
-		MaxProfitSorter() : CommonSorter2(&TradeInfo::profit, &Profit::delta_profit) {}
-	};
+		//auto s = new CommonSorter<Args ...>(args...);
+		return std::make_shared<CommonSorter<Args ...>>(args...);
+	}
 
-	struct MaxDistanceSorter : CommonSorter2<TradeInfo, Path, Path, int>
-	{
-		MaxDistanceSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
-	};
-
-	struct ASC_Wrapper : ISort_v2<TradeInfo>
+	struct ASC_Wrapper : ISort
 	{
 		ASC_Wrapper(sorter_ptr obj_)
 			: obj(obj_)
 		{	}
 
 		sorter_ptr obj;
-		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+		bool operator()(const any& a1, const any& a2) const override
 		{
-			return (*obj)(pr2, pr1); //revert
+			return (*obj)(a2, a1); //revert
 		}
 	};
 
-	struct AndSorter : ISort_v2<TradeInfo>
+	struct AndSorter : ISort
 	{
 		AndSorter(sorter_ptr p1, sorter_ptr p2)
 			: p1_(p1), p2_(p2)
@@ -110,13 +98,13 @@ namespace sorters
 		sorter_ptr p1_;
 		sorter_ptr p2_;
 
-		bool operator()(const TradeInfo& ti1, const TradeInfo& ti2) const override
+		bool operator()(const any& a1, const any& a2) const override
 		{
-			if (!p1_->operator()(ti1, ti2) && !p1_->operator()(ti2, ti1)) //eq
+			if (!(*p1_)(a1, a2) && !(*p1_)(a2, a1)) //eq
 			{
-				return p2_->operator()(ti1, ti2);
+				return (*p2_)(a1, a2);
 			}
-			return p1_->operator()(ti1, ti2);
+			return (*p1_)(a1, a2);
 		}
 	};
 }

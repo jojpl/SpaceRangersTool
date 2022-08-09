@@ -180,7 +180,7 @@ namespace Entities
 		GoodsPack packed {};
 	};
 
-	//help struct
+	//help struct for calc profits
 	struct ObjPrices
 	{
 		GoodsQty   qty;

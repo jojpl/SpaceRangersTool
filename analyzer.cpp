@@ -203,6 +203,7 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 {
 	performance_tracker tr("iter");
+	vti.reserve(1'500'000); // 8 * ObjPrices_qty^2
 
 	auto& prices = storage::get<ObjPrices>();
 	for (auto& p_from : prices)
@@ -224,29 +225,28 @@ void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 {
 	std::vector<TradeInfo> vti; 
-	vti.reserve(1'000'000); // 8 * planets_qty^2
 	calc_all_trade_paths_info(vti);
 
 	const auto& opt = options::get_opt();
 	// optimization - filter cut >90% of vp values usually.
-	auto v1 = boost::remove_erase_if(vti, 
+	boost::remove_erase_if(vti,
 		std::not_fn(filters::FilterByMinProfit(opt.min_profit))
 	);
 
 	apply_filter(vti, filt);
 
-	std::sort(vti.rbegin(), vti.rend(),
-		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
-			return (*sorter)(ti1, ti2);
-		}
-	);
-
 	if (opt.tops)
 	{
+		std::sort(vti.rbegin(), vti.rend(),
+			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
+				return (*tops_cmp_2)(ti1, ti2);
+			}
+		);
+
 		auto v1 = std::unique(vti.begin(), vti.end(),
 			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
-				bool le = (*tops_cmp_)(ti1, ti2);
-				bool ge = (*tops_cmp_)(ti2, ti1);
+				bool le = (*tops_cmp_1)(ti1, ti2);
+				bool ge = (*tops_cmp_1)(ti2, ti1);
 				bool eq = (!le && !ge); //eq
 				return eq;
 			}
@@ -255,9 +255,15 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 		vti.erase(v1, vti.end());
 
 		std::sort(vti.rbegin(), vti.rend(),
-			sorters::MaxProfitSorter()
+			*sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit)
 		);
 	}
+
+	std::sort(vti.rbegin(), vti.rend(),
+		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
+			return (*sorter)(ti1, ti2);
+		}
+	);
 
 	dump_top(std::cout, vti, options::get_opt());
 
@@ -430,18 +436,18 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
 			//s = std::make_shared<sorters::DistanceSorter>();
-			s = sorter_ptr(new sorters::MaxDistanceSorter());
+			s = sorters::make_sorter(&TradeInfo::path, &Path::distance);
 		else if (p.first == options::SortField::profit)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
-			s = sorter_ptr(new sorters::MaxProfitSorter());
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
 		else if (p.first == options::SortField::star)
-			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::star); //by raw pointer
 		else if (p.first == options::SortField::planet)
-			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::planet}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::planet); //by raw pointer
 		else if (p.first == options::SortField::good)
-			s = sorter_ptr(new sorters::CommonSorter2{&TradeInfo::profit, &Profit::good}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::good); //by raw pointer
 		else
-			s = sorter_ptr(new sorters::MaxProfitSorter());
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
 
 		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);
@@ -467,9 +473,9 @@ sorter_ptr analyzer::createSort()
 		sort_options.push_back({ options::SortField::good,   {} });
 		sort_options.push_back({ options::SortField::star,   {} });
 		sort_options.push_back({ options::SortField::planet, {} });
-		tops_cmp_ = createSortfromOpt(sort_options); //dirty hack
+		tops_cmp_1 = createSortfromOpt(sort_options);
 		sort_options.push_back({ options::SortField::profit, {} });
-		return createSortfromOpt(sort_options);
+		tops_cmp_2 = createSortfromOpt(sort_options);
 	}
 
 	options::SortOptions& sort_options = opt.sort_options;
@@ -610,10 +616,7 @@ void analyzer::show_price()
 	);
 
 	std::sort(vp.rbegin(), vp.rend(),
-		sorters::CommonSorter1(&Price::buy)
-	//	//[](const Price& pr1, const Price& pr2) {
-	//	//	return pr1.buy < pr2.buy;
-	//	//}
+		*sorters::make_sorter(&Price::buy)
 	);
 	
 	const std::string templ =
@@ -681,7 +684,7 @@ void analyzer::show_ritches()
 	}
 
 	std::sort(begin(vi), end(vi), 
-		sorters::CommonSorter1(&Info::Name)
+		*sorters::make_sorter(&Info::Name)
 	);
 
 	for (const auto& i : vi)
