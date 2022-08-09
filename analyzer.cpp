@@ -427,29 +427,41 @@ filter_ptr analyzer::createFilter()
 	return common_f;
 }
 
-sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
+sorter_ptr createSortfromOpt(const options::SortOptions& sort_options)
 {
 	sorter_ptr common;
 
-	for( auto p : sort_options)
+	for( auto [field, direction] : sort_options)
 	{
 		sorter_ptr s;
-		if (p.first == options::SortField::distance)
-			//s = std::make_shared<sorters::DistanceSorter>();
-			s = sorters::make_sorter(&TradeInfo::path, &Path::distance);
-		else if (p.first == options::SortField::profit)
-			//s = std::make_shared<sorters::MaxProfitSorter>();
-			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
-		else if (p.first == options::SortField::star)
-			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::star); //by raw pointer
-		else if (p.first == options::SortField::planet)
-			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::planet); //by raw pointer
-		else if (p.first == options::SortField::good)
-			s = sorters::make_sorter(&TradeInfo::profit, &Profit::good); //by raw pointer
-		else
-			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
+		switch (field)
+		{
+			case options::SortField::distance:
+				s = sorters::make_sorter(&TradeInfo::path, &Path::distance);
+				break;
 
-		if(p.second == options::SortDirection::ASC)
+			case options::SortField::profit:
+				s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
+				break;
+
+			case options::SortField::star:
+				s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::star); //by raw pointer
+				break;
+
+			case options::SortField::planet:
+				s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::planet); //by raw pointer
+				break;
+
+			case options::SortField::good:
+				s = sorters::make_sorter(&TradeInfo::profit, &Profit::good); //by raw pointer
+				break;
+
+			default:
+				s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
+				break;
+		}
+
+		if(direction == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);
 
 		if(!common)
@@ -464,7 +476,7 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 // mb move to ::sorters
 sorter_ptr analyzer::createSort()
 {
-	auto opt = options::get_opt();
+	const auto& opt = options::get_opt();
 	if (opt.tops)
 	{
 		//"pr, st, pl, g, pr"
@@ -478,7 +490,7 @@ sorter_ptr analyzer::createSort()
 		tops_cmp_2 = createSortfromOpt(sort_options);
 	}
 
-	options::SortOptions& sort_options = opt.sort_options;
+	const options::SortOptions& sort_options = opt.sort_options;
 	return createSortfromOpt(sort_options);
 }
 

@@ -171,7 +171,8 @@ namespace filters
 		const std::vector<int> s1_ids_;
 
 		bool operator()(const Path& path) override {
-			if (std::find(cbegin(s1_ids_), cend(s1_ids_), path.from.star->Id) != cend(s1_ids_))
+			auto s1 = path.from.star;
+			if (std::find(cbegin(s1_ids_), cend(s1_ids_), s1->Id) != cend(s1_ids_))
 				return true;
 			return false;
 		}
