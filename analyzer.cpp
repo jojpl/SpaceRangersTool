@@ -255,7 +255,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 		vti.erase(v1, vti.end());
 
 		std::sort(vti.rbegin(), vti.rend(),
-			sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit}
+			*sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit)
 		);
 	}
 
@@ -436,18 +436,18 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
 			//s = std::make_shared<sorters::DistanceSorter>();
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::distance});
+			s = sorters::make_sorter(&TradeInfo::path, &Path::distance);
 		else if (p.first == options::SortField::profit)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit});
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
 		else if (p.first == options::SortField::star)
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::star); //by raw pointer
 		else if (p.first == options::SortField::planet)
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::from, &Location::planet}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::path, &Path::from, &Location::planet); //by raw pointer
 		else if (p.first == options::SortField::good)
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::good}); //by raw pointer
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::good); //by raw pointer
 		else
-			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit});
+			s = sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit);
 
 		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);
@@ -616,7 +616,7 @@ void analyzer::show_price()
 	);
 
 	std::sort(vp.rbegin(), vp.rend(),
-		sorters::CommonSorter(&Price::buy)
+		*sorters::make_sorter(&Price::buy)
 	);
 	
 	const std::string templ =
@@ -684,7 +684,7 @@ void analyzer::show_ritches()
 	}
 
 	std::sort(begin(vi), end(vi), 
-		sorters::CommonSorter(&Info::Name)
+		*sorters::make_sorter(&Info::Name)
 	);
 
 	for (const auto& i : vi)

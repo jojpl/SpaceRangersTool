@@ -7,8 +7,11 @@
 namespace sorters
 {
 	//using namespace analyzer;
+	struct ISort;
 	using std::any;
 	using std::any_cast;
+
+	using sorter_ptr = std::shared_ptr<ISort>;
 
 	// common interface
 	struct ISort
@@ -18,7 +21,6 @@ namespace sorters
 		virtual ~ISort() = default;
 	};
 
-	using sorter_ptr = std::shared_ptr<ISort>;
 
 	// help struct
 	template<typename T>
@@ -68,12 +70,10 @@ namespace sorters
 	};
 
 	template<typename ... Args>
-	inline sorter_ptr make_sorter(Args ... args)
+	inline auto make_sorter(Args ... args)
 	{
-		auto s = new CommonSorter(args...);
-		sorter_ptr ptr;
-		ptr.reset(s);
-		return ptr;
+		//auto s = new CommonSorter<Args ...>(args...);
+		return std::make_shared<CommonSorter<Args ...>>(args...);
 	}
 
 	struct ASC_Wrapper : ISort
