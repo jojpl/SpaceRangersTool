@@ -42,9 +42,10 @@ namespace sorters
 					"Use member_ptr's as Args");
 		}
 
-		using First = typename std::tuple_element_t<0, std::tuple<Args ...>>;
+		using First     = typename std::tuple_element_t<0, std::tuple<Args ...>>;
 		using First_Ret = typename member_ptr<First>::ret;
-		using First_T = typename member_ptr<First>::type;
+		using First_T   = typename member_ptr<First>::type;
+		using Last      = typename std::tuple_element_t<sizeof ... (Args) - 1, std::tuple<Args ...>>;
 		
 		std::tuple<Args ...> others_; // member_ptr's
 
@@ -65,6 +66,15 @@ namespace sorters
 			return operator()(any_cast<First_T>(a1), any_cast<First_T>(a2));
 		}
 	};
+
+	template<typename ... Args>
+	inline sorter_ptr make_sorter(Args ... args)
+	{
+		auto s = new CommonSorter(args...);
+		sorter_ptr ptr;
+		ptr.reset(s);
+		return ptr;
+	}
 
 	struct ASC_Wrapper : ISort
 	{
