@@ -20,36 +20,37 @@ namespace sorters
 	using sorter_ptr = std::shared_ptr<ISort_v2>;
 
 	// any field of any struct less than other
-	template<typename TS, typename RetS, 
+	template<typename T, typename RetT,
 			typename ... Args>
 	struct CommonSorter : ISort_v2
 	{
-		CommonSorter(RetS TS::* struc, Args ... args_)
-			: struct_(struc)
-			, fields_(args_ ...)
+		CommonSorter(RetT T::* first, Args ... others)
+			: f0_(first)
+			, others_(others ...)
 		{	}
 
-		RetS TS::*   struct_;
-		std::tuple<Args ...> fields_;
+		RetT T::* f0_;
+		std::tuple<Args ...> others_;
 
-		bool operator()(const TS& pr1, const TS& pr2) const
+		bool operator()(const T& pr1, const T& pr2) const
 		{
 			return std::apply
 			(
 				[&pr1, &pr2, this](const Args& ... args){
 						// unfold typle for call
 			            // ((pr1.*struct_).*field_).*field3_ < ((pr2.*struct_).*field_).*field3_;
-						auto res1 = ((pr1.*struct_) .* ... .* args);
-						auto res2 = ((pr2.*struct_) .* ... .* args);
+						auto res1 = ((pr1.*f0_) .* ... .* args);
+						auto res2 = ((pr2.*f0_) .* ... .* args);
 						return res1 < res2;
 					}
-			, fields_); // unfold tuple to args ...
+			, others_); // unfold tuple to args ...
 			
 		}
 
+		// for storaging
 		virtual bool operator()(const any& a1, const any& a2) const override
 		{
-			return operator()(any_cast<TS>(a1), any_cast<TS>(a2));
+			return operator()(any_cast<T>(a1), any_cast<T>(a2));
 		}
 	};
 
