@@ -22,7 +22,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
+#define HAVE_FMT_LIB 1
+#ifdef HAVE_FMT_LIB
 #include <fmt/core.h>
+#endif
 
 using namespace std::string_literals;
 using namespace std::placeholders;
@@ -497,7 +500,7 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 							hitem->LandType == 1 ? "Land" :
 							hitem->LandType == 2 ? "Mount" :
 							"???";
-
+#ifdef HAVE_FMT_LIB
 	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners},{landType:<5},{depth}"
 		, fmt::arg("id", item->Id)
 		, fmt::arg("name", item->IName)
@@ -509,8 +512,10 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 		, fmt::arg("landType", lt_s)
 		, fmt::arg("depth", hitem->Depth)
 	);
-
 	return os << res;
+#else
+	return os;
+#endif
 }
 
 void analyzer::dump_treasures()
