@@ -19,22 +19,30 @@ namespace sorters
 
 	// any field of any struct less than other
 	template<typename TS, typename RetS, 
-			typename F2, typename F3>
+			typename ... Args>
 	struct CommonSorter3 : ISort_v2<TS>
 	{
-		CommonSorter3(RetS TS::* struc, F2 field, F3 field3)
+		CommonSorter3(RetS TS::* struc, Args ... args_)
 			: struct_(struc)
-			, field_(field)
-			, field3_(field3)
+			, fields_(args_ ...)
 		{	}
 
 		RetS TS::*   struct_;
-		F2 field_;
-		F3 field3_;
+		std::tuple<Args ...> fields_;
 
 		bool operator()(const TS& pr1, const TS& pr2) const override
 		{
-			return ((pr1.*struct_).*field_).*field3_ < ((pr2.*struct_).*field_).*field3_;
+			return std::apply
+			(
+				[&pr1, &pr2, this](const Args& ... args){
+						// unfold typle for call
+			            // ((pr1.*struct_).*field_).*field3_ < ((pr2.*struct_).*field_).*field3_;
+						auto res1 = ((pr1.*struct_) .* ... .* args);
+						auto res2 = ((pr2.*struct_) .* ... .* args);
+						return res1 < res2;
+					}
+			, fields_); // unfold tuple to args ...
+			
 		}
 	};
 
