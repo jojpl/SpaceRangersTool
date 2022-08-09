@@ -20,9 +20,9 @@ namespace sorters
 	// any field of any struct less than other
 	template<typename TS, typename RetS, 
 			typename ... Args>
-	struct CommonSorter3 : ISort_v2<TS>
+	struct CommonSorter : ISort_v2<TS>
 	{
-		CommonSorter3(RetS TS::* struc, Args ... args_)
+		CommonSorter(RetS TS::* struc, Args ... args_)
 			: struct_(struc)
 			, fields_(args_ ...)
 		{	}
@@ -46,46 +46,15 @@ namespace sorters
 		}
 	};
 
-	template<typename TS, typename RetS, typename F2>
-	struct CommonSorter2 : ISort_v2<TS>
+	
+	struct MaxProfitSorter : CommonSorter<TradeInfo, Profit, int Profit::* >
 	{
-		CommonSorter2(RetS TS::* struc, F2 field)
-			: struct_(struc)
-			, field_ (field)
-		{	}
-
-		RetS TS::*   struct_;
-		F2 field_;
-
-		bool operator()(const TS& pr1, const TS& pr2) const override
-		{
-			return (pr1.*struct_).*field_ < (pr2.*struct_).*field_;
-		}
+		MaxProfitSorter() : CommonSorter(&TradeInfo::profit, &Profit::delta_profit) {}
 	};
 
-	template<typename TS, typename RetS>
-	struct CommonSorter1 : ISort_v2<TS>
+	struct MaxDistanceSorter : CommonSorter<TradeInfo, Path, int Path::*>
 	{
-		CommonSorter1(RetS TS::* field)
-			: field_(field)
-		{	}
-
-		RetS TS::*   field_;
-
-		bool operator()(const TS& pr1, const TS& pr2) const override
-		{
-			return pr1.*field_ < pr2.*field_;
-		}
-	};
-
-	struct MaxProfitSorter : CommonSorter2<TradeInfo, Profit, int Profit::* >
-	{
-		MaxProfitSorter() : CommonSorter2(&TradeInfo::profit, &Profit::delta_profit) {}
-	};
-
-	struct MaxDistanceSorter : CommonSorter2<TradeInfo, Path, int Path::*>
-	{
-		MaxDistanceSorter() : CommonSorter2(&TradeInfo::path, &Path::distance) {}
+		MaxDistanceSorter() : CommonSorter(&TradeInfo::path, &Path::distance) {}
 	};
 
 	struct ASC_Wrapper : ISort_v2<TradeInfo>

@@ -441,11 +441,11 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
 			s = sorter_ptr(new sorters::MaxProfitSorter());
 		else if (p.first == options::SortField::star)
-			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
 		else if (p.first == options::SortField::planet)
-			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::planet}); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::from, &Location::planet}); //by raw pointer
 		else if (p.first == options::SortField::good)
-			s = sorter_ptr(new sorters::CommonSorter2{&TradeInfo::profit, &Profit::good}); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::good}); //by raw pointer
 		else
 			s = sorter_ptr(new sorters::MaxProfitSorter());
 
@@ -616,7 +616,7 @@ void analyzer::show_price()
 	);
 
 	std::sort(vp.rbegin(), vp.rend(),
-		sorters::CommonSorter1(&Price::buy)
+		sorters::CommonSorter(&Price::buy)
 	//	//[](const Price& pr1, const Price& pr2) {
 	//	//	return pr1.buy < pr2.buy;
 	//	//}
@@ -687,7 +687,7 @@ void analyzer::show_ritches()
 	}
 
 	std::sort(begin(vi), end(vi), 
-		sorters::CommonSorter1(&Info::Name)
+		sorters::CommonSorter(&Info::Name)
 	);
 
 	for (const auto& i : vi)
