@@ -2,25 +2,27 @@
 #include "analyzer_entities.h"
 #include <memory>
 #include <functional>
+#include <any>
 
 namespace sorters
 {
 	using namespace analyzer;
+	using std::any;
+	using std::any_cast;
 
-	template<typename T>
 	struct ISort_v2
 	{
 		// less operator
-		virtual bool operator()(const T&, const T&) const = 0;
+		virtual bool operator()(const any&, const any&) const = 0;
 		virtual ~ISort_v2() = default;
 	};
 
-	using sorter_ptr = std::shared_ptr<ISort_v2<TradeInfo>>;
+	using sorter_ptr = std::shared_ptr<ISort_v2>;
 
 	// any field of any struct less than other
 	template<typename TS, typename RetS, 
 			typename ... Args>
-	struct CommonSorter : ISort_v2<TS>
+	struct CommonSorter : ISort_v2
 	{
 		CommonSorter(RetS TS::* struc, Args ... args_)
 			: struct_(struc)
@@ -30,7 +32,7 @@ namespace sorters
 		RetS TS::*   struct_;
 		std::tuple<Args ...> fields_;
 
-		bool operator()(const TS& pr1, const TS& pr2) const override
+		bool operator()(const TS& pr1, const TS& pr2) const
 		{
 			return std::apply
 			(
@@ -43,6 +45,11 @@ namespace sorters
 					}
 			, fields_); // unfold tuple to args ...
 			
+		}
+
+		virtual bool operator()(const any& a1, const any& a2) const override
+		{
+			return operator()(any_cast<TS>(a1), any_cast<TS>(a2));
 		}
 	};
 
@@ -57,20 +64,20 @@ namespace sorters
 		MaxDistanceSorter() : CommonSorter(&TradeInfo::path, &Path::distance) {}
 	};
 
-	struct ASC_Wrapper : ISort_v2<TradeInfo>
+	struct ASC_Wrapper : ISort_v2
 	{
 		ASC_Wrapper(sorter_ptr obj_)
 			: obj(obj_)
 		{	}
 
 		sorter_ptr obj;
-		bool operator()(const TradeInfo& pr1, const TradeInfo& pr2) const override
+		bool operator()(const any& a1, const any& a2) const override
 		{
-			return (*obj)(pr2, pr1); //revert
+			return (*obj)(a2, a1); //revert
 		}
 	};
 
-	struct AndSorter : ISort_v2<TradeInfo>
+	struct AndSorter : ISort_v2
 	{
 		AndSorter(sorter_ptr p1, sorter_ptr p2)
 			: p1_(p1), p2_(p2)
@@ -79,13 +86,13 @@ namespace sorters
 		sorter_ptr p1_;
 		sorter_ptr p2_;
 
-		bool operator()(const TradeInfo& ti1, const TradeInfo& ti2) const override
+		bool operator()(const any& a1, const any& a2) const override
 		{
-			if (!p1_->operator()(ti1, ti2) && !p1_->operator()(ti2, ti1)) //eq
+			if (!p1_->operator()(a1, a2) && !p1_->operator()(a2, a1)) //eq
 			{
-				return p2_->operator()(ti1, ti2);
+				return p2_->operator()(a1, a2);
 			}
-			return p1_->operator()(ti1, ti2);
+			return p1_->operator()(a1, a2);
 		}
 	};
 }
