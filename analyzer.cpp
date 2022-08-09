@@ -255,7 +255,7 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 		vti.erase(v1, vti.end());
 
 		std::sort(vti.rbegin(), vti.rend(),
-			sorters::MaxProfitSorter()
+			sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit}
 		);
 	}
 
@@ -436,10 +436,10 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 		sorter_ptr s;
 		if (p.first == options::SortField::distance)
 			//s = std::make_shared<sorters::DistanceSorter>();
-			s = sorter_ptr(new sorters::MaxDistanceSorter());
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::distance});
 		else if (p.first == options::SortField::profit)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
-			s = sorter_ptr(new sorters::MaxProfitSorter());
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit});
 		else if (p.first == options::SortField::star)
 			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
 		else if (p.first == options::SortField::planet)
@@ -447,7 +447,7 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 		else if (p.first == options::SortField::good)
 			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::good}); //by raw pointer
 		else
-			s = sorter_ptr(new sorters::MaxProfitSorter());
+			s = sorter_ptr(new sorters::CommonSorter{&TradeInfo::profit, &Profit::delta_profit});
 
 		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);
@@ -617,9 +617,6 @@ void analyzer::show_price()
 
 	std::sort(vp.rbegin(), vp.rend(),
 		sorters::CommonSorter(&Price::buy)
-	//	//[](const Price& pr1, const Price& pr2) {
-	//	//	return pr1.buy < pr2.buy;
-	//	//}
 	);
 	
 	const std::string templ =
