@@ -19,6 +19,21 @@ namespace sorters
 
 	using sorter_ptr = std::shared_ptr<ISort_v2>;
 
+	// help struct
+	template<typename ... Args>
+	struct mem_ptr {};
+
+	template<typename T, typename R>
+	struct mem_ptr<R T::*>
+	{
+		using type = T;
+		using ret = R;
+	};
+
+	template<typename F>
+	struct mem_ptr<F> : mem_ptr<F> // like a virtual fn
+	{};
+
 	// any field of any struct less than other
 	template<typename T, typename RetT,
 			typename ... Args>
@@ -54,7 +69,6 @@ namespace sorters
 		}
 	};
 
-	
 	struct MaxProfitSorter : CommonSorter<TradeInfo, Profit, int Profit::* >
 	{
 		MaxProfitSorter() : CommonSorter(&TradeInfo::profit, &Profit::delta_profit) {}
