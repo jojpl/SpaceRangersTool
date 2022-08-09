@@ -1,4 +1,5 @@
 #include "common_algo.h"
+#include "datetime.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -7,12 +8,8 @@ namespace common_algo
 
 size_t soft_search(std::string_view test, const std::vector<std::string_view>& list)
 {
-#ifdef _WIN32
-	std::locale cp1251_locale("rus_rus.1251"); //win
-#else
-	std::locale cp1251_locale("ru_RU.CP1251");
-#endif
-	boost::is_iequal ieq(cp1251_locale);
+	std::locale loc = datetime::try_get_ru_1251_locale();
+	boost::is_iequal ieq(loc);
 	for (size_t i = 0; i < list.size(); i++)
 	{
 		if (boost::equals(list[i], test, ieq))
