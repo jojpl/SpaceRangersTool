@@ -9,6 +9,7 @@
 #include <iostream>
 #include <optional>
 #include <any>
+#include <algorithm>
 
 namespace filters
 {

@@ -22,8 +22,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
-#define HAVE_FMT_LIB 1
-#ifdef HAVE_FMT_LIB
+#if defined HAVE_FMT_LIB
 #include <fmt/core.h>
 #endif
 
@@ -418,7 +417,7 @@ filter_ptr analyzer::createFilter()
 	auto f3 = createPathFilter();
 	auto f4 = createGoodsFilter();
 	auto f5 = createRadiusFilter();
-	filter_ptr common_f (new filters::AND_opt(f1, f2, f3, f4, f5));
+	filter_ptr common_f (new filters::AND_opt{f1, f2, f3, f4, f5});
 	return common_f;
 }
 
@@ -436,18 +435,18 @@ sorter_ptr createSortfromOpt(options::SortOptions& sort_options)
 			//s = std::make_shared<sorters::MaxProfitSorter>();
 			s = sorter_ptr(new sorters::MaxProfitSorter());
 		else if (p.first == options::SortField::star)
-			s = sorter_ptr(new sorters::CommonSorter3(&TradeInfo::path, &Path::from, &Location::star)); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::star}); //by raw pointer
 		else if (p.first == options::SortField::planet)
-			s = sorter_ptr(new sorters::CommonSorter3(&TradeInfo::path, &Path::from, &Location::planet)); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter3{&TradeInfo::path, &Path::from, &Location::planet}); //by raw pointer
 		else if (p.first == options::SortField::good)
-			s = sorter_ptr(new sorters::CommonSorter2(&TradeInfo::profit, &Profit::good)); //by raw pointer
+			s = sorter_ptr(new sorters::CommonSorter2{&TradeInfo::profit, &Profit::good}); //by raw pointer
 		else
 			s = sorter_ptr(new sorters::MaxProfitSorter());
-			
+
 		if(p.second == options::SortDirection::ASC)
 			s = std::make_shared<sorters::ASC_Wrapper>(s);
 
-		if(!common) 
+		if(!common)
 			common = s;
 		else
 			common = std::make_shared<sorters::AndSorter>(common, s);
@@ -500,7 +499,7 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 							hitem->LandType == 1 ? "Land" :
 							hitem->LandType == 2 ? "Mount" :
 							"???";
-#ifdef HAVE_FMT_LIB
+#if defined HAVE_FMT_LIB
 	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners},{landType:<5},{depth}"
 		, fmt::arg("id", item->Id)
 		, fmt::arg("name", item->IName)
