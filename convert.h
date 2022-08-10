@@ -93,7 +93,7 @@ namespace conv
 		{
 			T t {};
 			from_string(t, value);
-			ret = { t };
+			ret = std::move(t);
 		}
 	}
 

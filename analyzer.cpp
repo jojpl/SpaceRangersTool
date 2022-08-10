@@ -154,8 +154,8 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 }
 
 void fill_tradeInfo(TradeInfos& profits,
-	ObjPrices& p1,
-	ObjPrices& p2)
+	const ObjPrices& p1,
+	const ObjPrices& p2)
 {
 	auto& opt = options::get_opt();
 	int distance = get_distance(p1.location, p2.location);
@@ -205,7 +205,7 @@ void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 	performance_tracker tr("iter");
 	vti.reserve(1'500'000); // 8 * ObjPrices_qty^2
 
-	auto& prices = storage::get<ObjPrices>();
+	const auto& prices = storage::get<ObjPrices>();
 	for (auto& p_from : prices)
 	{
 		for (auto& p_to : prices)
@@ -358,10 +358,10 @@ filter_ptr analyzer::createRadiusFilter()
 	if(opt.search_radius){
 		int radius = opt.search_radius.value();
 		Star* curstar = storage::find_player_cur_star();
-		auto& stars = storage::get<Star>();
+		const auto& stars = storage::get<Star>();
 
 		std::vector<int> vi;
-		for (auto& star: stars)
+		for (const auto& star: stars)
 		{
 			if((int) get_distance(curstar, &star) <= radius)
 				vi.push_back(star.Id);
@@ -507,7 +507,7 @@ void analyzer::analyze_profit()
 	calc_profits();
 }
 
-std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
+std::ostream& dump_HiddenItem_info(std::ostream& os, const HiddenItem* hitem)
 {
 	auto* cur_s = storage::find_player_cur_star();
 	if (!cur_s) throw std::logic_error("Find player err!");
@@ -537,7 +537,7 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, HiddenItem* hitem)
 
 void analyzer::dump_treasures()
 {
-	auto& items = storage::get<HiddenItem>();
+	const auto& items = storage::get<HiddenItem>();
 	//auto& opt = options::get_opt();
 	//if(opt)
 	int s1_id = 0, s2_id = 0, p1_id = 0, p2_id = 0;
@@ -546,7 +546,7 @@ void analyzer::dump_treasures()
 	std::ostream& os =  std::cout;
 	auto head = "id,name,type,star,planet,dist, star_owners,landType,depth";
 	os << head << "\n";
-	for (auto& item : items)
+	for (const auto& item : items)
 	{
 		if (s1_id 
 		&& item.item->location.star->Id != s1_id)
@@ -596,11 +596,11 @@ void analyzer::show_price()
 	std::vector<Price> vp;
 
 	auto* cur_s = storage::find_player_cur_star();
-	auto& planets = storage::get<Planet>();
-	for (auto& p_from : planets)
+	const auto& planets = storage::get<Planet>();
+	for (const auto& p_from : planets)
 	{
-		Star*   s1 = p_from.location.star;
-		Planet* p1 = &p_from;
+		const Star*   s1 = p_from.location.star;
+		const Planet* p1 = &p_from;
 
 		if(s1->Owners == OwnersGroup::Klings)
 			continue;
@@ -653,8 +653,8 @@ void analyzer::show_price()
 
 void analyzer::dump_holelist()
 {
-	auto& holes = storage::get<Hole>();
-	for (auto& h : holes)
+	const auto& holes = storage::get<Hole>();
+	for (const auto& h : holes)
 	{
 		const std::string templ =
 			"%-15s <==> %-15s TurnsToClose: %-3d";

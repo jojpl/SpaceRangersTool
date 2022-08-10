@@ -236,6 +236,7 @@ namespace Entities
 		vector<Hole*> list;
 	};
 
+	// fake root node - container of all game entities
 	struct Global
 	{
 		int IDay = 0;

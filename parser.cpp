@@ -135,10 +135,12 @@ void validate(const std::string& mem)
 		}
 	};
 
-	std::for_each(mem.begin(), mem.end(), get_statictic);
+	// skip for perf
 
-	if(st.cnt_open!= st.cnt_close)
-		throw std::logic_error("mismatch {}");
+	//std::for_each(mem.begin(), mem.end(), get_statictic);
+
+	//if(st.cnt_open!= st.cnt_close)
+	//	throw std::logic_error("mismatch {}");
 	if (!boost::starts_with(mem, "FinalizationName="))
 		throw std::logic_error("wrong format");
 }
