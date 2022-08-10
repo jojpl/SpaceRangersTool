@@ -12,7 +12,7 @@ namespace model
 		auto& get_storage()
 		{
 			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
-			static std::vector<std::pair<T, std::string_view>> storage;
+			static std::vector<std::pair<std::string_view, T>> storage;
 			return storage;
 		}
 
@@ -35,7 +35,7 @@ namespace model
 			std::string_view key)
 		{
 			auto& storage = get_storage<T>();
-			storage.push_back({ value, key });
+			storage.push_back({ key, value });
 
 			auto& enums = get_enums<T>();
 			enums.push_back(value);
@@ -45,14 +45,14 @@ namespace model
 		}
 
 		template<typename T>
-		void from_string(T& field, std::string_view value)
+		void from_string(T& field, std::string_view sw)
 		{
 			const auto& storage = get_storage<T>();
 			for (const auto& [key, val ]: storage)
 			{
-				if (val == value)
+				if (key == sw)
 				{
-					field = key;
+					field = val;
 					return;
 				}
 			}
@@ -68,8 +68,8 @@ namespace model
 			const auto& storage = get_storage<T>();
 			for (const auto& [key, val] : storage)
 			{
-				if (key == field)
-					return val;
+				if (val == field)
+					return key;
 			}
 
 			throw std::logic_error(
@@ -87,7 +87,7 @@ namespace model
 			// contain definitions for parse Entities::T fields -> string
 			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
 			static_assert(!std::is_const_v<Ret>, "incorrect to create consts obj!");
-			static std::vector<std::pair<const Ret T::*, std::string_view>> storage{};
+			static std::vector<std::pair<std::string_view, const Ret T::*>> storage{};
 			return storage;
 		}
 
@@ -96,7 +96,7 @@ namespace model
 			std::string_view key)
 		{
 			auto& storage = get_storage<T, Ret>();
-			storage.push_back({ field, key });
+			storage.push_back({ key, field });
 		}
 
 		template<typename T, typename Ret>
@@ -105,8 +105,8 @@ namespace model
 			const auto& storage = get_storage<T, Ret>();
 			for (const auto& [key, val] : storage)
 			{
-				if (key == field)
-					return val;
+				if (val == field)
+					return key;
 			}
 
 			throw std::logic_error(
