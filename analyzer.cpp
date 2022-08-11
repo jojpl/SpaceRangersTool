@@ -155,9 +155,10 @@ void dump_top(std::ostream& os, std::vector<TradeInfo>& vti, options::Options op
 
 void fill_tradeInfo(TradeInfos& profits,
 	const ObjPrices& p1,
-	const ObjPrices& p2)
+	const ObjPrices& p2,
+	int aviable_storage)
 {
-	auto& opt = options::get_opt();
+	const auto& opt = options::get_opt();
 	int distance = get_distance(p1.location, p2.location);
 
 	for (size_t item = 0; item < profits.size(); item++)
@@ -166,8 +167,8 @@ void fill_tradeInfo(TradeInfos& profits,
 
 		auto bd_good = (GoodsEnum)item;
 		int qty = p1.qty.packed[item];
-		int aviable_qty = opt.aviable_storage ?
-			std::min(qty, opt.aviable_storage.value()) :
+		int aviable_qty = aviable_storage ?
+			std::min(qty, aviable_storage) :
 			qty;
 		int sale = p1.sale.packed[item]; // from
 
@@ -200,10 +201,37 @@ void apply_filter(std::vector<TradeInfo>& vti, filter_ptr callable)
 	);
 }
 
+int calc_aviable_players_storage(Player* player)
+{
+	int hull_size = 0;
+	int cargo_volume = 0;
+	for (const auto& item : player->EqList.list)
+	{
+		if(item->IType == Type::Hull)
+		{
+			hull_size = item->Size;
+			continue;
+		}
+		cargo_volume += item->Size;
+	}
+
+	for (const auto& item : player->ArtsList.list) cargo_volume += item->Size;
+	for (const auto& good_qty : player->Goods.packed) cargo_volume += good_qty;
+	// TODO no art effects calc
+	return hull_size - cargo_volume;
+}
+
 void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 {
 	performance_tracker tr("iter");
 	vti.reserve(1'500'000); // 8 * ObjPrices_qty^2
+	const auto& opt = options::get_opt();
+	
+	int aviable_storage =  opt.aviable_storage ? 
+		opt.aviable_storage.value() : 0;
+
+	aviable_storage = opt.aviable_storage_cur ? 
+		calc_aviable_players_storage(data->Player) : aviable_storage;
 
 	const auto& prices = storage::get<ObjPrices>();
 	for (auto& p_from : prices)
@@ -214,7 +242,7 @@ void analyzer::calc_all_trade_paths_info(std::vector<TradeInfo>& vti)
 				continue;
 
 			TradeInfos profits;
-			fill_tradeInfo(profits, p_from, p_to);
+			fill_tradeInfo(profits, p_from, p_to, aviable_storage);
 
 			std::move(profits.begin(), profits.end(),
 				std::back_inserter(vti));

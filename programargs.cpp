@@ -43,10 +43,9 @@ namespace options
 						"goods include list")
 				("goods-no", po::value<std::vector<std::string>>()->composing()->notifier(handle_no_goods),
 						"goods exclude list")
-				("dir", po::value<std::string>()->notifier(handle_dir), "directory of save files")
+				("dir", po::value<std::string>(), "directory of save files")
 				("radius,r", po::value<int>(), "search radius around player")
-				("storage", po::value<int>(), "recalc result using aviable storage")
-				//("price-mod", po::value<bool>()->implicit_value(true)->default_value(""), "show prices")
+				("storage", po::value<std::string>()->notifier(handle_storage), "recalc result using aviable storage")
 				("mod,m", po::value<Modes>()->default_value(Modes::profit), "show prices")
 				("tops", po::value<bool>()->implicit_value(true), "show top deal for from each planet for each good")
 				("perf", po::value<bool>()->implicit_value(true)->default_value(false), "enable performance tracker")
@@ -61,6 +60,13 @@ namespace options
 				.run();
 
 			po::store(parsed_options, vm);
+			
+			//po::options_description cfg_desc("Allowed options");
+			//cfg_desc.add_options()
+			//	("gui.accessibility.visual_bell",po::value<bool>(), "produce help message")
+			//	;
+			//po::store(parse_config_file("cfg.txt", cfg_desc), vm);
+
 			po::notify(vm);
 
 			if (vm.count("help")) {
@@ -79,8 +85,7 @@ namespace options
 			SAVE_TO_OPTIONAL("sort-by", Options::sort_by)
 			SAVE_TO_OPTIONAL("dir", Options::dir)
 			SAVE_TO_OPTIONAL("radius", Options::search_radius)
-			SAVE_TO_OPTIONAL("storage", Options::aviable_storage)
-			//SAVE_AS_IS("price-mod", Options::price_mod)
+			//SAVE_TO_OPTIONAL("storage", Options::aviable_storage)
 			SAVE_AS_IS("mod", Options::mod)
 			SAVE_AS_IS("tops", Options::tops)
 			SAVE_AS_IS("perf", Options::perf)
@@ -279,11 +284,6 @@ namespace options
 		}
 	}
 
-	void handle_dir(const std::string& val)
-	{
-		
-	}
-
 	// Option "mod,m"
 	std::istream& operator>>(std::istream& os, options::Modes & ms)
 	{
@@ -310,5 +310,18 @@ namespace options
 	std::ostream& operator<<(std::ostream& os, const options::Modes& ms)
 	{
 		return os;
+	}
+
+	void handle_storage(const std::string& val)
+	{
+		auto& opt = get_opt();
+		if (boost::iequals(val, "current")
+			|| boost::iequals(val, "cur")
+			|| boost::iequals(val, "c"))
+		{
+			opt.aviable_storage_cur = true;
+		}
+		else
+			opt.aviable_storage = boost::lexical_cast<int>(val);
 	}
 }

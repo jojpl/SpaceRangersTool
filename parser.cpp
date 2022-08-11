@@ -23,7 +23,7 @@ static const std::string crlf_tag = "\r\n";
 
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) return true;
-#define END_PARSE() }while(false); return false;}
+#define END_PARSE() }while(false);}
 
 bool read_file_as_mem(std::string& out, const std::string& path)
 {
@@ -290,20 +290,12 @@ bool Handler::on_kv(Global* p, std::string_view key, std::string_view value)
 	BEGIN_PARSE_FOR(Global)
 		PARSE_TO(IDay)
 	END_PARSE()
+
+	return false;
 }
 
 bool Handler::on_new_obj(Player * p, std::string_view obj_name)
 {
-	if (obj_name == "EqList")
-	{
-		ctx.stack.push({ &p->EqList });
-		return true;
-	}
-	else if (obj_name == "ArtsList")
-	{
-		ctx.stack.push({ &p->ArtsList });
-		return true;
-	}
 	return on_new_obj((Player::Inherit*)p, obj_name);
 }
 
@@ -359,6 +351,8 @@ bool Handler::on_kv(Star * p, std::string_view key, std::string_view value)
 		PARSE_TO(Y)
 		PARSE_TO(Owners)
 	END_PARSE()
+
+	return false;
 }
 
 void Handler::on_close_obj(Star * p)
@@ -464,6 +458,8 @@ bool Handler::on_kv(Ship * p, std::string_view key, std::string_view value)
 		PARSE_TO(Goods)
 		PARSE_TO(Money)
 	END_PARSE()
+
+	return false;
 }
 
 bool Handler::on_new_obj(Station * p, std::string_view obj_name)
@@ -488,6 +484,8 @@ bool Handler::on_kv(Station * p, std::string_view key, std::string_view value)
 		PARSE_TO(ShopGoodsSale)
 		PARSE_TO(ShopGoodsBuy)
 	END_PARSE()
+	
+	return false;
 }
 
 void Handler::on_close_obj(Station * p)
@@ -550,6 +548,8 @@ bool Handler::on_kv(Planet * p, std::string_view key, std::string_view value)
 		PARSE_TO(ShopGoodsSale)
 		PARSE_TO(ShopGoodsBuy)
 	END_PARSE()
+	
+	return false;
 }
 
 void Handler::on_close_obj(Planet * p)
@@ -622,6 +622,8 @@ bool Handler::on_kv(HiddenItem * p, std::string_view key, std::string_view value
 		PARSE_TO(LandType)
 		PARSE_TO(Depth)
 	END_PARSE()
+	
+	return false;
 }
 
 bool Handler::on_kv(Item * p, std::string_view key, std::string_view value)
@@ -663,6 +665,8 @@ bool Handler::on_kv(Item * p, std::string_view key, std::string_view value)
 		PARSE_TO(X)
 		PARSE_TO(Y)
 	END_PARSE()
+
+	return false;
 }
 
 bool Handler::on_new_obj(HoleList * p, std::string_view obj_name)
@@ -685,6 +689,8 @@ bool Handler::on_kv(Hole * p, std::string_view key, std::string_view value)
 		PARSE_TO(Star2Id)
 		PARSE_TO(TurnsToClose)
 	END_PARSE()
+	
+	return false;
 }
 
 } // namespace parser

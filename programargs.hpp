@@ -56,7 +56,7 @@ namespace options
 		std::optional<std::string> dir;
 		std::optional<int>         search_radius;
 		std::optional<int>         aviable_storage;
-		bool                       price_mod = false;
+		bool                       aviable_storage_cur = false;
 		Modes                      mod = Modes::profit;
 		bool                       tops = false;
 		bool                       perf = false;
@@ -78,7 +78,7 @@ namespace options
 	static void handle_goods(const std::vector<std::string>& val);
 	static void handle_count(const std::string& val);
 	static void handle_no_goods(const std::vector<std::string>& val);
-	static void handle_dir(const std::string& val);
+	static void handle_storage(const std::string& val);
 
 	std::istream& operator>>(std::istream&, Modes&);
 	std::ostream& operator<<(std::ostream&, const Modes&);

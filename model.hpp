@@ -12,7 +12,7 @@ namespace model
 		auto& get_storage()
 		{
 			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
-			static std::vector<std::pair<std::string_view, T>> storage;
+			static std::vector< std::pair<std::string_view, T> > storage;
 			return storage;
 		}
 
@@ -48,7 +48,18 @@ namespace model
 		void from_string(T& field, std::string_view sw)
 		{
 			const auto& storage = get_storage<T>();
-			for (const auto& [key, val ]: storage)
+			//auto it = std::find_if(cbegin(storage), cend(storage), 
+			//	[sw](const auto& p){
+			//		return p.first == sw;
+			//	}
+			//);
+			//if(it!=storage.cend())
+			//{
+			//	const auto& [key, value] = *it;
+			//	field = value;
+			//	return;
+			//}
+			for (const auto&[key, val] : storage)
 			{
 				if (key == sw)
 				{
@@ -87,7 +98,7 @@ namespace model
 			// contain definitions for parse Entities::T fields -> string
 			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
 			static_assert(!std::is_const_v<Ret>, "incorrect to create consts obj!");
-			static std::vector<std::pair<std::string_view, const Ret T::*>> storage{};
+			static std::map<std::string_view, const Ret T::*> storage{};
 			return storage;
 		}
 
@@ -96,7 +107,7 @@ namespace model
 			std::string_view key)
 		{
 			auto& storage = get_storage<T, Ret>();
-			storage.push_back({ key, field });
+			storage.insert({ key, field });
 		}
 
 		template<typename T, typename Ret>
