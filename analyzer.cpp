@@ -258,7 +258,12 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 	const auto& opt = options::get_opt();
 	// optimization - filter cut >90% of vp values usually.
 	boost::remove_erase_if(vti,
-		std::not_fn(filters::FilterByMinProfit(opt.min_profit))
+		std::not_fn([min_profit_ = opt.min_profit](const TradeInfo& ti) {
+			if (ti.profit.delta_profit < min_profit_)
+				return false;
+
+			return true;
+		})
 	);
 
 	apply_filter(vti, filt);
