@@ -14,6 +14,8 @@
 namespace parser
 {
 
+using namespace std::string_view_literals;
+
 static const std::string open_tag  = " ^{";
 static const std::string close_tag = "}";
 static const std::string kv_delim_tag = "=";
@@ -24,7 +26,7 @@ static const std::string crlf_tag = "\r\n";
 #define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
 #define USE_1TO1_PARSE() 1
 #if USE_1TO1_PARSE()
-#define PARSE_TO(field) else if(key == #field) { conv::from_string(p->field, value); return true; }
+#define PARSE_TO(field) else if(key == #field##sv) { conv::from_string(p->field, value); return true; }
 #else
 #define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) return true;
 #endif
