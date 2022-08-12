@@ -16,10 +16,10 @@ namespace parser
 
 using namespace std::string_view_literals;
 
-static const std::string open_tag  = " ^{";
-static const std::string close_tag = "}";
-static const std::string kv_delim_tag = "=";
-static const std::string crlf_tag = "\r\n";
+constexpr std::string_view open_tag     = " ^{";
+constexpr std::string_view close_tag    = "}";
+constexpr std::string_view kv_delim_tag = "=";
+constexpr std::string_view crlf_tag     = "\r\n";
 
 #define Starts_with(sw, example) (boost::starts_with(sw, example))
 
