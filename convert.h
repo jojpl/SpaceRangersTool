@@ -1,5 +1,6 @@
 #pragma once
 #include "model.hpp"
+#include "common_algo.h"
 
 #include <string_view>
 #include <charconv>
@@ -10,7 +11,6 @@
 namespace conv
 {
 	using namespace std::string_literals;
-	using namespace std::placeholders;
 
 	int extractId(std::string_view sw);
 	
@@ -29,14 +29,7 @@ namespace conv
 	}
 
 	// for int, double
-	inline void from_string(int& ret, std::string_view value)
-	{
-		std::from_chars_result err =
-			std::from_chars(value.data(), value.data() + value.size(), ret);
-
-		if (err.ec != std::errc{})
-			throw std::logic_error(__FUNCTION__);
-	}
+	using common_algo::from_string;
 
 	inline void from_string(double& ret, std::string_view value)
 	{

@@ -1,6 +1,6 @@
 #include "convert.h"
+#include "common_algo.h"
 
-#include <boost/algorithm/string/split.hpp>
 #include <array>
 #include <cctype>
 
@@ -22,25 +22,9 @@ namespace conv
 		return i;
 	}
 
-	std::vector<std::string_view> unpack(std::string_view sw)
-	{
-		using sw_iters_range = boost::iterator_range<std::string_view::iterator>;
-		
-		std::vector<sw_iters_range> splitVec;
-		boost::split(splitVec, sw, std::bind(std::equal_to<char>(), _1, ','));
-
-		std::vector<std::string_view> vsw;
-		for (auto iter_range : splitVec)
-		{
-			const char* sw_b = &*iter_range.begin();
-			vsw.emplace_back(sw_b, iter_range.size());
-		}
-		return vsw;
-	}
-
 	void from_string(Entities::GoodsPack& packed, std::string_view sw)
 	{
-		auto un = unpack(sw);
+		auto un = common_algo::unpack(sw);
 		const auto& enums = model::enums::get_enums<Entities::GoodsEnum>();
 		if(un.size()!= packed.size()) throw std::logic_error(__FUNCTION__);
 

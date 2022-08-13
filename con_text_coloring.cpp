@@ -1,8 +1,11 @@
 #include "con_text_coloring.h"
+#include "common_algo.h"
+
 #include <kwsys\Terminal.h>
 #include <string>
 
 #include <windows.h>
+#include <io.h>
 
 #include <iostream>
 #include <string>
@@ -13,10 +16,11 @@
 #include <sstream>
 #include <iterator>
 #include <tuple>
+#include <array>
 
 #include <boost/assert.hpp>
 
-namespace color
+namespace colors
 {
 
 using std::string_view;
@@ -95,17 +99,147 @@ void test_find_color_tag()
 	"some_color"sv,
 	"Content"sv
 	};
-	BOOST_ASSERT((tag.tag == exp.tag && tag.tag_prop == exp.tag_prop && tag.tag_content == exp.tag_content));
-	exit(0);
+	BOOST_ASSERT(tag.tag == exp.tag && tag.tag_prop == exp.tag_prop && tag.tag_content == exp.tag_content);
+	
+	tag_str = "...simple string no tag..."s;
+	tag = find_color_tag(tag_str);
+	BOOST_ASSERT(tag.tag.empty() && tag.tag_prop.empty() && tag.tag_content.empty());
+
+	tag_str = "...some begin...<color=some_color>Content...tag close missed..."s;
+	tag = find_color_tag(tag_str);
+	BOOST_ASSERT(tag.tag.empty() && tag.tag_prop.empty() && tag.tag_content.empty());
+	//exit(0);
 }
 
-void PrintColored(const std::string& str)
+void convert_to_nearest_color(RGB& rgb)
 {
-	return;
+	// #ifdef WIN32
+	rgb.r = (rgb.r > 255 / 2) ? 255 : 0;
+	rgb.g = (rgb.g > 255 / 2) ? 255 : 0;
+	rgb.b = (rgb.b > 255 / 2) ? 255 : 0;
+}
+
+RGB to_RGB(FColor color)
+{
+	switch (color)
+	{
+		case colors::FColor::Black:   return { 0,   0,   0   };
+		case colors::FColor::Red:     return { 255, 0,   0   };
+		case colors::FColor::Green:   return { 0,   255, 0   };
+		case colors::FColor::Yellow:  return { 255, 255, 0   };
+		case colors::FColor::Blue:    return { 0,   0,   255 };
+		case colors::FColor::Magenta: return { 255, 0,   255 };
+		case colors::FColor::Cyan:    return { 0,   255, 255 };
+		case colors::FColor::White:   return { 255, 255, 255 };
+		default:
+			throw std::logic_error(__FUNCTION__);
+	}
+}
+
+RGB tag_analyze(std::string_view tag)
+{
+	RGB rgb;
+	auto vals = common_algo::unpack(tag);
+	if (vals.size() == 1)
+	{
+		auto color_str = vals[0];
+		FColor color;
+		from_string(color, color_str);
+		rgb = to_RGB(color);
+	}
+	else if(vals.size() == 3)
+	{
+		common_algo::from_string(rgb.r,  vals[0]);
+		common_algo::from_string(rgb.g,  vals[1]);
+		common_algo::from_string(rgb.b,  vals[2]);
+	}
+	else
+	{
+		throw std::logic_error(__FUNCTION__);
+	}
+	return rgb;
+}
+
+constexpr WORD FOREGROUND_COLOR_MASK = 0xff;
+
+int convert_to_win_terminal_color(RGB rgb)
+{
+	int color = 0;
+	if(rgb.r) color|= FOREGROUND_RED;
+	if(rgb.g) color|= FOREGROUND_GREEN;
+	if(rgb.b) color|= FOREGROUND_BLUE;
+	return color;
+}
+
+void Print_WINConsoleColored(int win_color, std::string_view sw)
+{
+	HANDLE hOut;
+	CONSOLE_SCREEN_BUFFER_INFO hOutInfo;
+
+	int fd = _fileno(stdout);
+	hOut = (HANDLE)_get_osfhandle(fd);
+	GetConsoleScreenBufferInfo(hOut, &hOutInfo);
+	WORD save_attr = hOutInfo.wAttributes;
+	std::cout.flush();
+	SetConsoleTextAttribute(hOut, (save_attr &~FOREGROUND_COLOR_MASK) | win_color);
+	std::cout << sw;
+	std::cout.flush();
+	SetConsoleTextAttribute(hOut, save_attr);
+}
+
+std::array<string_view, (size_t) FColor::NUM> fColorStrings
+{
+	"Black",
+	"Red",
+	"Green",
+	"Yellow",
+	"Blue",
+	"Magenta",
+	"Cyan",
+	"White",
+};
+
+std::string_view to_string(FColor & color)
+{
+	return fColorStrings.at((size_t) color);
+}
+
+void from_string(FColor& color, std::string_view val)
+{
+	auto f = std::find(cbegin(fColorStrings), cend(fColorStrings), val );
+	if(f == cend(fColorStrings))
+		throw std::logic_error(__FUNCTION__);
+
+	color = (FColor) std::distance(cbegin(fColorStrings), f);
+}
+
+void PrintColored(std::string str)
+{
+	// TODO Some color tags in str
+	//test_find_color_tag();
+
+	//str = "...some begin...<color=Magenta>Content</color>...some end..."s;
+	string_view sw = str;
+
+	auto [tag, tag_prop, tag_content] = find_color_tag(str);
+	if (tag.empty() || tag_prop.empty() || tag_content.empty())
+	{
+		std::cout << str;
+		return;
+	}
+	string_view before_tag (sw.data(), std::distance(sw.data(), tag.data()));
+	string_view after_tag (tag.data() + tag.size());
+
+	std::cout << before_tag;
+
+	RGB color = tag_analyze(tag_prop);
+	convert_to_nearest_color(color);
+	int win_color = convert_to_win_terminal_color(color);
+	Print_WINConsoleColored(win_color, tag_content);
+
+	std::cout << after_tag;
+
 	/*
-	[tag, pos, size] = find_color_tag(str);
-	tag_analyze(tag);
-	color = convert_to_nearest_color(tag);
 	cut_from_stream([tag, pos, size]);
 	forward_to_cout();
 	*/

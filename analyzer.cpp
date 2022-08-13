@@ -6,6 +6,7 @@
 #include "convert.h"
 #include "common_algo.h"
 #include "datetime.h"
+#include "con_text_coloring.h"
 
 #include <algorithm>
 #include <array>
@@ -562,7 +563,9 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, const HiddenItem* hitem)
 		, fmt::arg("landType", lt_s)
 		, fmt::arg("depth", hitem->Depth)
 	);
-	return os << res;
+	colors::PrintColored(res);
+	return os;
+	//return os << res;
 #else
 	return os;
 #endif
