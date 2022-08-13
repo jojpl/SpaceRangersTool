@@ -1,7 +1,6 @@
 #include "con_text_coloring.h"
 #include "common_algo.h"
 
-#include <kwsys\Terminal.h>
 #include <string>
 
 #include <windows.h>

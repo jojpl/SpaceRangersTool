@@ -23,10 +23,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 
-#if defined HAVE_FMT_LIB
-#include <fmt/core.h>
-#endif
-
 using namespace std::string_literals;
 using namespace std::placeholders;
 
@@ -547,28 +543,32 @@ std::ostream& dump_HiddenItem_info(std::ostream& os, const HiddenItem* hitem)
 	if (!cur_s) throw std::logic_error("Find player err!");
 	auto* item = hitem->item;
 	int lt = hitem->LandType;
-	std::string_view lt_s = hitem->LandType == 0 ? "Water" :
+	std::string_view LandType_sw = hitem->LandType == 0 ? "Water" :
 							hitem->LandType == 1 ? "Land" :
 							hitem->LandType == 2 ? "Mount" :
 							"???";
-#if defined HAVE_FMT_LIB
-	auto res = fmt::format("{id},{name},{type},{star},{planet},{dist},{star_owners},{landType:<5},{depth}"
-		, fmt::arg("id", item->Id)
-		, fmt::arg("name", item->IName)
-		, fmt::arg("type", conv::to_string(item->IType))
-		, fmt::arg("star", item->location.star->StarName)
-		, fmt::arg("planet", item->location.planet->PlanetName)
-		, fmt::arg("dist", get_distance(cur_s, item->location.star))
-		, fmt::arg("star_owners", conv::to_string(item->Owner))
-		, fmt::arg("landType", lt_s)
-		, fmt::arg("depth", hitem->Depth)
+	std::string LandType{ LandType_sw };
+	auto IType_sw =  conv::to_string(item->IType);
+	std::string IType { IType_sw };
+	auto Owner_sw =  conv::to_string(item->Owner);
+	std::string Owner{ Owner_sw };
+
+	const std::string templ =
+		"%d,%s,%s,%s,%s,%d,%s,%s,%d";
+	auto res = string_format(templ.data()
+		, item->Id
+		, item->IName.data()
+		, IType.data()
+		, item->location.star->StarName.data()
+		, item->location.planet->PlanetName.data()
+		, get_distance(cur_s, item->location.star)
+		, Owner.data()
+		, LandType.data()
+		, hitem->Depth
 	);
+
 	colors::PrintColored(res);
 	return os;
-	//return os << res;
-#else
-	return os;
-#endif
 }
 
 void analyzer::dump_treasures()
@@ -580,7 +580,7 @@ void analyzer::dump_treasures()
 	find_path_ids_from_opt(s1_id, s2_id, p1_id, p2_id);
 
 	std::ostream& os =  std::cout;
-	auto head = "id,name,type,star,planet,dist, star_owners,landType,depth";
+	auto head = "id,name,type,star,planet,dist,star_owners,landType,depth";
 	os << head << "\n";
 	for (const auto& item : items)
 	{
@@ -592,6 +592,8 @@ void analyzer::dump_treasures()
 		&& item.item->location.planet 
 		&& item.item->location.planet->Id != p1_id)
 			continue;
+
+		if(item.item->IType!=Type::Nod) continue;
 
 		dump_HiddenItem_info(os, &item);
 		std::cout << '\n';
