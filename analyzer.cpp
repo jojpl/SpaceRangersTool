@@ -267,10 +267,16 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 
 	if (opt.tops)
 	{
-		std::sort(vti.begin(), vti.end(),
-			std::not_fn([this](const TradeInfo& ti1, const TradeInfo& ti2) {
+		//std::sort(vti.begin(), vti.end(),
+		//	std::not_fn([this](const TradeInfo& ti1, const TradeInfo& ti2) {
+		//		return (*tops_cmp_2)(ti1, ti2);
+		//	})
+		//);
+
+		std::sort(vti.rbegin(), vti.rend(),
+			[this](const TradeInfo& ti1, const TradeInfo& ti2) {
 				return (*tops_cmp_2)(ti1, ti2);
-			})
+			}
 		);
 
 		auto v1 = std::unique(vti.begin(), vti.end(),
@@ -284,15 +290,15 @@ void analyzer::calc_profits(filter_ptr filt, sorter_ptr sorter)
 
 		vti.erase(v1, vti.end());
 
-		std::sort(vti.begin(), vti.end(),
-			std::not_fn(*sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit))
+		std::sort(vti.rbegin(), vti.rend(),
+			*sorters::make_sorter(&TradeInfo::profit, &Profit::delta_profit)
 		);
 	}
 
-	std::sort(vti.begin(), vti.end(),
-		std::not_fn([sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
+	std::sort(vti.rbegin(), vti.rend(),
+		[sorter](const TradeInfo& ti1, const TradeInfo& ti2) {
 			return (*sorter)(ti1, ti2);
-		})
+		}
 	);
 
 	dump_top(std::cout, vti, options::get_opt());
