@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
 	//::SetConsoleTextAttribute()
 	//_get_osfhandle
 #endif
-
 	if(!options::parse_args(argc, argv))
 		return 0;
 

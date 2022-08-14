@@ -56,30 +56,21 @@ namespace options
 			po::positional_options_description pd;
 			pd.add("count", 1);
 			
-			auto parsed_options = po::command_line_parser(argc, argv)
-				.options(desc)
-				.positional(pd)
-				.run();
-
-			po::store(parsed_options, vm);
-			
-			if (vm.count("help")) {
-				std::cout << desc << "\n";
-				return false;
-			}
-
+			//TODO refactor this, add description
 			po::options_description cfg_desc("Config options");
 			cfg_desc.add_options()
-				("search.item.IType",po::value<std::string>(), "produce help message")
-				("search.item.IName",po::value<std::string>(), "produce help message")
-				("search.item.Size",po::value<std::string>(), "produce help message")
-				("search.item.MinDamage",po::value<std::string>(), "produce help message")
-				("search.item.TechLevel",po::value<std::string>(), "produce help message")
+				("search.item.IType",     po::value<std::string>(), "produce help message")
+				("search.item.IName",     po::value<std::string>(), "produce help message")
+				("search.item.Size",      po::value<std::string>(), "produce help message")
+				("search.item.MinDamage", po::value<std::string>(), "produce help message")
+				("search.item.TechLevel", po::value<std::string>(), "produce help message")
 				;
+			desc.add(cfg_desc);
+
 			std::ifstream ifs("cfg.txt");
 			if(ifs)
 			{
-				po::store(parse_config_file(ifs, cfg_desc), vm);
+				po::store(parse_config_file(ifs, desc), vm);
 				po::notify(vm);
 
 				auto& opt_search_item = get_opt().itemSearch;
@@ -106,9 +97,20 @@ namespace options
 						
 					}
 				}
-				//if(vm.count("search.item.IType"))
 			}
 
+			auto parsed_options = po::command_line_parser(argc, argv)
+				.options(desc)
+				.positional(pd)
+				.run();
+
+			po::store(parsed_options, vm);
+			po::notify(vm);
+
+			if (vm.count("help")) {
+				std::cout << desc << "\n";
+				return false;
+			}
 
 			#define SAVE_TO_OPTIONAL(name, alias) \
 			if (vm.count(name)) get_opt().alias = vm[name].as<typename decltype(alias)::value_type>();
