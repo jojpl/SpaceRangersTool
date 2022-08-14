@@ -60,6 +60,15 @@ namespace options
 		Modes                      mod = Modes::profit;
 		bool                       tops = false;
 		bool                       perf = false;
+		struct ItemSearch
+		{
+			std::optional<std::string> IType;
+			std::optional<std::string> IName;
+			std::optional<std::string> Size;
+			std::optional<std::string> MinDamage;
+			std::optional<std::string> TechLevel;
+		};
+		std::optional<ItemSearch>  itemSearch;
 	};
 
 	inline Options& get_opt()

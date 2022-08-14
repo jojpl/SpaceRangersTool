@@ -19,6 +19,7 @@
 #include <sstream>
 #include <set>
 #include <optional>
+#include <variant>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
@@ -756,6 +757,113 @@ void analyzer::show_ritches()
 		);
 
 		std::cout << res << std::endl;
+	}
+}
+
+struct ItemReal
+{
+	std::optional<Type> IType;
+	std::optional<std::string> IName;
+	std::optional<int> Size;
+	std::optional<int> MinDamage;
+	std::optional<int> TechLevel;
+};
+
+bool is_item_accept(const ItemReal& search_item, Item* item)
+{
+	if (search_item.IType && item->IType != search_item.IType.value())
+		return false;
+
+	if (search_item.IName &&
+		item->IName.find(search_item.IName.value()) == std::string::npos)
+		return false;
+
+	if (search_item.Size && item->Size < search_item.Size.value())
+		return false;
+
+	if (search_item.MinDamage && item->MinDamage
+		&& item->MinDamage.value() < search_item.MinDamage.value())
+		return false;
+
+	if (search_item.TechLevel && item->TechLevel < search_item.TechLevel.value())
+		return false;
+
+	return true;
+}
+
+void analyzer::show_items_search_reminder()
+{
+	const auto& opt = options::get_opt();
+	const auto& optItem = opt.itemSearch.value();
+	
+	ItemReal search_item;
+	if (optItem.IType) 
+		conv::from_string(search_item.IType,     optItem.IType.value());
+	if (optItem.IName)
+		conv::from_string(search_item.IName,     optItem.IName.value());
+	if (optItem.Size)
+		conv::from_string(search_item.Size,      optItem.Size.value());
+	if (optItem.MinDamage)
+		conv::from_string(search_item.MinDamage, optItem.MinDamage.value());
+	if (optItem.TechLevel)
+		conv::from_string(search_item.TechLevel, optItem.TechLevel.value());
+
+	vector<std::pair<const Item*, std::variant<const Planet*, const Station*> >> vi;
+
+	const auto& stations = storage::get<Station>();
+	for (const auto& station : stations)
+	{
+		for (const auto& item : station.EqShop.list)
+		{
+			if(!is_item_accept(search_item, item))
+				continue;
+			vi.emplace_back(item, &station);
+		}
+	}
+	const auto& planets = storage::get<Planet>();
+	for (const auto& planet : planets)
+	{
+		if(planet.Owner == Owner::None 
+		|| planet.Owner == Owner::Kling)
+			continue;
+
+		for (const auto& item : planet.EqShop.list)
+		{
+			if (!is_item_accept(search_item, item))
+				continue;
+			vi.emplace_back(item, &planet);
+		}
+	}
+
+	std::ostream& os = std::cout;
+	if(!vi.empty())
+		colors::PrintColored("<color=255,0,255>Finded Items</color>\n");
+
+	const std::string templ =
+		"What: id: %d, name: %s cost %6d Where: %s %s";
+	for (const auto& [item, loc] : vi)
+	{
+		const Planet* loc_planet_shop = 0;
+		const Station* loc_station_shop = 0;
+
+		auto* pl = std::get_if<const Planet*>(&loc);
+		if(pl!=nullptr)
+			loc_planet_shop = *pl;
+		auto* st = std::get_if<const Station*>(&loc);
+		if (st != nullptr)
+			loc_station_shop = *st;
+		
+		auto res = string_format(templ.data()
+			, item->Id
+			, item->IName.data()
+			, item->Cost
+			, item->location.star->StarName.data()
+			, loc_planet_shop ? item->location.planet->PlanetName.data()
+			: loc_station_shop?	loc_station_shop->IFullName.data() : ""
+		);
+
+		colors::PrintColored(res);
+		os << std::endl;
 	}
 }
 

@@ -49,6 +49,9 @@ void on_new_file_found(std::string file)
 			default:
 				break;
 		}
+
+		if(opt.itemSearch)
+			a.show_items_search_reminder();
 	}
 	catch (const std::exception& e)
 	{

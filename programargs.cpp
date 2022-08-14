@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <istream>
+#include <fstream>
 #include <ostream>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -16,6 +17,7 @@ namespace po = boost::program_options;
 namespace options 
 {
 	using namespace std::placeholders;
+	using namespace std::string_view_literals;
 	po::variables_map vm;
 	po::options_description desc("Allowed options");
 
@@ -61,18 +63,52 @@ namespace options
 
 			po::store(parsed_options, vm);
 			
-			//po::options_description cfg_desc("Allowed options");
-			//cfg_desc.add_options()
-			//	("gui.accessibility.visual_bell",po::value<bool>(), "produce help message")
-			//	;
-			//po::store(parse_config_file("cfg.txt", cfg_desc), vm);
-
-			po::notify(vm);
-
 			if (vm.count("help")) {
 				std::cout << desc << "\n";
 				return false;
 			}
+
+			po::options_description cfg_desc("Config options");
+			cfg_desc.add_options()
+				("search.item.IType",po::value<std::string>(), "produce help message")
+				("search.item.IName",po::value<std::string>(), "produce help message")
+				("search.item.Size",po::value<std::string>(), "produce help message")
+				("search.item.MinDamage",po::value<std::string>(), "produce help message")
+				("search.item.TechLevel",po::value<std::string>(), "produce help message")
+				;
+			std::ifstream ifs("cfg.txt");
+			if(ifs)
+			{
+				po::store(parse_config_file(ifs, cfg_desc), vm);
+				po::notify(vm);
+
+				auto& opt_search_item = get_opt().itemSearch;
+				bool bfind_any = false;
+				for (const auto& [str, val]: vm)
+				{
+					constexpr auto sw = "search.item."sv;
+					if (boost::starts_with(str, sw))
+					{
+						if(!bfind_any) opt_search_item.emplace();
+						bfind_any = true;
+
+						auto item_prop = str.substr(sw.size());
+						if(item_prop == "IType")
+							opt_search_item.value().IType = val.as<std::string>();
+						if (item_prop == "IName")
+							opt_search_item.value().IName = val.as<std::string>();
+						if (item_prop == "Size")
+							opt_search_item.value().Size = val.as<std::string>();
+						if (item_prop == "MinDamage")
+							opt_search_item.value().MinDamage = val.as<std::string>();
+						if (item_prop == "TechLevel")
+							opt_search_item.value().TechLevel = val.as<std::string>();
+						
+					}
+				}
+				//if(vm.count("search.item.IType"))
+			}
+
 
 			#define SAVE_TO_OPTIONAL(name, alias) \
 			if (vm.count(name)) get_opt().alias = vm[name].as<typename decltype(alias)::value_type>();
