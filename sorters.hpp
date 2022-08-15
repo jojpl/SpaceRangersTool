@@ -100,11 +100,14 @@ namespace sorters
 
 		bool operator()(const any& a1, const any& a2) const override
 		{
-			if (!(*p1_)(a1, a2) && !(*p1_)(a2, a1)) //eq
+			bool ge = (*p1_)(a1, a2);
+			if (!ge)
 			{
-				return (*p2_)(a1, a2);
+				bool le = (*p1_)(a2, a1);
+				if(!le) //eq
+					return (*p2_)(a1, a2);
 			}
-			return (*p1_)(a1, a2);
+			return ge;
 		}
 	};
 }

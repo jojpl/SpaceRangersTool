@@ -414,12 +414,9 @@ filter_ptr analyzer::createGoodsFilter()
 {
 	auto opt = options::get_opt();
 
-	std::set<GoodsEnum> sg;
-	auto gn = model::enums::get_strings<GoodsEnum>();
-	for (const auto& e: model::enums::get_enums<GoodsEnum>()) // Food, ... , NUM
-	{
-		sg.insert(e);
-	}
+	const auto& gn = model::enums::get_strings<GoodsEnum>();
+	const auto& ge = model::enums::get_enums<GoodsEnum>();
+	std::set<GoodsEnum> sg{ ge.begin(), ge.end() };
 
 	if(!opt.goods.empty()) 
 	{
@@ -499,7 +496,7 @@ sorter_ptr createSortfromOpt(const options::SortOptions& sort_options)
 		}
 
 		if(direction == options::SortDirection::ASC)
-			s = std::make_shared<sorters::ASC_Wrapper>(s);
+			s = sorter_ptr(new sorters::ASC_Wrapper(s));
 
 		if(!common)
 			common = s;
@@ -673,7 +670,7 @@ void analyzer::show_price()
 	);
 
 	std::sort(vp.begin(), vp.end(),
-		std::not_fn(*sorters::make_sorter(&Price::buy))
+		sorters::ASC_Wrapper(sorters::make_sorter(&Price::buy))
 	);
 	
 	const std::string templ =
