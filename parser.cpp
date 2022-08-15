@@ -23,17 +23,12 @@ constexpr std::string_view crlf_tag     = "\r\n";
 
 #define Starts_with(sw, example) (boost::starts_with(sw, example))
 
-#define BEGIN_PARSE_FOR(struct_name) { using t = struct_name; do {if(false){}
-#define USE_1TO1_PARSE() 1
-#if USE_1TO1_PARSE()
+#define BEGIN_PARSE_FOR(struct_name) { do { if(false) {}
 #define PARSE_TO(field) else if(constexpr auto field##sw = #field##sv; key == field##sw) \
 							{\
 								conv::from_string(p->field, value);\
 								return true;\
 							}
-#else
-#define PARSE_TO(field) else if(conv::parse(&t::field, p, key, value)) return true;
-#endif
 #define END_PARSE() }while(false);}
 
 bool read_file_as_mem(std::string& out, const std::string& path)

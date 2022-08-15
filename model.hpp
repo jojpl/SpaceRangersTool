@@ -88,41 +88,4 @@ namespace model
 			);
 		}
 	}
-
-	namespace kv
-	{
-		// store keys for struct fields
-		template<typename T, typename Ret>
-		auto& get_storage()
-		{
-			// contain definitions for parse Entities::T fields -> string
-			static_assert(!std::is_const_v<T>,   "incorrect to create consts obj!");
-			static_assert(!std::is_const_v<Ret>, "incorrect to create consts obj!");
-			static std::map<std::string_view, const Ret T::*> storage{};
-			return storage;
-		}
-
-		template<typename T, typename Ret>
-		void add_definition(const Ret T::* field,
-			std::string_view key)
-		{
-			auto& storage = get_storage<T, Ret>();
-			storage.insert({ key, field });
-		}
-
-		template<typename T, typename Ret>
-		std::string_view to_string(const Ret T::* field)
-		{
-			const auto& storage = get_storage<T, Ret>();
-			for (const auto& [key, val] : storage)
-			{
-				if (val == field)
-					return key;
-			}
-
-			throw std::logic_error(
-				"empty value for: "s + typeid(field).name()
-			);
-		}
-	}
 }

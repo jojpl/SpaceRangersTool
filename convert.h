@@ -105,17 +105,4 @@ namespace conv
 	}
 
 	/* to_string section end */
-
-	template<typename T, typename Ret>
-	inline bool parse(Ret T::* field, T* p,
-				std::string_view key,
-				std::string_view value)
-	{
-		const auto key_expected = model::kv::to_string(field);
-		if (key != key_expected)
-			return false;
-
-		from_string(p->*field, value);
-		return true;
-	}
 }
