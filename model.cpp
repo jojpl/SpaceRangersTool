@@ -4,11 +4,13 @@ namespace model
 {
 namespace enums
 {
-	void init_converter_impl()
-	{
-		#define BEGIN_FOR(struct_name) { using t = struct_name;
-		#define NAME2TYPE_ELEMENT(name) add_definition(t::name, #name);
-		#define END_FOR() }
+	#if 1
+	//void init_converter_impl()
+	//{
+		#define BEGIN_FOR(struct_name) template<> \
+			std::array<std::string_view, ENUM_COUNT(struct_name)> init<struct_name>() { return {
+		#define NAME2TYPE_ELEMENT(name) #name,
+		#define END_FOR() }; }
 
 		BEGIN_FOR(Type)
 			NAME2TYPE_ELEMENT(Alcohol)
@@ -132,8 +134,8 @@ namespace enums
 		#undef BEGIN_FOR
 		#undef NAME2TYPE_ELEMENT
 		#undef END_FOR
-	}
-
+	//}
+	#endif
 } // namespace enums
 
 
@@ -142,7 +144,7 @@ struct staticIniter
 	staticIniter()
 	{
 		//kv::init_storage_impl();
-		enums::init_converter_impl();
+		//enums::init_converter_impl();
 	}
 };
 

@@ -14,8 +14,6 @@ namespace Entities
 
 	enum class Type
 	{
-		Unknown,
-
 		Alcohol,
 		Arms,
 		ArtAnalyzer,
@@ -119,7 +117,9 @@ namespace Entities
 	{
 		Klings,
 		Normals,
-		Pirates
+		Pirates,
+
+		NUM
 	};
 
 	enum class Owner
@@ -134,7 +134,9 @@ namespace Entities
 		Peleng,
 		People,
 
-		PirateClan
+		PirateClan,
+
+		NUM
 	};
 
 	enum class Goverment
@@ -144,6 +146,8 @@ namespace Entities
 		Dictatorship,
 		Monarchy,
 		Republic,
+
+		NUM
 	};
 
 	struct Item;
@@ -253,7 +257,7 @@ namespace Entities
 
 		int Id = 0;	
 		string IFullName;
-		Type IType = Type::Unknown;
+		Type IType {};
 		string Name;
 		string IPlanet;
 		GoodsQty Goods;
@@ -307,7 +311,7 @@ namespace Entities
 
 		int Id = 0;
 		string IName;
-		Type IType = Type::Unknown;
+		Type IType {};
 		int	Size = 0;
 
 		optional<int> Ammo;

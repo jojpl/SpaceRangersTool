@@ -9,61 +9,60 @@ namespace model
 	namespace enums
 	{
 		template<typename T>
+		std::array<std::string_view, ENUM_COUNT(T)> init();
+
+		template<typename T>
+		const static std::array<std::string_view, ENUM_COUNT(T)> storage = init<T>();
+
+		template<typename T>
 		auto& get_storage()
 		{
 			static_assert(!std::is_const_v<T>, "incorrect to create consts obj!");
-			static std::vector< std::pair<std::string_view, T> > storage;
-			return storage;
+			return storage<T>;
 		}
 
 		template<typename T>
-		auto& get_strings()
+		static std::vector<std::string_view> init_strings()
 		{
-			static std::vector<std::string_view> vs;
+			const auto& storage = get_storage<T>();
+			std::vector<std::string_view> vsw(storage.cbegin(), storage.cend());
+			return vsw;
+		}
+
+		template<typename T>
+		const auto& get_strings()
+		{
+			static std::vector<std::string_view> vs = init_strings<T>();
 			return vs;
+		}
+
+		template<typename T>
+		static std::vector<T> init_enums()
+		{
+			const auto& storage = get_storage<T>();
+			std::vector<T> vsw;
+			for (size_t i = 0; i < storage.size(); i++)
+				vsw.push_back(T(i));
+
+			return vsw;
 		}
 
 		template<typename T>
 		auto& get_enums()
 		{
-			static std::vector<T> vs;
-			return vs;
-		}
-
-		template<typename T>
-		void add_definition(const T& value,
-			std::string_view key)
-		{
-			auto& storage = get_storage<T>();
-			storage.push_back({ key, value });
-
-			auto& enums = get_enums<T>();
-			enums.push_back(value);
-
-			auto& strings = get_strings<T>();
-			strings.push_back(key);
+			static std::vector<T> ve = init_enums<T>();
+			return ve;
 		}
 
 		template<typename T>
 		void from_string(T& field, std::string_view sw)
 		{
 			const auto& storage = get_storage<T>();
-			//auto it = std::find_if(cbegin(storage), cend(storage), 
-			//	[sw](const auto& p){
-			//		return p.first == sw;
-			//	}
-			//);
-			//if(it!=storage.cend())
-			//{
-			//	const auto& [key, value] = *it;
-			//	field = value;
-			//	return;
-			//}
-			for (const auto&[key, val] : storage)
+			for (size_t i = 0; i < storage.size(); i++)
 			{
-				if (key == sw)
+				if (storage[i] == sw)
 				{
-					field = val;
+					field = (T)i;
 					return;
 				}
 			}
@@ -77,11 +76,7 @@ namespace model
 		std::string_view to_string(const T& field)
 		{
 			const auto& storage = get_storage<T>();
-			for (const auto& [key, val] : storage)
-			{
-				if (val == field)
-					return key;
-			}
+			return storage.at((size_t)field);
 
 			throw std::logic_error(
 				"empty value for: "s + typeid(field).name()
