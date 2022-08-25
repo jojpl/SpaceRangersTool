@@ -217,7 +217,8 @@ void PrintColored(std::string str)
 	// TODO Some color tags in str
 	//test_find_color_tag();
 
-	//str = "...some begin...<color=Magenta>Content</color>...some end..."s;
+	//str = "...some begin...<color=Magenta>Content</color>...some "
+	//"<color=Magenta>Content</color>...some end"s;
 	string_view sw = str;
 
 	auto [tag, tag_prop, tag_content] = find_color_tag(str);
@@ -236,7 +237,9 @@ void PrintColored(std::string str)
 	int win_color = convert_to_win_terminal_color(color);
 	Print_WINConsoleColored(win_color, tag_content);
 
-	std::cout << after_tag;
+	//std::cout << after_tag;
+	auto after_tag_str = std::string(after_tag.data(), after_tag.size());
+	PrintColored(after_tag_str);
 
 	/*
 	cut_from_stream([tag, pos, size]);

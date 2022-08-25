@@ -158,6 +158,7 @@ namespace Entities
 	struct Station;
 	struct Player;
 	struct Hole;
+	struct Warrior;
 
 
 	struct Unknown
@@ -235,6 +236,11 @@ namespace Entities
 		vector<Ship*> list;
 	};
 
+	struct Garrison
+	{
+		vector<Warrior*> list;
+	};
+
 	struct HoleList
 	{
 		vector<Hole*> list;
@@ -298,7 +304,7 @@ namespace Entities
 		{ Type::BK, Type::CB, Type::MC, Type::PB, Type::RC, Type::SB, Type::WB };
 
 		EqShop     EqShop;
-		GoodsQty   ShopGoods; // base ship dublicate
+		GoodsQty   ShopGoods;
 		GoodsPrice ShopGoodsSale;
 		GoodsPrice ShopGoodsBuy;
 	};
@@ -382,6 +388,7 @@ namespace Entities
 		GoodsQty   ShopGoods;
 		GoodsPrice ShopGoodsSale;
 		GoodsPrice ShopGoodsBuy;
+		Garrison   Garrison;
 		Treasure   Treasure;
 
 		Location location;

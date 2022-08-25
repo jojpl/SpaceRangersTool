@@ -835,28 +835,28 @@ void analyzer::show_items_search_reminder()
 	std::ostream& os = std::cout;
 	if(!vi.empty())
 		colors::PrintColored("<color=255,0,255>Finded Items</color>\n");
+	
+	auto get_loc_name = [](const std::variant<const Planet*, const Station*>& loc)
+	{
+		auto* pl = std::get_if<const Planet*>(&loc);
+		if (pl) return (*pl)->PlanetName.data();
+
+		auto* st = std::get_if<const Station*>(&loc);
+		if (st) return (*st)->IFullName.data();
+		
+		return "";
+	};
 
 	const std::string templ =
 		"What: id: %d, name: %s cost %6d Where: %s %s";
 	for (const auto& [item, loc] : vi)
 	{
-		const Planet* loc_planet_shop = 0;
-		const Station* loc_station_shop = 0;
-
-		auto* pl = std::get_if<const Planet*>(&loc);
-		if(pl!=nullptr)
-			loc_planet_shop = *pl;
-		auto* st = std::get_if<const Station*>(&loc);
-		if (st != nullptr)
-			loc_station_shop = *st;
-		
 		auto res = string_format(templ.data()
 			, item->Id
 			, item->IName.data()
 			, item->Cost
 			, item->location.star->StarName.data()
-			, loc_planet_shop ? item->location.planet->PlanetName.data()
-			: loc_station_shop?	loc_station_shop->IFullName.data() : ""
+			, get_loc_name(loc)
 		);
 
 		colors::PrintColored(res);

@@ -13,8 +13,6 @@ namespace parser
 
 using namespace Entities;
 
-bool read_file_as_mem(std::string& out, const std::string& path);
-
 Global* parse(const std::string& mem);
 
 void trim_tabs(std::string_view& beg);
@@ -49,7 +47,8 @@ struct Parser_Ctx
 			Treasure*,
 			HiddenItem*,
 			HoleList*,
-			Hole*
+			Hole*,
+			Garrison*
 		>;
 
 	bool getline();
@@ -120,11 +119,12 @@ public:
 		else if (ctx.is_object_close())
 		{
 			on_close_obj(t);
+			if(ctx.stack.empty()) throw std::logic_error("wrong format");
 			ctx.stack.pop();
 		}
 		else if (ctx.is_object_kv())
 		{
-			const auto[key, value] = ctx.get_kv();
+			auto[key, value] = ctx.get_kv();
 			on_kv(t, key, value);
 		}
 	}
@@ -192,6 +192,13 @@ private:
 	bool on_new_obj(HoleList* p, std::string_view obj_name);
 	// Hole
 	bool on_kv(Hole*      p, std::string_view key, std::string_view value);
+
+	// Garrison
+	bool on_new_obj(Garrison* p, std::string_view obj_name);
+
+	// Warrior
+	bool on_new_obj(Warrior* p, std::string_view obj_name);
+	bool on_kv(Warrior*      p, std::string_view key, std::string_view value);
 
 	//defaults
 	template <typename T>

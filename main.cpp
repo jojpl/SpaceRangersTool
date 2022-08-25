@@ -4,6 +4,7 @@
 #include "programargs.hpp"
 
 #include <iostream>
+#include <fstream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -11,12 +12,30 @@
 
 using namespace std::string_literals;
 
+bool read_file_as_mem(std::string& out, const std::string& path)
+{
+	std::ifstream f(path, std::ifstream::binary);
+	if (!f) return false;
+
+	f.seekg(0, std::ifstream::end);
+	auto len = (size_t)f.tellg();
+	f.seekg(0);
+
+	std::vector<char> buf;
+	buf.resize(len);
+
+	f.read(buf.data(), len);
+
+	out.assign(buf.begin(), buf.end());
+	return !out.empty();
+}
+
 void on_new_file_found(std::string file)
 {
 	try
 	{
 		std::string mem;
-		if(!parser::read_file_as_mem(mem, file))
+		if(!read_file_as_mem(mem, file))
 		throw std::logic_error("Can't read file : "s + file);
 
 		Entities::Global* out = parser::parse(mem);

@@ -4,8 +4,6 @@
 #include "performance_tracker.hpp"
 
 #include <algorithm>
-#include <fstream>
-#include <iostream>
 #include <map>
 #include <string_view>
 
@@ -30,31 +28,6 @@ constexpr std::string_view crlf_tag     = "\r\n";
 								return true;\
 							}
 #define END_PARSE() }while(false);}
-
-bool read_file_as_mem(std::string& out, const std::string& path)
-{
-	std::ifstream f(path, std::ifstream::binary);
-	if(!f) return false;
-
-	f.seekg(0, std::ifstream::end);
-	auto len = (size_t) f.tellg();
-	f.seekg(0);
-
-	std::vector<char> buf;
-	buf.resize(len);
-
-	f.read(buf.data(), len);
-
-	out.assign(buf.begin(), buf.end());
-	return !out.empty();
-}
-
-void trim_tabs(std::string::const_iterator& beg,
-	std::string::const_iterator& end)
-{
-	while (beg !=end && *beg == '\t') ++beg;
-	while (beg !=end && *(end - 1) == '\t') --end;
-}
 
 void trim_tabs(std::string_view& beg)
 {
@@ -383,7 +356,7 @@ Type get_IType_use_lookup_ahead(std::string_view tail)
 			return t;
 		}
 	}
-	return t;
+	throw std::logic_error(__FUNCTION__);
 }
 
 bool Handler::on_new_obj(EqList * p, std::string_view obj_name)
@@ -530,6 +503,11 @@ bool Handler::on_new_obj(Planet * p, std::string_view obj_name)
 	else if (obj_name == "Treasure")
 	{
 		ctx.stack.push({ &p->Treasure });
+		return true;
+	}
+	else if (obj_name == "Garrison")
+	{
+		ctx.stack.push({ &p->Garrison });
 		return true;
 	}
 	return false;
@@ -697,6 +675,29 @@ bool Handler::on_kv(Hole * p, std::string_view key, std::string_view value)
 	END_PARSE()
 	
 	return false;
+}
+
+bool Handler::on_new_obj(Garrison * p, std::string_view obj_name)
+{
+	if (Starts_with(obj_name, "WarriorId"))
+	{
+		int id = conv::extractId(obj_name);
+		auto* item = storage::Factory<Warrior>::create(id, ctx.location_);
+		p->list.push_back(item);
+		ctx.stack.push({ item });
+		return true;
+	}
+	return false;
+}
+
+bool Handler::on_new_obj(Warrior * p, std::string_view obj_name)
+{
+	return on_new_obj((Warrior::Inherit*) p, obj_name);
+}
+
+bool Handler::on_kv(Warrior * p, std::string_view key, std::string_view value)
+{
+	return on_kv((Warrior::Inherit*) p, key, value);
 }
 
 } // namespace parser

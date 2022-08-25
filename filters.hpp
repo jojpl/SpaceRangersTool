@@ -29,7 +29,6 @@ namespace filters
 	struct IPathFilter : IFilter
 	{
 		virtual bool operator()(const Path&) = 0;
-		virtual ~IPathFilter() = default;
 
 		//private:
 		virtual bool operator()(const any& ti) override
@@ -41,7 +40,6 @@ namespace filters
 	struct IProfitFilter : IFilter
 	{
 		virtual bool operator()(const Profit&) = 0;
-		virtual ~IProfitFilter() = default;
 
 		//private:
 		virtual bool operator()(const any& ti) override
